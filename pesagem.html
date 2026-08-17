@@ -318,92 +318,72 @@
   </main>
 
   <!-- ========================================== -->
-  <!-- FLUXO COLETOR 2: AGUARDANDO BIP            -->
+  <!-- FLUXO COLETOR: SCANNER E PESAGEM INTEGRADOS-->
   <!-- ========================================== -->
-  <main id="view-coletor-wait" class="view-container p-4">
-    <div class="flex flex-col h-full items-center justify-center text-center pb-10 space-y-5">
+  <main id="view-coletor-main" class="view-container p-3">
+    <div class="max-w-sm mx-auto space-y-3 pt-2">
       
-      <div class="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center scanner-icon-anim mb-2 border-4 border-blue-100 shadow-inner">
-        <i class="fa-solid fa-barcode text-4xl text-blue-600"></i>
-      </div>
-      
-      <h2 class="font-black text-xl text-slate-800 uppercase tracking-tight">Aguardando Leitura</h2>
-      <p class="text-slate-500 font-bold text-xs px-4">Aponte o coletor para a etiqueta (VDA) e aperte o gatilho.</p>
-      
-      <!-- Campo Oculto para capturar o Scanner -->
-      <input type="text" id="scanner-global-input" class="opacity-0 w-1 h-1 absolute" autocomplete="off" />
-      
-      <div class="bg-slate-100 px-4 py-2 rounded-lg text-slate-600 font-bold text-[10px] uppercase mt-4">
-        Caixas lidas nesta nota: <span id="wait-count" class="text-blue-600 font-black text-sm">0</span>
+      <!-- CAMPO DE SCAN (SEMPRE VISÍVEL E PRONTO) -->
+      <div class="bg-blue-600 rounded-lg p-3 text-center shadow-lg shadow-blue-500/30">
+        <label class="mobile-label text-blue-100 mb-2"><i class="fa-solid fa-barcode"></i> Bipe a Etiqueta VDA</label>
+        <input type="text" id="col-main-scan" class="mobile-input text-center font-mono font-black text-blue-900 bg-white border-none py-3" placeholder="Aponte o leitor aqui..." autocomplete="off" />
+        <div id="col-main-feedback" class="text-[10px] font-bold text-blue-200 mt-2 uppercase">Caixas lidas nesta nota: <span id="col-main-count" class="text-white font-black text-sm">0</span></div>
       </div>
 
-      <!-- NOVO BOTÃO DE FINALIZAR PARA O OPERADOR SAIR DAQUI -->
-      <div class="w-full max-w-xs mt-8 pt-6 border-t border-slate-200">
-        <button onclick="navTo('export')" class="btn-large bg-slate-800 text-white shadow-lg">
-          <i class="fa-solid fa-flag-checkered"></i> Encerrar Bipagem
-        </button>
-      </div>
-
-    </div>
-  </main>
-
-  <!-- ========================================== -->
-  <!-- FLUXO COLETOR 3: PESAGEM E TARA (REDUZIDO PARA CABER NA TELA) -->
-  <!-- ========================================== -->
-  <main id="view-coletor-weight" class="view-container p-3">
-    <div class="max-w-sm mx-auto">
-      <h2 class="font-black text-base text-slate-800 mb-2 flex items-center gap-2 uppercase">
-        <i class="fa-solid fa-box-open text-blue-600"></i> Dados Extraídos
-      </h2>
-      
-      <!-- GRID COMPACTO DE DADOS EXTRAÍDOS -->
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-3 mb-3">
+      <!-- DADOS EXTRAÍDOS (BLOQUEADOS) -->
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-3">
+        <h2 class="font-black text-xs text-slate-800 mb-2 flex items-center gap-1 uppercase border-b border-slate-100 pb-2">
+          <i class="fa-solid fa-box-open text-blue-600"></i> Dados da Peça Extraídos
+        </h2>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="mobile-label text-[9px]">Part Number</label>
-            <input type="text" id="cw-pn" class="mobile-input bg-slate-100 text-slate-600 border-none text-xs truncate" readonly />
-          </div>
-          <div>
-            <label class="mobile-label text-[9px]">Fornecedor</label>
-            <input type="text" id="cw-forn" class="mobile-input bg-slate-100 text-slate-600 border-none text-[10px] truncate" readonly />
+            <input type="text" id="col-main-pn" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
           </div>
           <div>
             <label class="mobile-label text-[9px]">Lote</label>
-            <input type="text" id="cw-lote" class="mobile-input bg-slate-100 text-slate-600 border-none text-xs truncate" readonly />
+            <input type="text" id="col-main-lote" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
           </div>
+        </div>
+        <div class="mt-2 grid grid-cols-2 gap-2">
           <div>
             <label class="mobile-label text-[9px]">Qtd (Peças)</label>
-            <input type="text" id="cw-qtd" class="mobile-input bg-slate-100 text-slate-600 border-none text-xs" readonly />
+            <input type="text" id="col-main-qtd" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold" readonly placeholder="-" />
+          </div>
+          <div>
+            <label class="mobile-label text-[9px]">Fornecedor</label>
+            <input type="text" id="col-main-forn" class="mobile-input bg-slate-50 text-slate-600 border-none text-[10px] truncate" readonly placeholder="-" />
           </div>
         </div>
       </div>
 
-      <h2 class="font-black text-base text-slate-800 mb-2 flex items-center gap-2 uppercase">
-        <i class="fa-solid fa-scale-unbalanced text-emerald-600"></i> Inserir Pesagem
-      </h2>
-      
-      <div class="bg-blue-50 rounded-lg shadow-sm border border-blue-200 p-3 space-y-3 mb-4">
+      <!-- CAMPOS DE PESAGEM (TARA E PESO) -->
+      <div class="bg-slate-50 rounded-lg shadow-sm border border-slate-200 p-3 space-y-3">
+        <h2 class="font-black text-sm text-slate-800 flex items-center gap-2 uppercase border-b border-slate-200 pb-2">
+          <i class="fa-solid fa-scale-unbalanced text-emerald-600"></i> Inserir Pesos
+        </h2>
         <div>
           <label class="mobile-label text-blue-800">1. Tara (Embalagem Vazia)</label>
-          <input type="number" step="0.1" id="cw-tara" class="mobile-input bg-white border-blue-300 text-base font-black text-blue-900" placeholder="Ex: 0.5 kg" />
+          <input type="number" step="0.1" id="col-main-tara" class="mobile-input bg-white border-blue-300 text-base font-black text-blue-900" placeholder="Ex: 0.5 kg" />
         </div>
-        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-blue-200">
+        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
           <div>
             <label class="mobile-label text-slate-600">2. Peso Bruto NF</label>
-            <input type="number" step="0.1" id="cw-pnf" class="mobile-input bg-white text-sm" placeholder="0.0" />
+            <input type="number" step="0.1" id="col-main-pnf" class="mobile-input bg-white text-sm" placeholder="0.0" />
           </div>
           <div>
             <label class="mobile-label text-emerald-700">3. Peso Físico</label>
-            <input type="number" step="0.1" id="cw-pmando" class="mobile-input bg-emerald-100 border-emerald-300 text-emerald-900 font-black text-sm" placeholder="0.0" />
+            <input type="number" step="0.1" id="col-main-pmando" class="mobile-input bg-emerald-100 border-emerald-300 text-emerald-900 font-black text-sm" placeholder="0.0" />
           </div>
         </div>
       </div>
 
+      <!-- BOTÕES -->
       <div class="space-y-2 pb-6">
-        <button onclick="salvarColetor(true)" class="btn-large btn-success py-3">
+        <button onclick="salvarColetorMain(true)" class="btn-large btn-success py-3">
           <i class="fa-solid fa-check"></i> Salvar e Bipar Próxima
         </button>
-        <button onclick="salvarColetor(false)" class="btn-large bg-slate-200 text-slate-700 hover:bg-slate-300 py-3 text-sm">
+        <button onclick="salvarColetorMain(false)" class="btn-large bg-slate-800 text-white shadow-lg py-3 text-sm">
           <i class="fa-solid fa-flag-checkered"></i> Salvar e Exportar
         </button>
       </div>
@@ -679,7 +659,7 @@
       }
 
       // Regras de Navegação Inferior
-      if (['login', 'mode-select', 'coletor-nf', 'coletor-wait', 'coletor-weight'].includes(viewId)) {
+      if (['login', 'mode-select', 'coletor-nf', 'coletor-main'].includes(viewId)) {
         if(nav) nav.style.display = 'none';
       } else {
         if(nav) nav.style.display = 'flex';
@@ -690,16 +670,15 @@
 
       if (viewId === 'manual-items') renderManualItemsList();
       if (viewId === 'export') document.getElementById('resumo-qtd-caixas').innerText = appState.caixas.length;
-      if (viewId === 'coletor-wait') {
-        document.getElementById('wait-count').innerText = appState.caixas.length;
-        setTimeout(() => { const inp = document.getElementById('scanner-global-input'); if(inp) { inp.value = ''; inp.focus(); } }, 100);
+      if (viewId === 'coletor-main') {
+        document.getElementById('col-main-count').innerText = appState.caixas.length;
+        setTimeout(() => { const inp = document.getElementById('col-main-scan'); if(inp) { inp.value = ''; inp.focus(); } }, 100);
       }
     }
 
     function navigateBack() {
         if (currentView === 'coletor-nf') navTo('mode-select');
-        else if (currentView === 'coletor-wait') navTo('coletor-nf');
-        else if (currentView === 'coletor-weight') navTo('coletor-wait');
+        else if (currentView === 'coletor-main') navTo('coletor-nf');
         else if (currentView === 'manual-header') navTo('mode-select');
         else if (currentView === 'manual-items') navTo('manual-header');
         else if (currentView === 'export') navTo('mode-select');
@@ -774,10 +753,10 @@
       const hoje = new Date();
       appState.cabecalho.data_conferencia = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
       
-      navTo('coletor-wait');
+      navTo('coletor-main');
     }
 
-    function processarBipagem(codigoBruto) {
+    function processarColetorMain(codigoBruto) {
       const upper = String(codigoBruto).toUpperCase().trim();
       if(!upper) return;
 
@@ -804,24 +783,22 @@
         if (k.replace(/[^A-Z0-9]/g, '') === searchKey) { scanAtualTemp.desc = val.desc; scanAtualTemp.peso = val.peso; break; }
       }
 
-      document.getElementById('cw-pn').value = scanAtualTemp.pn;
-      document.getElementById('cw-forn').value = scanAtualTemp.forn || appState.cabecalho.fornecedor || '-';
-      document.getElementById('cw-lote').value = scanAtualTemp.lote || '-';
-      document.getElementById('cw-qtd').value = scanAtualTemp.qtd || '-';
+      document.getElementById('col-main-pn').value = scanAtualTemp.pn || '-';
+      document.getElementById('col-main-forn').value = scanAtualTemp.forn || appState.cabecalho.fornecedor || '-';
+      document.getElementById('col-main-lote').value = scanAtualTemp.lote || '-';
+      document.getElementById('col-main-qtd').value = scanAtualTemp.qtd || '-';
       
-      document.getElementById('cw-tara').value = '';
-      document.getElementById('cw-pnf').value = '';
-      document.getElementById('cw-pmando').value = '';
-
-      navTo('coletor-weight');
-      setTimeout(() => document.getElementById('cw-tara').focus(), 300);
+      showToast("Etiqueta lida! Insira os pesos.");
+      setTimeout(() => document.getElementById('col-main-tara').focus(), 100);
     }
 
-    function salvarColetor(addAnother) {
-      const tara = document.getElementById('cw-tara').value;
-      const pnf = document.getElementById('cw-pnf').value;
-      const pmando = document.getElementById('cw-pmando').value;
+    function salvarColetorMain(addAnother) {
+      const pn = document.getElementById('col-main-pn').value;
+      const tara = document.getElementById('col-main-tara').value;
+      const pnf = document.getElementById('col-main-pnf').value;
+      const pmando = document.getElementById('col-main-pmando').value;
 
+      if (!pn || pn === '-') { showToast("Bipe uma etiqueta primeiro."); return; }
       if (!tara && !pmando) { showToast("Preencha ao menos a Tara ou o Peso Mando."); return; }
 
       const itemData = {
@@ -840,8 +817,18 @@
       appState.caixas.push(itemData);
       showToast("Caixa salva!");
 
-      if(addAnother) navTo('coletor-wait');
-      else navTo('export');
+      if(addAnother) {
+        document.getElementById('col-main-pn').value = '';
+        document.getElementById('col-main-forn').value = '';
+        document.getElementById('col-main-lote').value = '';
+        document.getElementById('col-main-qtd').value = '';
+        document.getElementById('col-main-tara').value = '';
+        document.getElementById('col-main-pnf').value = '';
+        document.getElementById('col-main-pmando').value = '';
+        navTo('coletor-main'); // reset view & count
+      } else {
+        navTo('export');
+      }
     }
 
     function onManualPnInput(val) {
@@ -1097,16 +1084,17 @@
     }
 
     // LISTENER DO COLETOR
-    document.addEventListener('keydown', function(event) {
-      if (document.getElementById('view-coletor-wait').classList.contains('active')) {
-        const inp = document.getElementById('scanner-global-input');
-        if (document.activeElement !== inp) inp.focus();
-        if (event.key === 'Enter') { event.preventDefault(); const val = inp.value; inp.value = ''; processarBipagem(val); }
+    document.getElementById('col-main-scan').addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') { 
+        event.preventDefault(); 
+        const val = this.value; 
+        this.value = ''; 
+        processarColetorMain(val); 
       }
     });
 
-    document.getElementById('cw-tara').addEventListener('keydown', e => { if(e.key === 'Enter') { e.preventDefault(); document.getElementById('cw-pnf').focus(); }});
-    document.getElementById('cw-pnf').addEventListener('keydown', e => { if(e.key === 'Enter') { e.preventDefault(); document.getElementById('cw-pmando').focus(); }});
+    document.getElementById('col-main-tara').addEventListener('keydown', e => { if(e.key === 'Enter') { e.preventDefault(); document.getElementById('col-main-pnf').focus(); }});
+    document.getElementById('col-main-pnf').addEventListener('keydown', e => { if(e.key === 'Enter') { e.preventDefault(); document.getElementById('col-main-pmando').focus(); }});
 
     function initFirebaseApp() {
       try {
@@ -1165,3 +1153,4 @@
   </script>
 </body>
 </html>
+
