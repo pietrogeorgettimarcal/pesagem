@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2800/2800118.png">
+  
+  <title>App Pesagem Mobile - HL Mando</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
+  <style>
+    :root {
+      --primary: #005c9e;
+      --primary-dark: #004b80;
+      --bg: #f8fafc;
+      --text: #1e293b;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      /* Ajuste crucial para mobile: 100dvh respeita a barra do navegador */
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .view-container {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 90px;
+      display: none;
+      animation: fadeIn 0.2s ease;
+      width: 100%;
+    }
+    
+    .view-container.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Reduzido para caber melhor no mobile */
+    .mobile-input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background-color: #f1f5f9;
+      transition: all 0.2s;
+      outline: none;
+      text-transform: uppercase;
+      font-weight: 700;
+      box-sizing: border-box;
+    }
+    .mobile-input:focus {
+      border-color: var(--primary);
+      background-color: #fff;
+      box-shadow: 0 0 0 2px rgba(0, 92, 158, 0.15);
+    }
+    
+    .mobile-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748b;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .btn-large {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      font-weight: 900;
+      font-size: 15px;
+      text-transform: uppercase;
+      transition: active 0.1s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-large:active {
+      transform: scale(0.97);
+    }
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+      box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2);
+    }
+    .btn-success {
+      background-color: #10b981;
+      color: white;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      display: none;
+      justify-content: space-around;
+      padding: 6px 0;
+      padding-bottom: env(safe-area-inset-bottom, 8px);
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
+      z-index: 50;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 8px;
+      border-radius: 8px;
+      flex: 1;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .nav-item.active {
+      color: var(--primary);
+    }
+    .nav-item i {
+      font-size: 18px;
+      margin-bottom: 2px;
+    }
+
+    .box-card {
+      background: white;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid var(--primary);
+      cursor: pointer;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: #1e293b;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 13px;
+      z-index: 1000;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      white-space: nowrap;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @keyframes scannerPulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 12px rgba(0,92,158,0.4)); }
+      100% { transform: scale(1); opacity: 0.8; }
+    }
+    .scanner-icon-anim {
+      animation: scannerPulse 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="bg-[#0f172a] text-white p-3 flex justify-between items-center shrink-0 shadow-md z-10 pt-[env(safe-area-inset-top,12px)]">
+    <div class="flex items-center gap-2">
+      <!-- Botão Voltar Dinâmico -->
+      <button id="btn-global-back" onclick="navigateBack()" class="hidden text-slate-300 hover:text-white px-2 py-1 text-lg">
+        <i class="fa-solid fa-arrow-left"></i>
+      </button>
+      
+      <div class="bg-white p-1.5 rounded-md shadow-sm ml-1">
+        <i class="fa-solid fa-scale-balanced text-[#0f172a] text-lg"></i>
+      </div>
+      <div>
+        <h1 class="font-black text-sm leading-tight tracking-tight">HL MANDO</h1>
+        <p class="text-[9px] text-slate-300 opacity-80 uppercase tracking-widest font-bold">Pesagem Mobile</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="logout()" id="btn-logout" class="hidden text-[10px] bg-slate-800 px-2 py-1.5 rounded text-slate-300 hover:text-white font-bold uppercase tracking-wider">
+        <i class="fa-solid fa-right-from-bracket"></i> Sair
+      </button>
+      <div id="sync-status" class="w-2.5 h-2.5 rounded-full bg-slate-500 animate-pulse" title="Status DB"></div>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- TELA 0: LOGIN SEGURA                       -->
+  <!-- ========================================== -->
+  <main id="view-login" class="view-container active p-4">
+    <div class="flex flex-col h-full justify-center max-w-sm mx-auto space-y-5 pb-20">
+      <div class="text-center">
+        <div class="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
+          <i class="fa-solid fa-user-lock text-2xl"></i>
+        </div>
+        <h2 class="font-black text-2xl text-slate-800 tracking-tight">ACESSO</h2>
+        <p class="text-slate-500 font-bold text-xs mt-1">Identifique-se para iniciar a pesagem</p>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div>
+          <label class="mobile-label">Usuário</label>
+          <input type="text" id="login-email" class="mobile-input normal-case" placeholder="ex: joao (só o nome)" />
+          <p class="text-[9px] text-slate-400 font-bold mt-1 ml-1"><i class="fa-solid fa-circle-info"></i> O @hlcompany.com é inserido sozinho.</p>
+        </div>
+        <div>
+          <label class="mobile-label">Senha</label>
+          <input type="password" id="login-senha" class="mobile-input normal-case" placeholder="••••••••" />
+        </div>
+        <div class="pt-3 space-y-3">
+          <button onclick="fazerLogin()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
+            Entrar no Sistema
+          </button>
+          <button onclick="fazerCadastro()" class="btn-large bg-slate-100 text-slate-700 hover:bg-slate-200">
+            Criar meu Cadastro
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- TELA 1: HOME (ESCOLHA DE MODO)             -->
+  <!-- ========================================== -->
+  <main id="view-mode-select" class="view-container p-4">
+    <div class="flex flex-col items-center justify-center h-full space-y-6 pt-4 pb-20 max-w-sm mx-auto">
+      
+      <div class="bg-blue-600 text-white w-full rounded-2xl p-4 shadow-lg shadow-blue-500/30 flex items-center gap-4">
+        <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+          <i class="fa-solid fa-user-check text-lg"></i>
+        </div>
+        <div>
+          <p class="text-[9px] font-black uppercase text-blue-200">Operador Logado</p>
+          <p id="lbl-operador-logado" class="font-black text-lg tracking-tight">-</p>
+        </div>
+      </div>
+
+      <div class="text-center w-full">
+        <h2 class="font-black text-lg text-slate-800 uppercase tracking-tight mb-4">Escolha o Modo</h2>
+        <div class="space-y-4 w-full">
+          <!-- MODO COLETOR -->
+          <button onclick="iniciarFluxo('coletor')" class="btn-large btn-primary py-5 relative overflow-hidden">
+            <div class="flex flex-col items-center gap-1 relative z-10">
+              <i class="fa-solid fa-barcode text-2xl mb-1"></i> 
+              <span>MODO COLETOR</span>
+              <span class="text-[10px] font-semibold text-blue-200 normal-case">Leitura de etiquetas (VDA)</span>
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 z-0"></div>
+            <span class="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-[9px] px-2 py-0.5 font-black rounded-bl-lg z-10">RÁPIDO</span>
+          </button>
+          
+          <!-- MODO MANUAL -->
+          <button onclick="iniciarFluxo('manual')" class="btn-large bg-white text-slate-700 py-5 border-2 border-slate-200 shadow-sm">
+            <div class="flex flex-col items-center gap-1">
+              <i class="fa-solid fa-keyboard text-2xl mb-1"></i> 
+              <span>MODO MANUAL</span>
+              <span class="text-[10px] font-semibold text-slate-400 normal-case">Digitação passo a passo</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- FLUXO COLETOR 1: DADOS NF                  -->
+  <!-- ========================================== -->
+  <main id="view-coletor-nf" class="view-container p-4">
+    <div class="max-w-sm mx-auto space-y-5 pt-4">
+      <h2 class="font-black text-lg text-slate-800 flex items-center gap-2 uppercase">
+        <i class="fa-solid fa-file-invoice text-blue-600"></i> Informe a Nota Fiscal
+      </h2>
+      
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+        <label class="mobile-label">Nota Fiscal (Obrigatório)</label>
+        <input type="text" id="col-nf-input" class="mobile-input text-lg font-black" placeholder="EX: 0197859" />
+        <p class="text-[10px] text-slate-400 font-bold mt-2">O fornecedor e outros dados serão puxados automaticamente no primeiro bip.</p>
+      </div>
+
+      <button onclick="avancarParaBipagem()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
+        Iniciar Bipagem <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- FLUXO COLETOR 2: AGUARDANDO BIP            -->
+  <!-- ========================================== -->
+  <main id="view-coletor-wait" class="view-container p-4">
+    <div class="flex flex-col h-full items-center justify-center text-center pb-10 space-y-5">
+      
+      <div class="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center scanner-icon-anim mb-2 border-4 border-blue-100 shadow-inner">
+        <i class="fa-solid fa-barcode text-4xl text-blue-600"></i>
+      </div>
+      
+      <h2 class="font-black text-xl text-slate-800 uppercase tracking-tight">Aguardando Leitura</h2>
+      <p class="text-slate-500 font-bold text-xs px-4">Aponte o coletor para a etiqueta (VDA) e aperte o gatilho.</p>
+      
+      <!-- Campo Oculto para capturar o Scanner -->
+      <input type="text" id="scanner-global-input" class="opacity-0 w-1 h-1 absolute" autocomplete="off" />
+      
+      <div class="bg-slate-100 px-4 py-2 rounded-lg text-slate-600 font-bold text-[10px] uppercase mt-4">
+        Caixas lidas nesta nota: <span id="wait-count" class="text-blue-600 font-black text-sm">0</span>
+      </div>
+
+      <!-- NOVO BOTÃO DE FINALIZAR PARA O OPERADOR SAIR DAQUI -->
+      <div class="w-full max-w-xs mt-8 pt-6 border-t border-slate-200">
+        <button onclick="navTo('export')" class="btn-large bg-slate-800 text-white shadow-lg">
+          <i class="fa-solid fa-flag-checkered"></i> Encerrar Bipagem
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- FLUXO COLETOR 3: PESAGEM E TARA (REDUZIDO PARA CABER NA TELA) -->
+  <!-- ========================================== -->
+  <main id="view-coletor-weight" class="view-container p-3">
+    <div class="max-w-sm mx-auto">
+      <h2 class="font-black text-base text-slate-800 mb-2 flex items-center gap-2 uppercase">
+        <i class="fa-solid fa-box-open text-blue-600"></i> Dados Extraídos
+      </h2>
+      
+      <!-- GRID COMPACTO DE DADOS EXTRAÍDOS -->
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-3 mb-3">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="mobile-label text-[9px]">Part Number</label>
+            <input type="text" id="cw-pn" class="mobile-input bg-slate-100 text-slate-600 border-none text-xs truncate" readonly />
+          </div>
+          <div>
+            <label class="mobile-label text-[9px]">Fornecedor</label>
+            <input type="text" id="cw-forn" class="mobile-input bg-slate-100 text-slate-600 border-none text-[10px] truncate" readonly />
+          </div>
+          <div>
+            <label class="mobile-label text-[9px]">Lote</label>
+            <input type="text" id="cw-lote" class="mobile-input bg-slate-100 text-slate-600 border-none text-xs truncate" readonly />
+          </div>
+          <div>
+            <label class="mobile-label text-[9px]">Qtd (Peças)</label>
+            <input type="text" id="cw-qtd" class="mobile-input bg-slate-100 text-slate-600 border-none text-xs" readonly />
+          </div>
+        </div>
+      </div>
+
+      <h2 class="font-black text-base text-slate-800 mb-2 flex items-center gap-2 uppercase">
+        <i class="fa-solid fa-scale-unbalanced text-emerald-600"></i> Inserir Pesagem
+      </h2>
+      
+      <div class="bg-blue-50 rounded-lg shadow-sm border border-blue-200 p-3 space-y-3 mb-4">
+        <div>
+          <label class="mobile-label text-blue-800">1. Tara (Embalagem Vazia)</label>
+          <input type="number" step="0.1" id="cw-tara" class="mobile-input bg-white border-blue-300 text-base font-black text-blue-900" placeholder="Ex: 0.5 kg" />
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-blue-200">
+          <div>
+            <label class="mobile-label text-slate-600">2. Peso Bruto NF</label>
+            <input type="number" step="0.1" id="cw-pnf" class="mobile-input bg-white text-sm" placeholder="0.0" />
+          </div>
+          <div>
+            <label class="mobile-label text-emerald-700">3. Peso Físico</label>
+            <input type="number" step="0.1" id="cw-pmando" class="mobile-input bg-emerald-100 border-emerald-300 text-emerald-900 font-black text-sm" placeholder="0.0" />
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-2 pb-6">
+        <button onclick="salvarColetor(true)" class="btn-large btn-success py-3">
+          <i class="fa-solid fa-check"></i> Salvar e Bipar Próxima
+        </button>
+        <button onclick="salvarColetor(false)" class="btn-large bg-slate-200 text-slate-700 hover:bg-slate-300 py-3 text-sm">
+          <i class="fa-solid fa-flag-checkered"></i> Salvar e Exportar
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- FLUXO MANUAL 1: DADOS NF                   -->
+  <!-- ========================================== -->
+  <main id="view-manual-header" class="view-container p-4">
+    <div class="max-w-sm mx-auto">
+      <h2 class="font-black text-lg text-slate-800 mb-3 flex items-center gap-2 uppercase">
+        <i class="fa-solid fa-keyboard text-slate-600"></i> Digitação Manual
+      </h2>
+      
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-3">
+        <div>
+          <label class="mobile-label">Notas Fiscais (Separe por hífen)</label>
+          <input type="text" id="man-nf" class="mobile-input text-sm" placeholder="EX: 0197859" />
+        </div>
+        <div>
+          <label class="mobile-label">Fornecedor</label>
+          <input type="text" id="man-forn" list="forn-list" class="mobile-input text-sm" placeholder="EX: AÇO PEÇAS" />
+          <datalist id="forn-list"></datalist>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="mobile-label flex justify-between">Data <span onclick="setToday()" class="text-blue-600 cursor-pointer">HOJE</span></label>
+            <input type="text" id="man-data" class="mobile-input text-sm" placeholder="DD/MM/AAAA" />
+          </div>
+          <div>
+            <label class="mobile-label">Turno</label>
+            <select id="man-turno" class="mobile-input bg-white text-sm">
+              <option value="A">TURNO A</option>
+              <option value="B">TURNO B</option>
+              <option value="C">TURNO C</option>
+              <option value="D">TURNO D</option>
+              <option value="COMERCIAL">COMERCIAL</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <button onclick="navTo('manual-items')" class="btn-large btn-primary mt-5">
+        Avançar para Caixas <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- FLUXO MANUAL 2: LISTA DE CAIXAS            -->
+  <!-- ========================================== -->
+  <main id="view-manual-items" class="view-container p-3 bg-slate-50">
+    <div class="flex justify-between items-center mb-3 max-w-sm mx-auto">
+      <h2 class="font-black text-base text-slate-800 flex items-center gap-2 uppercase">
+        <i class="fa-solid fa-boxes-stacked text-indigo-600"></i> Caixas Lidas
+      </h2>
+      <span id="man-items-counter" class="bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded text-[10px]">0 itens</span>
+    </div>
+
+    <div id="man-items-list" class="space-y-2 pb-20 max-w-sm mx-auto"></div>
+
+    <div class="fixed bottom-[65px] left-0 w-full p-3 bg-gradient-to-t from-slate-50 to-transparent pointer-events-none flex justify-center">
+      <button onclick="openManualAddModal()" class="btn-large btn-primary pointer-events-auto shadow-lg shadow-blue-500/30 max-w-sm">
+        <i class="fa-solid fa-plus"></i> Add Caixa Manual
+      </button>
+    </div>
+  </main>
+
+  <!-- MODAL ADIÇÃO MANUAL -->
+  <div id="modal-add-manual" class="fixed inset-0 bg-white z-[100] hidden flex-col transition-transform translate-y-full duration-300">
+    <div class="bg-[#0f172a] text-white p-3 flex justify-between items-center shrink-0">
+      <h2 id="modal-man-title" class="font-bold text-base">CAIXA Nº 1</h2>
+      <button onclick="closeManualAddModal()" class="text-white text-xl p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    
+    <div class="flex-1 overflow-y-auto p-3 bg-slate-50 space-y-3">
+      <div class="max-w-sm mx-auto">
+        <div>
+          <label class="mobile-label">Part Number / Código</label>
+          <input type="text" id="man-box-pn" list="cat-list" oninput="onManualPnInput(this.value)" class="mobile-input font-mono text-blue-800 font-bold" placeholder="EX: BC14030500" />
+          <datalist id="cat-list"></datalist>
+          <div id="man-desc-feedback" class="text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-white border border-slate-200 text-slate-500 text-center">
+            DIGITE O CÓDIGO DA PEÇA...
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 mt-3">
+          <div>
+            <label class="mobile-label">Lote</label>
+            <input type="text" id="man-box-lote" class="mobile-input text-sm" placeholder="LOTE" />
+          </div>
+          <div>
+            <label class="mobile-label">Qtd</label>
+            <input type="number" id="man-box-qtd" class="mobile-input text-sm font-bold" placeholder="Qtd" />
+          </div>
+        </div>
+        <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm mt-3 space-y-2">
+          <div>
+            <label class="mobile-label">Tara (Embalagem)</label>
+            <input type="number" step="0.1" id="man-box-tara" class="mobile-input text-sm" placeholder="Kg" />
+          </div>
+          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+            <div>
+              <label class="mobile-label text-[9px]">Peso Bruto NF</label>
+              <input type="number" step="0.1" id="man-box-pnf" class="mobile-input bg-slate-50 text-sm" placeholder="0.0" />
+            </div>
+            <div>
+              <label class="mobile-label text-[9px] text-emerald-700">Peso Físico</label>
+              <input type="number" step="0.1" id="man-box-pmando" class="mobile-input border-emerald-300 bg-emerald-50 text-emerald-800 font-black text-sm" placeholder="0.0" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-3 bg-white border-t border-slate-200 shrink-0 space-y-2 pb-[env(safe-area-inset-bottom,12px)] flex flex-col items-center">
+      <div class="w-full max-w-sm flex flex-col gap-2">
+        <button onclick="salvarManual(true)" class="btn-large btn-success py-3 text-sm">
+          <i class="fa-solid fa-check"></i> Salvar e Add Outra
+        </button>
+        <button onclick="salvarManual(false)" class="btn-large btn-primary bg-slate-800 py-3 text-sm">
+          Salvar e Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TELA 3: RESUMO E EXPORTAÇÃO                -->
+  <!-- ========================================== -->
+  <main id="view-export" class="view-container p-4">
+    <div class="max-w-sm mx-auto">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 text-center mb-5">
+        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+          <i class="fa-solid fa-clipboard-check text-2xl"></i>
+        </div>
+        <h2 class="font-black text-lg text-slate-800 uppercase mb-1">Conferência Pronta</h2>
+        <p class="text-[11px] text-slate-500 font-bold"><span id="resumo-qtd-caixas">0</span> caixas registradas.</p>
+      </div>
+
+      <div class="space-y-3">
+        <button onclick="openEmailModal()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
+          <i class="fa-solid fa-envelope"></i> Enviar por E-mail
+        </button>
+        
+        <button onclick="gerarExcel()" class="btn-large bg-white text-emerald-700 border-2 border-emerald-600">
+          <i class="fa-solid fa-download"></i> Apenas Salvar Excel
+        </button>
+        
+        <button onclick="sincronizarComDesktop()" class="btn-large btn-primary shadow-lg shadow-blue-600/30">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Enviar p/ Desktop
+        </button>
+        
+        <div class="pt-5 border-t border-slate-200 mt-5">
+          <button onclick="limparTudo()" class="btn-large bg-red-50 text-red-600 border border-red-200 text-sm">
+            <i class="fa-solid fa-trash-can"></i> Limpar / Iniciar Nova
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL ENVIO DE E-MAIL -->
+  <div id="modal-email" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center z-[200] px-4 opacity-0 transition-opacity">
+    <div class="bg-white p-5 rounded-2xl w-full max-w-sm shadow-xl transform scale-95 transition-transform duration-200" id="email-box">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-black text-base text-slate-800"><i class="fa-solid fa-envelope text-emerald-600"></i> Enviar Planilha</h3>
+        <button onclick="closeEmailModal()" class="text-slate-400 hover:text-slate-600 text-xl p-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-3 mb-5">
+        <div>
+          <label class="mobile-label">E-mail Operador</label>
+          <input type="text" id="email-logado" class="mobile-input bg-slate-100 text-slate-500 font-bold text-sm" readonly />
+        </div>
+        <div>
+          <label class="mobile-label">E-mail Adicional (Opcional)</label>
+          <input type="email" id="email-extra" class="mobile-input normal-case text-sm" placeholder="ex: gestor@hlcompany.com" />
+        </div>
+        <div class="bg-blue-50 border border-blue-200 p-2.5 rounded-lg flex items-start gap-2">
+          <i class="fa-solid fa-circle-info text-blue-500 mt-0.5 text-[10px]"></i>
+          <p class="text-[9px] text-blue-800 font-bold uppercase leading-tight">
+            O sistema usará o compartilhamento nativo. Escolha seu app de E-mail (Gmail/Outlook) e o Excel já estará anexado automaticamente!
+          </p>
+        </div>
+      </div>
+
+      <button onclick="confirmarEnvioEmail()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
+        Abrir Compartilhamento
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav" id="main-bottom-nav">
+    <div onclick="navTo('mode-select')" class="nav-item">
+      <i class="fa-solid fa-bars"></i>
+      Modo
+    </div>
+    <div onclick="navTo('manual-items')" class="nav-item active" id="nav-btn-items">
+      <i class="fa-solid fa-boxes-stacked"></i>
+      Caixas
+    </div>
+    <div onclick="navTo('export')" class="nav-item" id="nav-btn-export">
+      <i class="fa-solid fa-share-nodes"></i>
+      Exportar
+    </div>
+  </nav>
+
+  <div id="toast" class="toast">Mensagem...</div>
+
+  <script>
+    let appState = {
+      modo: null, // 'coletor' ou 'manual'
+      cabecalho: { fornecedor: "", nota_fiscal_principal: "", data_conferencia: "", operador: "", turno: "A" },
+      caixas: []
+    };
+    
+    // Lista Nacional/Importada conforme imagem anterior
+    const mapaFornecedores = {
+      '1065': 'CARIBOR', '3131': 'DETWYLLER', '0824': 'AÇO PEÇAS', '0172': 'DASOL',
+      '1107': 'MAXDELL', '1189': 'WHB', '1296': 'KROMAFLEX', '0945': 'TEC PACK',
+      '2953': 'HYDRO', '1354': 'SULAMERICANA', '0838': 'CATION', '1336': 'LIPOS',
+      '1719': 'METALAC', '1998': 'SADA', '1823': 'MICROJUNTAS', '1683': 'METALSIDER',
+      '3030': 'PAPERGREEN', '1824': 'TEKFOR', '3124': 'EMBAS', '0683': 'KAYABA',
+      '1467': 'FIAT BETIM', '000031': 'FIAT PERNAMBUCO', '1356': 'LOOPSMOL', '0957': 'LABEL',
+      '2989': 'MAIL EBS', '1870': 'CONTINENTAL', '1963': 'SANGSIN MÉXICO', '0001': 'MANDO HEADQUARTER',
+      '1836': 'BOULEVARD MANDO MÉXICO', '1892': 'TAMAS KOREA', '1382': 'JTT',
+      '1905': 'SENSATA', '3795': 'HL KLEMOVE'
+    };
+
+    let editIndex = -1;
+    let db = null;
+    let auth = null;
+    let desktopLoteNotas = [];
+    let appCatalog = {};
+    let currentView = 'login';
+    let scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function setToday() {
+      const hoje = new Date();
+      const formatado = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
+      document.getElementById('man-data').value = formatado;
+    }
+
+    function formatarEmail(valor) {
+      let v = valor.trim().toLowerCase();
+      if (v && !v.includes('@')) v += '@hlcompany.com';
+      return v;
+    }
+
+    // NAVEGAÇÃO E BOTÃO DE VOLTAR GLOBAL
+    function navTo(viewId) {
+      document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById(`view-${viewId}`);
+      if(target) target.classList.add('active');
+      currentView = viewId;
+      
+      const nav = document.getElementById('main-bottom-nav');
+      const backBtn = document.getElementById('btn-global-back');
+
+      // Regras de Navegação de Voltar (Seta)
+      if (viewId === 'login' || viewId === 'mode-select') {
+          backBtn.classList.add('hidden');
+      } else {
+          backBtn.classList.remove('hidden');
+      }
+
+      // Regras de Navegação Inferior
+      if (['login', 'mode-select', 'coletor-nf', 'coletor-wait', 'coletor-weight'].includes(viewId)) {
+        if(nav) nav.style.display = 'none';
+      } else {
+        if(nav) nav.style.display = 'flex';
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        const btn = document.getElementById(`nav-btn-${viewId === 'manual-items' ? 'items' : viewId}`);
+        if(btn) btn.classList.add('active');
+      }
+
+      if (viewId === 'manual-items') renderManualItemsList();
+      if (viewId === 'export') document.getElementById('resumo-qtd-caixas').innerText = appState.caixas.length;
+      if (viewId === 'coletor-wait') {
+        document.getElementById('wait-count').innerText = appState.caixas.length;
+        setTimeout(() => { const inp = document.getElementById('scanner-global-input'); if(inp) { inp.value = ''; inp.focus(); } }, 100);
+      }
+    }
+
+    function navigateBack() {
+        if (currentView === 'coletor-nf') navTo('mode-select');
+        else if (currentView === 'coletor-wait') navTo('coletor-nf');
+        else if (currentView === 'coletor-weight') navTo('coletor-wait');
+        else if (currentView === 'manual-header') navTo('mode-select');
+        else if (currentView === 'manual-items') navTo('manual-header');
+        else if (currentView === 'export') navTo('mode-select');
+    }
+
+    function fazerLogin() {
+      const emailRaw = document.getElementById('login-email').value;
+      const senha = document.getElementById('login-senha').value;
+      if (!emailRaw || !senha) { showToast("Preencha usuário e senha."); return; }
+      const email = formatarEmail(emailRaw);
+      
+      auth.signInWithEmailAndPassword(email, senha)
+        .then(() => { showToast("Login com sucesso!"); navTo('mode-select'); })
+        .catch(error => {
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
+                showToast("❌ Conta não existe ou senha errada. Tente 'Criar meu Cadastro'.");
+            } else {
+                showToast("Erro: " + error.message);
+            }
+        });
+    }
+
+    function fazerCadastro() {
+      const emailRaw = document.getElementById('login-email').value;
+      const senha = document.getElementById('login-senha').value;
+      if (!emailRaw || !senha) { showToast("Preencha usuário e senha para cadastrar."); return; }
+      
+      const email = formatarEmail(emailRaw);
+      const nomeOp = emailRaw.split('@')[0].toUpperCase();
+      
+      auth.createUserWithEmailAndPassword(email, senha)
+        .then(() => {
+          db.ref('cadastros/operadores').push({ nome: nomeOp, turno: "A" });
+          showToast("Cadastro criado com sucesso!");
+          navTo('mode-select');
+        })
+        .catch(error => {
+            if (error.code === 'auth/email-already-in-use') showToast("❌ Esse usuário já existe! Clique em 'Entrar'.");
+            else if (error.code === 'auth/weak-password') showToast("❌ A senha deve ter 6 caracteres no mínimo.");
+            else showToast("Falha: " + error.message);
+        });
+    }
+
+    function logout() {
+      if(auth) {
+        auth.signOut().then(() => {
+          appState.caixas = [];
+          document.getElementById('btn-logout').classList.add('hidden');
+          navTo('login');
+        });
+      }
+    }
+
+    function iniciarFluxo(modo) {
+      appState.modo = modo;
+      if (modo === 'coletor') {
+        document.getElementById('col-nf-input').value = appState.cabecalho.nota_fiscal_principal;
+        navTo('coletor-nf');
+      } else {
+        setToday();
+        document.getElementById('man-nf').value = appState.cabecalho.nota_fiscal_principal;
+        document.getElementById('man-forn').value = appState.cabecalho.fornecedor;
+        navTo('manual-header');
+      }
+    }
+
+    function avancarParaBipagem() {
+      const nf = document.getElementById('col-nf-input').value.trim();
+      if(!nf) { showToast("Digite a Nota Fiscal!"); return; }
+      
+      appState.cabecalho.nota_fiscal_principal = nf.toUpperCase();
+      const hoje = new Date();
+      appState.cabecalho.data_conferencia = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
+      
+      navTo('coletor-wait');
+    }
+
+    function processarBipagem(codigoBruto) {
+      const upper = String(codigoBruto).toUpperCase().trim();
+      if(!upper) return;
+
+      scanAtualTemp = { pn: upper, forn: "", lote: "", qtd: "", desc: "", peso: null };
+
+      if (upper.startsWith('P') && upper.length >= 40) {
+          const codF = upper.substring(3, 7);
+          scanAtualTemp.forn = mapaFornecedores[codF] || codF;
+          if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
+          
+          const pnMatch = upper.match(/(BC[A-Z0-9]{6,12})/);
+          if (pnMatch) scanAtualTemp.pn = pnMatch[1];
+          
+          const tail = upper.substring(upper.length - 10);
+          scanAtualTemp.lote = tail.substring(0, 4);
+          scanAtualTemp.qtd = parseInt(tail.substring(4), 10);
+      } else {
+          const pnMatch = upper.match(/(BC[A-Z0-9]{6,12})/);
+          if (pnMatch) scanAtualTemp.pn = pnMatch[1];
+      }
+
+      let searchKey = scanAtualTemp.pn.replace(/[^A-Z0-9]/g, '');
+      for (const [k, val] of Object.entries(appCatalog)) { 
+        if (k.replace(/[^A-Z0-9]/g, '') === searchKey) { scanAtualTemp.desc = val.desc; scanAtualTemp.peso = val.peso; break; }
+      }
+
+      document.getElementById('cw-pn').value = scanAtualTemp.pn;
+      document.getElementById('cw-forn').value = scanAtualTemp.forn || appState.cabecalho.fornecedor || '-';
+      document.getElementById('cw-lote').value = scanAtualTemp.lote || '-';
+      document.getElementById('cw-qtd').value = scanAtualTemp.qtd || '-';
+      
+      document.getElementById('cw-tara').value = '';
+      document.getElementById('cw-pnf').value = '';
+      document.getElementById('cw-pmando').value = '';
+
+      navTo('coletor-weight');
+      setTimeout(() => document.getElementById('cw-tara').focus(), 300);
+    }
+
+    function salvarColetor(addAnother) {
+      const tara = document.getElementById('cw-tara').value;
+      const pnf = document.getElementById('cw-pnf').value;
+      const pmando = document.getElementById('cw-pmando').value;
+
+      if (!tara && !pmando) { showToast("Preencha ao menos a Tara ou o Peso Mando."); return; }
+
+      const itemData = {
+        caixa_no: appState.caixas.length + 1,
+        observacao: scanAtualTemp.pn,
+        descricao: scanAtualTemp.desc,
+        lote: scanAtualTemp.lote,
+        peso_unitario: scanAtualTemp.peso,
+        quantidade_mencionada: scanAtualTemp.qtd,
+        peso_embalagem: tara,
+        peso_bruto_nf: pnf,
+        peso_bruto_mando: pmando,
+        id: 'mob_' + Date.now()
+      };
+
+      appState.caixas.push(itemData);
+      showToast("Caixa salva!");
+
+      if(addAnother) navTo('coletor-wait');
+      else navTo('export');
+    }
+
+    function onManualPnInput(val) {
+      const raw = String(val).trim().toUpperCase();
+      const feedback = document.getElementById('man-desc-feedback');
+      let searchKey = raw.replace(/[^A-Z0-9]/g, '');
+      let achou = false;
+      
+      for (const [k, v] of Object.entries(appCatalog)) { 
+        if (k.replace(/[^A-Z0-9]/g, '') === searchKey) { 
+          feedback.innerHTML = `<b>${v.desc}</b>`;
+          feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-center';
+          achou = true; break; 
+        }
+      }
+      if(!achou && raw.length > 3) {
+          feedback.innerText = '⚠️ PN NÃO ENCONTRADO';
+          feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-rose-50 border border-rose-200 text-rose-700 text-center';
+      }
+    }
+
+    function renderManualItemsList() {
+      const list = document.getElementById('man-items-list');
+      document.getElementById('man-items-counter').innerText = `${appState.caixas.length} CAIXAS`;
+      
+      if (appState.caixas.length === 0) {
+        list.innerHTML = `<div class="text-center p-6 text-slate-400 font-bold text-xs uppercase"><i class="fa-solid fa-box-open text-3xl mb-2 opacity-50 block"></i> Nenhuma caixa.</div>`;
+        return;
+      }
+      list.innerHTML = '';
+      appState.caixas.forEach((c, idx) => {
+        list.innerHTML += `
+          <div class="box-card" onclick="openManualEditModal(${idx})">
+            <div class="flex justify-between items-start mb-1">
+              <div class="font-black text-slate-800 text-sm">CX ${c.caixa_no}</div>
+              <div class="font-bold text-blue-700 bg-blue-50 px-2 rounded text-[10px]">${c.observacao || 'S/ CÓDIGO'}</div>
+            </div>
+            <div class="text-[10px] font-bold text-slate-500 mb-2 border-t border-slate-100 pt-1.5 flex justify-between">
+              <span>QTD: ${c.quantidade_mencionada || '-'}</span> <span>LOTE: ${c.lote || '-'}</span> <span>TARA: ${c.peso_embalagem || '-'} kg</span>
+            </div>
+            <div class="text-[10px] font-bold text-slate-500 pt-1 border-t border-slate-100 flex justify-between">
+              <span>NF: ${c.peso_bruto_nf || '-'}</span> <span>Mando: <b class="text-emerald-600">${c.peso_bruto_mando || '-'}</b></span>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function openManualAddModal() {
+      editIndex = -1;
+      document.getElementById('modal-man-title').innerText = `CAIXA Nº ${appState.caixas.length + 1}`;
+      ['pn', 'lote', 'qtd', 'tara', 'pnf', 'pmando'].forEach(id => document.getElementById(`man-box-${id}`).value = '');
+      document.getElementById('man-desc-feedback').innerText = 'DIGITE O CÓDIGO...';
+      document.getElementById('man-desc-feedback').className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-white border border-slate-200 text-slate-500 text-center';
+      
+      const modal = document.getElementById('modal-add-manual');
+      modal.classList.remove('hidden');
+      setTimeout(() => { modal.classList.remove('translate-y-full'); document.getElementById('man-box-pn').focus(); }, 10);
+    }
+
+    function openManualEditModal(idx) {
+      editIndex = idx;
+      const c = appState.caixas[idx];
+      document.getElementById('modal-man-title').innerText = `EDITAR CX Nº ${c.caixa_no}`;
+      document.getElementById('man-box-pn').value = c.observacao || '';
+      document.getElementById('man-box-lote').value = c.lote || '';
+      document.getElementById('man-box-qtd').value = c.quantidade_mencionada || '';
+      document.getElementById('man-box-tara').value = c.peso_embalagem || '';
+      document.getElementById('man-box-pnf').value = c.peso_bruto_nf || '';
+      document.getElementById('man-box-pmando').value = c.peso_bruto_mando || '';
+      onManualPnInput(c.observacao || '');
+      
+      const modal = document.getElementById('modal-add-manual');
+      modal.classList.remove('hidden');
+      setTimeout(() => modal.classList.remove('translate-y-full'), 10);
+    }
+
+    function closeManualAddModal() {
+      const modal = document.getElementById('modal-add-manual');
+      modal.classList.add('translate-y-full');
+      setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
+    function salvarManual(addAnother) {
+      const pn = document.getElementById('man-box-pn').value.trim().toUpperCase();
+      const lote = document.getElementById('man-box-lote').value;
+      const qtd = document.getElementById('man-box-qtd').value;
+      const tara = document.getElementById('man-box-tara').value;
+      const pnf = document.getElementById('man-box-pnf').value;
+      const pmando = document.getElementById('man-box-pmando').value;
+
+      if (!pn && !pmando) { showToast("Preencha PN ou Peso."); return; }
+
+      let desc = ""; let pesoUnit = null;
+      let searchKey = pn.replace(/[^A-Z0-9]/g, '');
+      for (const [k, val] of Object.entries(appCatalog)) { 
+        if (k.replace(/[^A-Z0-9]/g, '') === searchKey) { desc = val.desc; pesoUnit = val.peso; break; }
+      }
+
+      appState.cabecalho.nota_fiscal_principal = document.getElementById('man-nf').value.toUpperCase();
+      appState.cabecalho.fornecedor = document.getElementById('man-forn').value.toUpperCase();
+
+      const itemData = {
+        caixa_no: editIndex > -1 ? appState.caixas[editIndex].caixa_no : (appState.caixas.length + 1),
+        observacao: pn, descricao: desc, lote: lote, peso_unitario: pesoUnit,
+        quantidade_mencionada: qtd, peso_embalagem: tara, peso_bruto_nf: pnf, peso_bruto_mando: pmando
+      };
+
+      if (editIndex > -1) appState.caixas[editIndex] = itemData;
+      else appState.caixas.push(itemData);
+
+      showToast("Caixa salva!");
+      renderManualItemsList();
+      
+      if(addAnother && editIndex === -1) {
+        document.getElementById('man-box-pn').value = '';
+        document.getElementById('man-box-pmando').value = '';
+        document.getElementById('man-box-pn').focus();
+      } else {
+        closeManualAddModal();
+      }
+    }
+
+    function openEmailModal() {
+      const modal = document.getElementById('modal-email');
+      const box = document.getElementById('email-box');
+      
+      let userEmail = appState.cabecalho.operador ? `${appState.cabecalho.operador.toLowerCase()}@hlcompany.com` : 'operador@hlcompany.com';
+      try { const user = firebase.auth().currentUser; if (user && user.email) userEmail = user.email; } catch (e) {}
+      
+      document.getElementById('email-logado').value = userEmail;
+      document.getElementById('email-extra').value = '';
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+    }
+
+    function closeEmailModal() {
+      const modal = document.getElementById('modal-email');
+      const box = document.getElementById('email-box');
+      modal.classList.add('opacity-0');
+      box.classList.add('scale-95');
+      setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
+    }
+
+    function criarWorkbookBase() {
+      const wb = XLSX.utils.book_new();
+      const wsData = [
+        ["CONFERÊNCIA / PESAGEM", "", "", "", "", "", ""],
+        ["NOTA FISCAL", "ITEM", "TOTAL DE PEÇA", "FORNECEDOR", "DATA CONFERÊNCIA", "OPERADOR", ""],
+        [ appState.cabecalho.nota_fiscal_principal, "", "", appState.cabecalho.fornecedor, appState.cabecalho.data_conferencia, appState.cabecalho.operador, "" ],
+        ["", "", "", "", "", "", ""],
+        ["CAIXA Nº", "QTD MENCIONADA", "PESO EMBALAGEM", "PESO BRUTO/NF", "PESO BRUTO MANDO", "LOTE", "PART NUMBER"]
+      ];
+
+      const totalLinhas = Math.max(40, appState.caixas.length);
+      for (let i = 1; i <= totalLinhas; i++) {
+        const c = appState.caixas.find(item => Number(item.caixa_no) === i);
+        if (c) wsData.push([ i, c.quantidade_mencionada || "", c.peso_embalagem || "", c.peso_bruto_nf || "", c.peso_bruto_mando || "", c.lote || "", c.observacao || "" ]);
+        else wsData.push([i, "", "", "", "", "", ""]);
+      }
+
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      const borda = { style: "thin", color: { rgb: "000000" } };
+      ws['!merges'] = [ { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } } ];
+
+      for (let R = 0; R < wsData.length; ++R) {
+        for (let C = 0; C < 7; ++C) {
+          const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!ws[cellRef]) ws[cellRef] = { v: "", t: "s" };
+          let s = { font: { name: "Arial", sz: 10 }, alignment: { horizontal: "center", vertical: "center" } };
+          if (R === 0 || R === 1 || R === 4) { s.font.bold = true; s.border = {top: borda, bottom: borda, left: borda, right: borda}; s.fill = { fgColor: { rgb: "EAEAEA" } }; }
+          else if (R > 4) { s.border = {top: borda, bottom: borda, left: borda, right: borda}; }
+          ws[cellRef].s = s;
+        }
+      }
+      ws['!cols'] = [ { wch: 10 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 15 }, { wch: 25 } ];
+
+      XLSX.utils.book_append_sheet(wb, ws, "Pesagem");
+      return wb;
+    }
+
+    async function confirmarEnvioEmail() {
+      const emailLogado = document.getElementById('email-logado').value.trim();
+      const emailExtra = document.getElementById('email-extra').value.trim();
+      let dest = emailLogado;
+      if (emailExtra) dest += `,${emailExtra}`;
+
+      const nf = appState.cabecalho.nota_fiscal_principal || 'S/N';
+      const fileName = `Conferencia_NF_${nf}.xlsx`;
+      const subject = `Planilha de Pesagem - NF ${nf}`;
+      const textBody = `Olá,\n\nSegue em anexo a planilha de pesagem referente à NF ${nf}.\n\nPara: ${dest}\n\nEnviado via App Mobile HL Mando.`;
+
+      if (typeof XLSX === 'undefined') { showToast("Excel indisponível."); return; }
+      
+      const wb = criarWorkbookBase();
+      
+      // 1. Transforma o Excel gerado em um Arquivo na Memória (Blob)
+      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const file = new File([blob], fileName, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+      // 2. Tenta acionar o botão "Compartilhar" Nativo do Android / Celular
+      let shareSuccess = false;
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: subject,
+            text: textBody
+          });
+          showToast("Aberto no app de e-mail!");
+          shareSuccess = true;
+          closeEmailModal();
+        } catch (error) {
+          console.log("Compartilhamento nativo bloqueado (normal no preview). Acionando plano B...", error);
+        }
+      } 
+      
+      // 3. PLANO B (Fallback): Se o navegador bloqueou o modo acima, apenas baixa o arquivo e abre o e-mail padrão.
+      if (!shareSuccess) {
+        XLSX.writeFile(wb, fileName); // Força o download da planilha
+        const encodedSubject = encodeURIComponent(subject);
+        const encodedBody = encodeURIComponent(textBody + "\n\n⚠️ ATENÇÃO: O ARQUIVO FOI BAIXADO. CLIQUE NO CLIPE DE PAPEL (ANEXO) PARA INCLUIR A PLANILHA QUE ACABOU DE BAIXAR.");
+        
+        // Abre o Outlook/Mail padrão
+        window.location.href = `mailto:${dest}?subject=${encodedSubject}&body=${encodedBody}`;
+        closeEmailModal();
+      }
+    }
+
+    function gerarExcel() {
+      if (typeof XLSX === 'undefined') { showToast("Excel indisponível."); return; }
+      const wb = criarWorkbookBase();
+      XLSX.writeFile(wb, `Conferencia_Pesagem.xlsx`);
+      showToast("Excel Gerado e Baixado!");
+    }
+
+    function sincronizarComDesktop() {
+      if (!db || appState.caixas.length === 0) { showToast("Nada para enviar."); return; }
+      const novaNota = { modo: appState.modo, title: "Lançamento Mobile", cabecalho: appState.cabecalho, caixas: appState.caixas };
+      db.ref('loteNotas').set([...desktopLoteNotas, novaNota]).then(() => showToast("Enviado para o Desktop!"));
+    }
+
+    function limparTudo() {
+      if(confirm("Apagar todos os dados desta nota?")) {
+        appState.caixas = [];
+        appState.cabecalho.nota_fiscal_principal = "";
+        navTo('mode-select');
+        showToast("Zerado.");
+      }
+    }
+
+    // LISTENER DO COLETOR
+    document.addEventListener('keydown', function(event) {
+      if (document.getElementById('view-coletor-wait').classList.contains('active')) {
+        const inp = document.getElementById('scanner-global-input');
+        if (document.activeElement !== inp) inp.focus();
+        if (event.key === 'Enter') { event.preventDefault(); const val = inp.value; inp.value = ''; processarBipagem(val); }
+      }
+    });
+
+    document.getElementById('cw-tara').addEventListener('keydown', e => { if(e.key === 'Enter') { e.preventDefault(); document.getElementById('cw-pnf').focus(); }});
+    document.getElementById('cw-pnf').addEventListener('keydown', e => { if(e.key === 'Enter') { e.preventDefault(); document.getElementById('cw-pmando').focus(); }});
+
+    function initFirebaseApp() {
+      try {
+        const firebaseConfig = {
+          apiKey: "AIzaSyBQ7_k7huhS8oAyKp0OsbEajXFmrNxcrlo",
+          authDomain: "kyro-7cb7a.firebaseapp.com",
+          databaseURL: "https://kyro-7cb7a-default-rtdb.firebaseio.com",
+          projectId: "kyro-7cb7a",
+          storageBucket: "kyro-7cb7a.firebasestorage.app",
+          messagingSenderId: "368737182812",
+          appId: "1:368737182812:web:7be81b22a1a1fec5c97299"
+        };
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        auth = firebase.auth();
+
+        auth.onAuthStateChanged((user) => {
+          if (user) {
+            const userName = user.email.split('@')[0].toUpperCase();
+            appState.cabecalho.operador = userName;
+            document.getElementById('lbl-operador-logado').innerText = userName;
+            document.getElementById('btn-logout').classList.remove('hidden');
+            if (currentView === 'login') navTo('mode-select');
+          } else {
+            navTo('login');
+          }
+        });
+
+        db.ref('loteNotas').on('value', snap => { desktopLoteNotas = snap.val() || []; document.getElementById('sync-status').classList.replace('bg-slate-500', 'bg-emerald-400'); });
+        db.ref('cadastros/fornecedores').on('value', snap => {
+          const dl = document.getElementById('forn-list'); dl.innerHTML = '';
+          const arr = Array.isArray(snap.val()) ? snap.val().filter(x => x) : Object.values(snap.val() || {});
+          arr.forEach(f => dl.innerHTML += `<option value="${(f || '').toUpperCase()}">`);
+        });
+
+        db.ref('dynamicCatalog').on('value', snap => {
+          const val = snap.val();
+          if (val) {
+            appCatalog = {};
+            const dl = document.getElementById('cat-list'); dl.innerHTML = '';
+            for (let k in val) {
+              let originalKey = k.replace(/_DOT_/g, '.').replace(/_HASH_/g, '#').replace(/_DOL_/g, '$').replace(/_SLASH_/g, '/').replace(/_OB_/g, '[').replace(/_CB_/g, ']');
+              appCatalog[originalKey.toUpperCase()] = { desc: (val[k].desc || val[k].descricao || '').toUpperCase(), peso: val[k].peso !== undefined ? Number(val[k].peso) : null };
+              dl.innerHTML += `<option value="${originalKey}">${originalKey} - ${val[k].desc || ''}</option>`;
+            }
+          }
+        });
+      } catch(e) { console.error("Firebase init error:", e); }
+    }
+
+    window.onload = function() {
+      initFirebaseApp();
+      const loginEmail = document.getElementById('login-email');
+      if(loginEmail) loginEmail.addEventListener('blur', function() { this.value = formatarEmail(this.value); });
+    };
+  </script>
+</body>
+</html>
