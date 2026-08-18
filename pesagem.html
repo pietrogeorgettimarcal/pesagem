@@ -947,25 +947,35 @@
     }
 
     function processarColetorMain(codigoBruto) {
-      const upper = String(codigoBruto).toUpperCase().trim();
+      // Remove caracteres invisíveis que alguns leitores inserem
+      let upper = String(codigoBruto).replace(/[\r\n\t]/g, '').toUpperCase().trim();
       if(!upper) return;
 
-      scanAtualTemp = { pn: upper, forn: "", lote: "", qtd: "", desc: "", peso: null };
+      scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
 
-      if (upper.startsWith('P') && upper.length >= 40) {
-          const codF = upper.substring(3, 7);
+      // Ignora prefixos de leitores físicos (ex: ]C1) achando o início real do código
+      let pIndex = upper.indexOf('P');
+      let adjustedString = upper;
+      if (pIndex > 0 && pIndex < 5) {
+          adjustedString = upper.substring(pIndex);
+      }
+
+      // Se tiver o formato Mando posicional esperado
+      if (adjustedString.startsWith('P') && adjustedString.length >= 35) {
+          const codF = adjustedString.substring(3, 7);
           scanAtualTemp.forn = mapaFornecedores[codF] || codF;
           if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
           
-          const pnMatch = upper.match(/(BC[A-Z0-9]{6,12})/);
-          if (pnMatch) scanAtualTemp.pn = pnMatch[1];
-          
-          const tail = upper.substring(upper.length - 10);
+          const tail = adjustedString.substring(adjustedString.length - 10);
           scanAtualTemp.lote = tail.substring(0, 4);
-          scanAtualTemp.qtd = parseInt(tail.substring(4), 10);
-      } else {
-          const pnMatch = upper.match(/(BC[A-Z0-9]{6,12})/);
-          if (pnMatch) scanAtualTemp.pn = pnMatch[1];
+          const possivelQtd = parseInt(tail.substring(4), 10);
+          if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
+      }
+
+      // Regex EXPANDIDO para suportar todos os Part Numbers do seu catálogo: BC, BH, BE, BG, BM, 3BC e K
+      const pnMatch = adjustedString.match(/(3BC[A-Z0-9]+|B[CEGHM][A-Z0-9]+|K[0-9]+)/);
+      if (pnMatch) {
+          scanAtualTemp.pn = pnMatch[1];
       }
 
       let searchKey = scanAtualTemp.pn.replace(/[^A-Z0-9]/g, '');
@@ -1376,5 +1386,4 @@
   </script>
 </body>
 </html>
-
 
