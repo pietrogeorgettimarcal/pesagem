@@ -662,7 +662,9 @@
     let currentView = 'login';
     let scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
 
-    /* STREAMING_CHUNK:Lógica do Teclado Virtual */
+    // ==========================================
+    // LÓGICA DO TECLADO VIRTUAL E FOCOS
+    // ==========================================
     let currentVKBInput = null;
 
     function initVKB() {
@@ -756,7 +758,7 @@
         if(nextEl) {
             if(currentVKBInput) currentVKBInput.style.borderColor = '#cbd5e1';
             openVKB(nextEl, nextEl.getAttribute('data-keyboard'));
-            nextEl.focus(); // Força a rolagem e o foco no elemento nativo sem disparar o teclado mobile original
+            nextEl.focus(); 
         } else {
             closeVKB();
         }
@@ -779,7 +781,9 @@
         else closeVKB();
     }
 
-    /* STREAMING_CHUNK:Lógica de Sessão e Utilitários */
+    // ==========================================
+    // LÓGICA DE INATIVIDADE (15 MINUTOS)
+    // ==========================================
     let inactivityTimer;
     const INACTIVITY_TIME_MS = 15 * 60 * 1000; 
 
@@ -916,7 +920,6 @@
       }
     }
 
-    /* STREAMING_CHUNK:Lógica de Coleta e Master Data (MDM) */
     function iniciarFluxo(modo) {
       appState.modo = modo;
       if (modo === 'coletor') {
@@ -943,12 +946,11 @@
     }
 
     function processarColetorMain(codigoBruto) {
-      const upper = String(codigoBruto).toUpperCase().trim();
+      const upper = String(codigoBruto).toUpperCase().trim().replace(/[\x00-\x1F\x7F-\x9F]/g, "");
       if(!upper) return;
 
       scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
 
-      // Se for formato longo "P000..." da VDA Mando
       if (upper.startsWith('P') && upper.length >= 35) {
           
           const codF = upper.substring(3, 7);
@@ -960,48 +962,61 @@
           const possivelQtd = parseInt(tail.substring(4), 10);
           if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
 
-          // Cruza a string recebida direto com o catálogo para achar o código sem cortar zeros falsos
+          let miolo = upper.substring(15, upper.length - 10);
           let melhorPN = "";
+          let bestMatchLength = 0;
+
+          // Busca no Sistema de Cadastro (MDM) pelo código correspondente
           for (const [k, val] of Object.entries(appCatalog)) {
               let cleanK = k.replace(/[^A-Z0-9]/g, '');
-              // Verifica se a string crua (VDA) CONTÉM o PN exato listado no banco MDM
-              if (cleanK && upper.includes(cleanK)) {
-                  if (cleanK.length > melhorPN.length) { // Pega a melhor combinação (match mais longo)
-                      melhorPN = cleanK;
+              if (cleanK && miolo.startsWith(cleanK)) {
+                  if (cleanK.length > bestMatchLength) { 
+                      bestMatchLength = cleanK.length;
+                      melhorPN = k; // Pega o código COM PONTUAÇÃO (ex: BC14030500.E) do banco de dados!
                       scanAtualTemp.desc = val.desc;
                       scanAtualTemp.peso = val.peso;
+                      // Resgata o Fornecedor atrelado à peça no sistema
+                      if(val.fornecedor && val.fornecedor !== 'SEM FORNECEDOR') {
+                          scanAtualTemp.forn_catalog = val.fornecedor;
+                      }
                   }
               }
           }
 
           if (melhorPN) {
               scanAtualTemp.pn = melhorPN;
+              // Autocompleta o fornecedor que estava faltando com o do sistema!
+              if(scanAtualTemp.forn_catalog) scanAtualTemp.forn = scanAtualTemp.forn_catalog;
           } else {
-              // Se o PN não estiver no MDM, tenta "chutar" e limpar via Regex no miolo
-              let miolo = upper.substring(15, upper.length - 10);
-              let quebra = miolo.match(/^(.+?)(0{4,})$/); // acha o fim antes de 4+ zeros seguidos
+              let quebra = miolo.match(/^(.+?)(0{4,})$/); 
               if (quebra) scanAtualTemp.pn = quebra[1];
               else scanAtualTemp.pn = miolo.replace(/0+$/, ''); 
           }
 
       } else {
-          // Fallback se não for formato longo P...
           let melhorPN = "";
+          let bestMatchLength = 0;
           for (const [k, val] of Object.entries(appCatalog)) { 
               let cleanK = k.replace(/[^A-Z0-9]/g, '');
               if (cleanK && upper.includes(cleanK)) {
-                  if (cleanK.length > melhorPN.length) {
-                      melhorPN = cleanK;
+                  if (cleanK.length > bestMatchLength) {
+                      bestMatchLength = cleanK.length;
+                      melhorPN = k; // Pega original com pontuação
                       scanAtualTemp.desc = val.desc;
                       scanAtualTemp.peso = val.peso;
+                      if(val.fornecedor && val.fornecedor !== 'SEM FORNECEDOR') {
+                          scanAtualTemp.forn_catalog = val.fornecedor;
+                      }
                   }
               }
           }
           if (melhorPN) {
               scanAtualTemp.pn = melhorPN;
+              if(scanAtualTemp.forn_catalog) scanAtualTemp.forn = scanAtualTemp.forn_catalog;
           } else {
               const pnMatch = upper.match(/(3BC[A-Z0-9]+|B[CEGHM][A-Z0-9]+|K[0-9]+)/);
               if (pnMatch) scanAtualTemp.pn = pnMatch[1].replace(/0+$/, '');
+              else scanAtualTemp.pn = upper;
           }
       }
 
@@ -1011,8 +1026,6 @@
       document.getElementById('col-main-qtd').value = scanAtualTemp.qtd || '-';
       
       showToast("Etiqueta lida! Insira os pesos.");
-      
-      // Logo após o scanner, puxa o teclado para o campo da tara.
       setTimeout(() => advanceTo('col-main-tara'), 100);
     }
 
@@ -1178,7 +1191,6 @@
       }
     }
 
-    /* STREAMING_CHUNK:Lógica de Exportação (Excel, Email) */
     function openEmailModal() {
       const modal = document.getElementById('modal-email');
       const box = document.getElementById('email-box');
@@ -1321,13 +1333,35 @@
         closeLimparModal();
     }
 
-    document.getElementById('col-main-scan').addEventListener('keydown', function(event) {
-      if (event.key === 'Enter') { 
+    // ==========================================
+    // DEBOUNCER E AUTO-PROCESSAMENTO DO SCANNER
+    // ==========================================
+    let scanTimeout;
+    const scanInput = document.getElementById('col-main-scan');
+
+    // Funciona se o scanner enviar o Enter (fallback original)
+    scanInput.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' || event.keyCode === 13 || event.which === 13) { 
         event.preventDefault(); 
+        clearTimeout(scanTimeout);
         const val = this.value; 
         this.value = ''; 
-        processarColetorMain(val); 
+        if (val) processarColetorMain(val); 
       }
+    });
+
+    // SISTEMA INTELIGENTE: Pega o código automaticamente MESMO SEM O ENTER!
+    // Ele sente o scanner a digitar, espera 400ms do final e avança sozinho.
+    scanInput.addEventListener('input', function(event) {
+      clearTimeout(scanTimeout);
+      scanTimeout = setTimeout(() => {
+        const val = this.value;
+        // Se a string tiver mais de 5 caracteres, já sabemos que foi um bip.
+        if (val.trim().length > 5) {
+          this.value = '';
+          processarColetorMain(val);
+        }
+      }, 400); 
     });
 
     function initFirebaseApp() {
@@ -1383,16 +1417,23 @@
           arr.forEach(f => dl.innerHTML += `<option value="${(f || '').toUpperCase()}">`);
         });
 
-        db.ref('dynamicCatalog').on('value', snap => {
+        // Integração Definitiva com o Master Hub (MDM) de Produtos Mestre
+        db.ref('cadastros/produtos_mestre').on('value', snap => {
           const val = snap.val();
+          appCatalog = {};
+          const dl = document.getElementById('cat-list'); dl.innerHTML = '';
           if (val) {
-            appCatalog = {};
-            const dl = document.getElementById('cat-list'); dl.innerHTML = '';
-            for (let k in val) {
-              let originalKey = k.replace(/_DOT_/g, '.').replace(/_HASH_/g, '#').replace(/_DOL_/g, '$').replace(/_SLASH_/g, '/').replace(/_OB_/g, '[').replace(/_CB_/g, ']');
-              appCatalog[originalKey.toUpperCase()] = { desc: (val[k].desc || val[k].descricao || '').toUpperCase(), peso: val[k].peso !== undefined ? Number(val[k].peso) : null };
-              dl.innerHTML += `<option value="${originalKey}">${originalKey} - ${val[k].desc || ''}</option>`;
-            }
+            let arr = Array.isArray(val) ? val.filter(p => p) : Object.values(val || {});
+            arr.forEach(p => {
+              if (!p.partNumber) return;
+              let originalKey = p.partNumber.toUpperCase();
+              appCatalog[originalKey] = { 
+                desc: (p.descricao || '').toUpperCase(), 
+                peso: p.peso || p.custoUnitario || null,
+                fornecedor: (p.fornecedor || '').toUpperCase()
+              };
+              dl.innerHTML += `<option value="${originalKey}">${originalKey} - ${p.descricao || ''}</option>`;
+            });
           }
         });
       } catch(e) { console.error("Firebase init error:", e); }
