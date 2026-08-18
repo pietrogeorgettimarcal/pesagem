@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, interactive-widget=resizes-content">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0f172a">
@@ -33,12 +33,12 @@
       color: var(--text);
       margin: 0;
       padding: 0;
-      /* Ajuste crucial para mobile: 100dvh respeita a barra do navegador */
       height: 100vh;
       height: 100dvh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      touch-action: pan-y;
     }
 
     .view-container {
@@ -60,11 +60,10 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Reduzido para caber melhor no mobile */
     .mobile-input {
       width: 100%;
       padding: 10px 12px;
-      font-size: 14px;
+      font-size: 16px !important; 
       border: 1px solid #cbd5e1;
       border-radius: 8px;
       background-color: #f1f5f9;
@@ -78,6 +77,7 @@
       border-color: var(--primary);
       background-color: #fff;
       box-shadow: 0 0 0 2px rgba(0, 92, 158, 0.15);
+      font-size: 16px !important;
     }
     
     .mobile-label {
@@ -188,16 +188,38 @@
       50% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 12px rgba(0,92,158,0.4)); }
       100% { transform: scale(1); opacity: 0.8; }
     }
-    .scanner-icon-anim {
-      animation: scannerPulse 2s infinite ease-in-out;
+
+    /* ESTILOS DO TECLADO VIRTUAL */
+    .vkb-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
     }
+    .vkb-key {
+      background: white;
+      border-radius: 10px;
+      padding: 14px 0;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 900;
+      color: #1e293b;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid #e2e8f0;
+      transition: all 0.1s;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    .vkb-key:active { background: #cbd5e1; transform: scale(0.95); }
+    .vkb-key.action { background: #e2e8f0; color: #475569; font-size: 20px;}
+    .vkb-key.enter { background: #005c9e; color: white; grid-column: span 3; border: none; font-size: 16px; text-transform: uppercase; padding: 16px 0; margin-top: 4px; box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2); }
+    .vkb-key.enter:active { transform: scale(0.98); background: #004b80; }
   </style>
 </head>
 <body>
 
   <header class="bg-[#0f172a] text-white p-3 flex justify-between items-center shrink-0 shadow-md z-10 pt-[env(safe-area-inset-top,12px)]">
     <div class="flex items-center gap-2">
-      <!-- Botão Voltar Dinâmico -->
       <button id="btn-global-back" onclick="navigateBack()" class="hidden text-slate-300 hover:text-white px-2 py-1 text-lg">
         <i class="fa-solid fa-arrow-left"></i>
       </button>
@@ -211,7 +233,7 @@
       </div>
     </div>
     <div class="flex items-center gap-3">
-      <button onclick="logout()" id="btn-logout" class="hidden text-[10px] bg-slate-800 px-2 py-1.5 rounded text-slate-300 hover:text-white font-bold uppercase tracking-wider">
+      <button onclick="logout('Deslogado com sucesso.')" id="btn-logout" class="hidden text-[10px] bg-slate-800 px-2 py-1.5 rounded text-slate-300 hover:text-white font-bold uppercase tracking-wider">
         <i class="fa-solid fa-right-from-bracket"></i> Sair
       </button>
       <div id="sync-status" class="w-2.5 h-2.5 rounded-full bg-slate-500 animate-pulse" title="Status DB"></div>
@@ -266,13 +288,13 @@
         <div>
           <p class="text-[9px] font-black uppercase text-blue-200">Operador Logado</p>
           <p id="lbl-operador-logado" class="font-black text-lg tracking-tight">-</p>
+          <p id="lbl-operador-turno" class="text-[10px] font-bold text-blue-100 uppercase">-</p>
         </div>
       </div>
 
       <div class="text-center w-full">
         <h2 class="font-black text-lg text-slate-800 uppercase tracking-tight mb-4">Escolha o Modo</h2>
         <div class="space-y-4 w-full">
-          <!-- MODO COLETOR -->
           <button onclick="iniciarFluxo('coletor')" class="btn-large btn-primary py-5 relative overflow-hidden">
             <div class="flex flex-col items-center gap-1 relative z-10">
               <i class="fa-solid fa-barcode text-2xl mb-1"></i> 
@@ -283,7 +305,6 @@
             <span class="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-[9px] px-2 py-0.5 font-black rounded-bl-lg z-10">RÁPIDO</span>
           </button>
           
-          <!-- MODO MANUAL -->
           <button onclick="iniciarFluxo('manual')" class="btn-large bg-white text-slate-700 py-5 border-2 border-slate-200 shadow-sm">
             <div class="flex flex-col items-center gap-1">
               <i class="fa-solid fa-keyboard text-2xl mb-1"></i> 
@@ -307,7 +328,7 @@
       
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
         <label class="mobile-label">Nota Fiscal (Obrigatório)</label>
-        <input type="text" id="col-nf-input" class="mobile-input text-lg font-black" placeholder="EX: 0197859" />
+        <input type="text" readonly data-keyboard="nf" id="col-nf-input" class="mobile-input text-lg font-black cursor-pointer" placeholder="EX: 0197859" />
         <p class="text-[10px] text-slate-400 font-bold mt-2">O fornecedor e outros dados serão puxados automaticamente no primeiro bip.</p>
       </div>
 
@@ -323,14 +344,14 @@
   <main id="view-coletor-main" class="view-container p-3">
     <div class="max-w-sm mx-auto space-y-3 pt-2">
       
-      <!-- CAMPO DE SCAN (SEMPRE VISÍVEL E PRONTO) -->
+      <!-- CAMPO DE SCAN -->
       <div class="bg-blue-600 rounded-lg p-3 text-center shadow-lg shadow-blue-500/30">
         <label class="mobile-label text-blue-100 mb-2"><i class="fa-solid fa-barcode"></i> Bipe a Etiqueta VDA</label>
         <input type="text" id="col-main-scan" class="mobile-input text-center font-mono font-black text-blue-900 bg-white border-none py-3" placeholder="Aponte o leitor aqui..." autocomplete="off" />
         <div id="col-main-feedback" class="text-[10px] font-bold text-blue-200 mt-2 uppercase">Caixas lidas nesta nota: <span id="col-main-count" class="text-white font-black text-sm">0</span></div>
       </div>
 
-      <!-- DADOS EXTRAÍDOS (BLOQUEADOS) -->
+      <!-- DADOS EXTRAÍDOS -->
       <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-3">
         <h2 class="font-black text-xs text-slate-800 mb-2 flex items-center gap-1 uppercase border-b border-slate-100 pb-2">
           <i class="fa-solid fa-box-open text-blue-600"></i> Dados da Peça Extraídos
@@ -357,23 +378,23 @@
         </div>
       </div>
 
-      <!-- CAMPOS DE PESAGEM (TARA E PESO) -->
+      <!-- CAMPOS DE PESAGEM (TECLADO VIRTUAL) -->
       <div class="bg-slate-50 rounded-lg shadow-sm border border-slate-200 p-3 space-y-3">
         <h2 class="font-black text-sm text-slate-800 flex items-center gap-2 uppercase border-b border-slate-200 pb-2">
           <i class="fa-solid fa-scale-unbalanced text-emerald-600"></i> Inserir Pesos
         </h2>
         <div>
           <label class="mobile-label text-blue-800">1. Tara (Embalagem Vazia)</label>
-          <input type="number" step="0.1" id="col-main-tara" class="mobile-input bg-white border-blue-300 text-base font-black text-blue-900" placeholder="Ex: 0.5 kg" />
+          <input type="text" readonly data-keyboard="num" id="col-main-tara" class="mobile-input bg-white border-blue-300 text-base font-black text-blue-900 cursor-pointer" placeholder="Ex: 0,5" />
         </div>
         <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
           <div>
             <label class="mobile-label text-slate-600">2. Peso Bruto NF</label>
-            <input type="number" step="0.1" id="col-main-pnf" class="mobile-input bg-white text-sm" placeholder="0.0" />
+            <input type="text" readonly data-keyboard="num" id="col-main-pnf" class="mobile-input bg-white text-sm cursor-pointer" placeholder="0,0" />
           </div>
           <div>
             <label class="mobile-label text-emerald-700">3. Peso Físico</label>
-            <input type="number" step="0.1" id="col-main-pmando" class="mobile-input bg-emerald-100 border-emerald-300 text-emerald-900 font-black text-sm" placeholder="0.0" />
+            <input type="text" readonly data-keyboard="num" id="col-main-pmando" class="mobile-input bg-emerald-100 border-emerald-300 text-emerald-900 font-black text-sm cursor-pointer" placeholder="0,0" />
           </div>
         </div>
       </div>
@@ -402,7 +423,7 @@
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-3">
         <div>
           <label class="mobile-label">Notas Fiscais (Separe por hífen)</label>
-          <input type="text" id="man-nf" class="mobile-input text-sm" placeholder="EX: 0197859" />
+          <input type="text" readonly data-keyboard="nf" id="man-nf" class="mobile-input text-sm cursor-pointer" placeholder="EX: 0197859" />
         </div>
         <div>
           <label class="mobile-label">Fornecedor</label>
@@ -476,22 +497,22 @@
           </div>
           <div>
             <label class="mobile-label">Qtd</label>
-            <input type="number" id="man-box-qtd" class="mobile-input text-sm font-bold" placeholder="Qtd" />
+            <input type="text" readonly data-keyboard="num" id="man-box-qtd" class="mobile-input text-sm font-bold cursor-pointer" placeholder="Qtd" />
           </div>
         </div>
         <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm mt-3 space-y-2">
           <div>
             <label class="mobile-label">Tara (Embalagem)</label>
-            <input type="number" step="0.1" id="man-box-tara" class="mobile-input text-sm" placeholder="Kg" />
+            <input type="text" readonly data-keyboard="num" id="man-box-tara" class="mobile-input text-sm cursor-pointer" placeholder="Kg" />
           </div>
           <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
             <div>
               <label class="mobile-label text-[9px]">Peso Bruto NF</label>
-              <input type="number" step="0.1" id="man-box-pnf" class="mobile-input bg-slate-50 text-sm" placeholder="0.0" />
+              <input type="text" readonly data-keyboard="num" id="man-box-pnf" class="mobile-input bg-slate-50 text-sm cursor-pointer" placeholder="0,0" />
             </div>
             <div>
               <label class="mobile-label text-[9px] text-emerald-700">Peso Físico</label>
-              <input type="number" step="0.1" id="man-box-pmando" class="mobile-input border-emerald-300 bg-emerald-50 text-emerald-800 font-black text-sm" placeholder="0.0" />
+              <input type="text" readonly data-keyboard="num" id="man-box-pmando" class="mobile-input border-emerald-300 bg-emerald-50 text-emerald-800 font-black text-sm cursor-pointer" placeholder="0,0" />
             </div>
           </div>
         </div>
@@ -537,7 +558,7 @@
         </button>
         
         <div class="pt-5 border-t border-slate-200 mt-5">
-          <button onclick="limparTudo()" class="btn-large bg-red-50 text-red-600 border border-red-200 text-sm">
+          <button onclick="abrirModalLimpar()" class="btn-large bg-red-50 text-red-600 border border-red-200 text-sm">
             <i class="fa-solid fa-trash-can"></i> Limpar / Iniciar Nova
           </button>
         </div>
@@ -556,11 +577,11 @@
       <div class="space-y-3 mb-5">
         <div>
           <label class="mobile-label">E-mail Operador</label>
-          <input type="text" id="email-logado" class="mobile-input bg-slate-100 text-slate-500 font-bold text-sm" readonly />
+          <input type="text" id="email-logado" class="mobile-input bg-slate-100 text-slate-500 font-bold" readonly />
         </div>
         <div>
           <label class="mobile-label">E-mail Adicional (Opcional)</label>
-          <input type="email" id="email-extra" class="mobile-input normal-case text-sm" placeholder="ex: gestor@hlcompany.com" />
+          <input type="email" id="email-extra" class="mobile-input normal-case" placeholder="ex: gestor@hlcompany.com" />
         </div>
         <div class="bg-blue-50 border border-blue-200 p-2.5 rounded-lg flex items-start gap-2">
           <i class="fa-solid fa-circle-info text-blue-500 mt-0.5 text-[10px]"></i>
@@ -573,6 +594,21 @@
       <button onclick="confirmarEnvioEmail()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
         Abrir Compartilhamento
       </button>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMAÇÃO LIMPAR -->
+  <div id="modal-limpar" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center z-[300] px-4 opacity-0 transition-opacity">
+    <div class="bg-white p-5 rounded-2xl w-full max-w-xs shadow-xl text-center transform scale-95 transition-transform duration-200" id="limpar-box">
+      <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+      </div>
+      <h3 class="font-black text-lg text-slate-800 mb-1">Atenção!</h3>
+      <p class="text-xs text-slate-500 font-bold mb-5">Deseja apagar todos os dados desta nota? Esta ação não pode ser desfeita.</p>
+      <div class="flex gap-2">
+        <button onclick="closeLimparModal()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold uppercase text-sm">Cancelar</button>
+        <button onclick="confirmarLimparTudo()" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold uppercase text-sm shadow-lg shadow-red-600/30">Sim, Apagar</button>
+      </div>
     </div>
   </div>
 
@@ -592,16 +628,26 @@
     </div>
   </nav>
 
+  <!-- TECLADO VIRTUAL INJETADO -->
+  <div id="virtual-kb" class="fixed bottom-0 left-0 w-full bg-slate-100/95 backdrop-blur-sm shadow-[0_-10px_20px_rgba(0,0,0,0.1)] transform translate-y-full transition-transform duration-300 z-[999] rounded-t-2xl pb-[env(safe-area-inset-bottom,16px)] border-t border-slate-200">
+    <div class="flex justify-between items-center p-3 border-b border-slate-200 bg-white rounded-t-2xl">
+      <span class="text-[11px] font-black text-slate-500 uppercase tracking-wider pl-1" id="vkb-title">TECLADO</span>
+      <button onclick="closeVKB()" class="text-slate-400 hover:text-slate-700 py-1 px-3 text-xl"><i class="fa-solid fa-chevron-down"></i></button>
+    </div>
+    <div id="vkb-keys" class="vkb-grid p-3">
+      <!-- Botões injetados via JS -->
+    </div>
+  </div>
+
   <div id="toast" class="toast">Mensagem...</div>
 
   <script>
     let appState = {
-      modo: null, // 'coletor' ou 'manual'
+      modo: null, 
       cabecalho: { fornecedor: "", nota_fiscal_principal: "", data_conferencia: "", operador: "", turno: "A" },
       caixas: []
     };
     
-    // Lista Nacional/Importada conforme imagem anterior
     const mapaFornecedores = {
       '1065': 'CARIBOR', '3131': 'DETWYLLER', '0824': 'AÇO PEÇAS', '0172': 'DASOL',
       '1107': 'MAXDELL', '1189': 'WHB', '1296': 'KROMAFLEX', '0945': 'TEC PACK',
@@ -622,6 +668,135 @@
     let currentView = 'login';
     let scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
 
+    // --- LÓGICA DO TECLADO VIRTUAL ---
+    let currentVKBInput = null;
+
+    function initVKB() {
+      const inputs = document.querySelectorAll('[data-keyboard]');
+      inputs.forEach(inp => {
+        inp.addEventListener('focus', function(e) {
+          e.preventDefault();
+          openVKB(this, this.getAttribute('data-keyboard'));
+        });
+        inp.addEventListener('click', function(e) {
+          e.preventDefault();
+          openVKB(this, this.getAttribute('data-keyboard'));
+        });
+      });
+
+      document.addEventListener('click', function(e) {
+        const vkb = document.getElementById('virtual-kb');
+        if (vkb && currentVKBInput) {
+          if (!vkb.contains(e.target) && e.target !== currentVKBInput && !e.target.hasAttribute('data-keyboard')) {
+            closeVKB();
+          }
+        }
+      });
+    }
+
+    function openVKB(inputEl, type) {
+      currentVKBInput = inputEl;
+      
+      document.querySelectorAll('[data-keyboard]').forEach(el => el.style.borderColor = '#cbd5e1');
+      inputEl.style.borderColor = '#005c9e';
+
+      const vkb = document.getElementById('virtual-kb');
+      const keysContainer = document.getElementById('vkb-keys');
+      const title = document.getElementById('vkb-title');
+      
+      let keysHtml = '';
+      const numKeys = ['1','2','3','4','5','6','7','8','9'];
+      
+      numKeys.forEach(k => {
+        keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '${k}')">${k}</button>`;
+      });
+
+      if (type === 'nf') {
+        title.innerHTML = '<i class="fa-solid fa-file-invoice text-blue-500 mr-1"></i> TECLADO NF';
+        keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, '-')">-</button>`;
+      } else {
+        title.innerHTML = '<i class="fa-solid fa-scale-unbalanced text-emerald-500 mr-1"></i> TECLADO PESAGEM';
+        keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, ',')">,</button>`;
+      }
+
+      keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '0')">0</button>`;
+      keysHtml += `<button type="button" class="vkb-key action" onclick="vkbBackspace(event)"><i class="fa-solid fa-delete-left"></i></button>`;
+      keysHtml += `<button type="button" class="vkb-key enter" onclick="vkbEnter(event)">AVANÇAR / OK <i class="fa-solid fa-arrow-turn-down fa-rotate-90 ml-1"></i></button>`;
+
+      keysContainer.innerHTML = keysHtml;
+      vkb.classList.remove('translate-y-full');
+
+      setTimeout(() => {
+        if(currentVKBInput) currentVKBInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    }
+
+    function closeVKB() {
+      const vkb = document.getElementById('virtual-kb');
+      if(vkb) vkb.classList.add('translate-y-full');
+      if(currentVKBInput) {
+        currentVKBInput.style.borderColor = '#cbd5e1'; 
+        currentVKBInput.blur();
+      }
+      currentVKBInput = null;
+    }
+
+    function vkbType(e, char) {
+      if(e) e.stopPropagation();
+      if(currentVKBInput) {
+        currentVKBInput.value += char;
+        currentVKBInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+
+    function vkbBackspace(e) {
+      if(e) e.stopPropagation();
+      if(currentVKBInput) {
+        currentVKBInput.value = currentVKBInput.value.slice(0, -1);
+        currentVKBInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+
+    function advanceTo(nextId) {
+        const nextEl = document.getElementById(nextId);
+        if(nextEl) {
+            if(currentVKBInput) currentVKBInput.style.borderColor = '#cbd5e1';
+            openVKB(nextEl, nextEl.getAttribute('data-keyboard'));
+        } else {
+            closeVKB();
+        }
+    }
+
+    function vkbEnter(e) {
+        if(e) e.stopPropagation();
+        if(!currentVKBInput) return;
+        const id = currentVKBInput.id;
+        
+        if (id === 'col-main-tara') advanceTo('col-main-pnf');
+        else if (id === 'col-main-pnf') advanceTo('col-main-pmando');
+        else if (id === 'col-main-pmando') closeVKB();
+        else if (id === 'man-box-qtd') advanceTo('man-box-tara');
+        else if (id === 'man-box-tara') advanceTo('man-box-pnf');
+        else if (id === 'man-box-pnf') advanceTo('man-box-pmando');
+        else if (id === 'man-box-pmando') closeVKB();
+        else if (id === 'col-nf-input') { closeVKB(); avancarParaBipagem(); }
+        else if (id === 'man-nf') { closeVKB(); document.getElementById('man-forn').focus(); }
+        else closeVKB();
+    }
+
+    // --- LÓGICA DE INATIVIDADE (15 MINUTOS) ---
+    let inactivityTimer;
+    const INACTIVITY_TIME_MS = 15 * 60 * 1000; 
+
+    function resetTimer() {
+      clearTimeout(inactivityTimer);
+      if (firebase.auth().currentUser) {
+        inactivityTimer = setTimeout(() => {
+          logout("Sessão expirada por inatividade (15 min).");
+        }, INACTIVITY_TIME_MS);
+      }
+    }
+
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.innerText = msg;
@@ -641,7 +816,6 @@
       return v;
     }
 
-    // NAVEGAÇÃO E BOTÃO DE VOLTAR GLOBAL
     function navTo(viewId) {
       document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
       const target = document.getElementById(`view-${viewId}`);
@@ -651,14 +825,12 @@
       const nav = document.getElementById('main-bottom-nav');
       const backBtn = document.getElementById('btn-global-back');
 
-      // Regras de Navegação de Voltar (Seta)
       if (viewId === 'login' || viewId === 'mode-select') {
           backBtn.classList.add('hidden');
       } else {
           backBtn.classList.remove('hidden');
       }
 
-      // Regras de Navegação Inferior
       if (['login', 'mode-select', 'coletor-nf', 'coletor-main'].includes(viewId)) {
         if(nav) nav.style.display = 'none';
       } else {
@@ -674,6 +846,8 @@
         document.getElementById('col-main-count').innerText = appState.caixas.length;
         setTimeout(() => { const inp = document.getElementById('col-main-scan'); if(inp) { inp.value = ''; inp.focus(); } }, 100);
       }
+      
+      closeVKB();
     }
 
     function navigateBack() {
@@ -691,7 +865,7 @@
       const email = formatarEmail(emailRaw);
       
       auth.signInWithEmailAndPassword(email, senha)
-        .then(() => { showToast("Login com sucesso!"); navTo('mode-select'); })
+        .then(() => { showToast("Login com sucesso!"); })
         .catch(error => {
             if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
                 showToast("❌ Conta não existe ou senha errada. Tente 'Criar meu Cadastro'.");
@@ -711,9 +885,16 @@
       
       auth.createUserWithEmailAndPassword(email, senha)
         .then(() => {
-          db.ref('cadastros/operadores').push({ nome: nomeOp, turno: "A" });
-          showToast("Cadastro criado com sucesso!");
-          navTo('mode-select');
+          db.ref('cadastros/operadores').once('value').then(snap => {
+            let ops = snap.val();
+            let arr = Array.isArray(ops) ? ops : Object.values(ops || {});
+            let exists = arr.some(o => o && o.email && o.email.toLowerCase() === email.toLowerCase());
+            
+            if (!exists) {
+               db.ref('cadastros/operadores').push({ nome: nomeOp, email: email, turno: "A" });
+            }
+          });
+          showToast("Acesso ativado com sucesso!");
         })
         .catch(error => {
             if (error.code === 'auth/email-already-in-use') showToast("❌ Esse usuário já existe! Clique em 'Entrar'.");
@@ -722,11 +903,19 @@
         });
     }
 
-    function logout() {
+    function logout(mensagemToast = "Deslogado com sucesso.") {
       if(auth) {
         auth.signOut().then(() => {
           appState.caixas = [];
+          
           document.getElementById('btn-logout').classList.add('hidden');
+          document.getElementById('login-email').value = '';
+          document.getElementById('login-senha').value = '';
+          
+          clearTimeout(inactivityTimer);
+          closeVKB();
+          
+          showToast(mensagemToast);
           navTo('login');
         });
       }
@@ -741,6 +930,7 @@
         setToday();
         document.getElementById('man-nf').value = appState.cabecalho.nota_fiscal_principal;
         document.getElementById('man-forn').value = appState.cabecalho.fornecedor;
+        document.getElementById('man-turno').value = appState.cabecalho.turno || "A";
         navTo('manual-header');
       }
     }
@@ -789,7 +979,7 @@
       document.getElementById('col-main-qtd').value = scanAtualTemp.qtd || '-';
       
       showToast("Etiqueta lida! Insira os pesos.");
-      setTimeout(() => document.getElementById('col-main-tara').focus(), 100);
+      setTimeout(() => advanceTo('col-main-tara'), 100);
     }
 
     function salvarColetorMain(addAnother) {
@@ -825,7 +1015,7 @@
         document.getElementById('col-main-tara').value = '';
         document.getElementById('col-main-pnf').value = '';
         document.getElementById('col-main-pmando').value = '';
-        navTo('coletor-main'); // reset view & count
+        navTo('coletor-main'); 
       } else {
         navTo('export');
       }
@@ -910,6 +1100,7 @@
       const modal = document.getElementById('modal-add-manual');
       modal.classList.add('translate-y-full');
       setTimeout(() => modal.classList.add('hidden'), 300);
+      closeVKB();
     }
 
     function salvarManual(addAnother) {
@@ -930,6 +1121,7 @@
 
       appState.cabecalho.nota_fiscal_principal = document.getElementById('man-nf').value.toUpperCase();
       appState.cabecalho.fornecedor = document.getElementById('man-forn').value.toUpperCase();
+      appState.cabecalho.turno = document.getElementById('man-turno').value; 
 
       const itemData = {
         caixa_no: editIndex > -1 ? appState.caixas[editIndex].caixa_no : (appState.caixas.length + 1),
@@ -1027,12 +1219,10 @@
       
       const wb = criarWorkbookBase();
       
-      // 1. Transforma o Excel gerado em um Arquivo na Memória (Blob)
       const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
       const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const file = new File([blob], fileName, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
-      // 2. Tenta acionar o botão "Compartilhar" Nativo do Android / Celular
       let shareSuccess = false;
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
@@ -1049,13 +1239,11 @@
         }
       } 
       
-      // 3. PLANO B (Fallback): Se o navegador bloqueou o modo acima, apenas baixa o arquivo e abre o e-mail padrão.
       if (!shareSuccess) {
-        XLSX.writeFile(wb, fileName); // Força o download da planilha
+        XLSX.writeFile(wb, fileName); 
         const encodedSubject = encodeURIComponent(subject);
         const encodedBody = encodeURIComponent(textBody + "\n\n⚠️ ATENÇÃO: O ARQUIVO FOI BAIXADO. CLIQUE NO CLIPE DE PAPEL (ANEXO) PARA INCLUIR A PLANILHA QUE ACABOU DE BAIXAR.");
         
-        // Abre o Outlook/Mail padrão
         window.location.href = `mailto:${dest}?subject=${encodedSubject}&body=${encodedBody}`;
         closeEmailModal();
       }
@@ -1074,16 +1262,30 @@
       db.ref('loteNotas').set([...desktopLoteNotas, novaNota]).then(() => showToast("Enviado para o Desktop!"));
     }
 
-    function limparTudo() {
-      if(confirm("Apagar todos os dados desta nota?")) {
+    function abrirModalLimpar() {
+        const modal = document.getElementById('modal-limpar');
+        const box = document.getElementById('limpar-box');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+    }
+
+    function closeLimparModal() {
+        const modal = document.getElementById('modal-limpar');
+        const box = document.getElementById('limpar-box');
+        modal.classList.add('opacity-0');
+        box.classList.add('scale-95');
+        setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
+    }
+
+    function confirmarLimparTudo() {
         appState.caixas = [];
         appState.cabecalho.nota_fiscal_principal = "";
         navTo('mode-select');
-        showToast("Zerado.");
-      }
+        showToast("Dados zerados.");
+        closeLimparModal();
     }
 
-    // LISTENER DO COLETOR
     document.getElementById('col-main-scan').addEventListener('keydown', function(event) {
       if (event.key === 'Enter') { 
         event.preventDefault(); 
@@ -1092,9 +1294,6 @@
         processarColetorMain(val); 
       }
     });
-
-    document.getElementById('col-main-tara').addEventListener('keydown', e => { if(e.key === 'Enter') { e.preventDefault(); document.getElementById('col-main-pnf').focus(); }});
-    document.getElementById('col-main-pnf').addEventListener('keydown', e => { if(e.key === 'Enter') { e.preventDefault(); document.getElementById('col-main-pmando').focus(); }});
 
     function initFirebaseApp() {
       try {
@@ -1113,12 +1312,31 @@
 
         auth.onAuthStateChanged((user) => {
           if (user) {
-            const userName = user.email.split('@')[0].toUpperCase();
-            appState.cabecalho.operador = userName;
-            document.getElementById('lbl-operador-logado').innerText = userName;
-            document.getElementById('btn-logout').classList.remove('hidden');
-            if (currentView === 'login') navTo('mode-select');
+            resetTimer();
+
+            db.ref('cadastros/operadores').once('value').then(snap => {
+               let ops = snap.val();
+               let arr = Array.isArray(ops) ? ops : Object.values(ops || {});
+               let opProfile = arr.find(o => o && o.email && o.email.toLowerCase() === user.email.toLowerCase());
+
+               if (opProfile) {
+                   appState.cabecalho.operador = opProfile.nome;
+                   appState.cabecalho.turno = opProfile.turno;
+                   document.getElementById('lbl-operador-logado').innerText = opProfile.nome;
+                   document.getElementById('lbl-operador-turno').innerText = "TURNO " + opProfile.turno;
+               } else {
+                   const userName = user.email.split('@')[0].toUpperCase();
+                   appState.cabecalho.operador = userName;
+                   appState.cabecalho.turno = "A";
+                   document.getElementById('lbl-operador-logado').innerText = userName;
+                   document.getElementById('lbl-operador-turno').innerText = "TURNO A";
+               }
+
+               document.getElementById('btn-logout').classList.remove('hidden');
+               if (currentView === 'login') navTo('mode-select');
+            });
           } else {
+            clearTimeout(inactivityTimer);
             navTo('login');
           }
         });
@@ -1147,10 +1365,16 @@
 
     window.onload = function() {
       initFirebaseApp();
+      initVKB();
       const loginEmail = document.getElementById('login-email');
       if(loginEmail) loginEmail.addEventListener('blur', function() { this.value = formatarEmail(this.value); });
+      
+      ['touchstart', 'mousemove', 'mousedown', 'keypress', 'scroll'].forEach(evt => {
+        document.addEventListener(evt, resetTimer, true);
+      });
     };
   </script>
 </body>
 </html>
+
 
