@@ -183,7 +183,6 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    /* ESTILOS DO TECLADO VIRTUAL */
     .vkb-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -234,9 +233,7 @@
     </div>
   </header>
 
-  <!-- ========================================== -->
-  <!-- TELA 0: LOGIN SEGURA                       -->
-  <!-- ========================================== -->
+  <!-- TELA 0: LOGIN -->
   <main id="view-login" class="view-container active p-4">
     <div class="flex flex-col h-full justify-center max-w-sm mx-auto space-y-5 pb-20">
       <div class="text-center">
@@ -269,12 +266,9 @@
     </div>
   </main>
 
-  <!-- ========================================== -->
-  <!-- TELA 1: HOME (ESCOLHA DE MODO)             -->
-  <!-- ========================================== -->
+  <!-- TELA 1: HOME -->
   <main id="view-mode-select" class="view-container p-4">
     <div class="flex flex-col items-center justify-center h-full space-y-6 pt-4 pb-20 max-w-sm mx-auto">
-      
       <div class="bg-blue-600 text-white w-full rounded-2xl p-4 shadow-lg shadow-blue-500/30 flex items-center gap-4">
         <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
           <i class="fa-solid fa-user-check text-lg"></i>
@@ -311,9 +305,7 @@
     </div>
   </main>
 
-  <!-- ========================================== -->
-  <!-- FLUXO COLETOR 1: DADOS NF                  -->
-  <!-- ========================================== -->
+  <!-- FLUXO COLETOR 1: NF -->
   <main id="view-coletor-nf" class="view-container p-4">
     <div class="max-w-sm mx-auto space-y-5 pt-4">
       <h2 class="font-black text-lg text-slate-800 flex items-center gap-2 uppercase">
@@ -332,28 +324,24 @@
     </div>
   </main>
 
-  <!-- ========================================== -->
-  <!-- FLUXO COLETOR: SCANNER E PESAGEM INTEGRADOS-->
-  <!-- ========================================== -->
+  <!-- FLUXO COLETOR 2: SCAN -->
   <main id="view-coletor-main" class="view-container p-3">
     <div class="max-w-sm mx-auto space-y-3 pt-2">
       
-      <!-- CAMPO DE SCAN -->
       <div class="bg-blue-600 rounded-lg p-3 text-center shadow-lg shadow-blue-500/30">
         <label class="mobile-label text-blue-100 mb-2"><i class="fa-solid fa-barcode"></i> Bipe a Etiqueta VDA</label>
         <input type="text" id="col-main-scan" class="mobile-input text-center font-mono font-black text-blue-900 bg-white border-none py-3" placeholder="Aponte o leitor aqui..." autocomplete="off" />
         <div id="col-main-feedback" class="text-[10px] font-bold text-blue-200 mt-2 uppercase">Caixas lidas nesta nota: <span id="col-main-count" class="text-white font-black text-sm">0</span></div>
       </div>
 
-      <!-- DADOS EXTRAÍDOS -->
       <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-3">
         <h2 class="font-black text-xs text-slate-800 mb-2 flex items-center gap-1 uppercase border-b border-slate-100 pb-2">
           <i class="fa-solid fa-box-open text-blue-600"></i> Dados da Peça Extraídos
         </h2>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="mobile-label text-[9px]">Part Number</label>
-            <input type="text" id="col-main-pn" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
+            <label class="mobile-label text-[9px]">Part Number / Código</label>
+            <input type="text" id="col-main-pn" class="mobile-input bg-slate-50 text-blue-800 border-none text-xs font-bold truncate" readonly placeholder="-" />
           </div>
           <div>
             <label class="mobile-label text-[9px]">Lote</label>
@@ -372,7 +360,6 @@
         </div>
       </div>
 
-      <!-- CAMPOS DE PESAGEM (TECLADO VIRTUAL) -->
       <div class="bg-slate-50 rounded-lg shadow-sm border border-slate-200 p-3 space-y-3">
         <h2 class="font-black text-sm text-slate-800 flex items-center gap-2 uppercase border-b border-slate-200 pb-2">
           <i class="fa-solid fa-scale-unbalanced text-emerald-600"></i> Inserir Pesos
@@ -393,7 +380,6 @@
         </div>
       </div>
 
-      <!-- BOTÕES -->
       <div class="space-y-2 pb-6">
         <button onclick="salvarColetorMain(true)" class="btn-large btn-success py-3">
           <i class="fa-solid fa-check"></i> Salvar e Bipar Próxima
@@ -405,9 +391,7 @@
     </div>
   </main>
 
-  <!-- ========================================== -->
-  <!-- FLUXO MANUAL 1: DADOS NF                   -->
-  <!-- ========================================== -->
+  <!-- FLUXO MANUAL -->
   <main id="view-manual-header" class="view-container p-4">
     <div class="max-w-sm mx-auto">
       <h2 class="font-black text-lg text-slate-800 mb-3 flex items-center gap-2 uppercase">
@@ -447,9 +431,6 @@
     </div>
   </main>
 
-  <!-- ========================================== -->
-  <!-- FLUXO MANUAL 2: LISTA DE CAIXAS            -->
-  <!-- ========================================== -->
   <main id="view-manual-items" class="view-container p-3 bg-slate-50">
     <div class="flex justify-between items-center mb-3 max-w-sm mx-auto">
       <h2 class="font-black text-base text-slate-800 flex items-center gap-2 uppercase">
@@ -525,9 +506,7 @@
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- TELA 3: RESUMO E EXPORTAÇÃO                -->
-  <!-- ========================================== -->
+  <!-- TELA 3: EXPORTAÇÃO -->
   <main id="view-export" class="view-container p-4">
     <div class="max-w-sm mx-auto">
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 text-center mb-5">
@@ -542,11 +521,9 @@
         <button onclick="openEmailModal()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
           <i class="fa-solid fa-envelope"></i> Enviar por E-mail
         </button>
-        
         <button onclick="gerarExcel()" class="btn-large bg-white text-emerald-700 border-2 border-emerald-600">
           <i class="fa-solid fa-download"></i> Apenas Salvar Excel
         </button>
-        
         <button onclick="sincronizarComDesktop()" class="btn-large btn-primary shadow-lg shadow-blue-600/30">
           <i class="fa-solid fa-cloud-arrow-up"></i> Enviar p/ Desktop
         </button>
@@ -567,7 +544,6 @@
         <h3 class="font-black text-base text-slate-800"><i class="fa-solid fa-envelope text-emerald-600"></i> Enviar Planilha</h3>
         <button onclick="closeEmailModal()" class="text-slate-400 hover:text-slate-600 text-xl p-1"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
       <div class="space-y-3 mb-5">
         <div>
           <label class="mobile-label">E-mail Operador</label>
@@ -580,11 +556,10 @@
         <div class="bg-blue-50 border border-blue-200 p-2.5 rounded-lg flex items-start gap-2">
           <i class="fa-solid fa-circle-info text-blue-500 mt-0.5 text-[10px]"></i>
           <p class="text-[9px] text-blue-800 font-bold uppercase leading-tight">
-            O sistema usará o compartilhamento nativo. Escolha seu app de E-mail (Gmail/Outlook) e o Excel já estará anexado automaticamente!
+            O sistema usará o compartilhamento nativo.
           </p>
         </div>
       </div>
-
       <button onclick="confirmarEnvioEmail()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
         Abrir Compartilhamento
       </button>
@@ -598,7 +573,7 @@
         <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
       </div>
       <h3 class="font-black text-lg text-slate-800 mb-1">Atenção!</h3>
-      <p class="text-xs text-slate-500 font-bold mb-5">Deseja apagar todos os dados desta nota? Esta ação não pode ser desfeita.</p>
+      <p class="text-xs text-slate-500 font-bold mb-5">Deseja apagar todos os dados desta nota?</p>
       <div class="flex gap-2">
         <button onclick="closeLimparModal()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold uppercase text-sm">Cancelar</button>
         <button onclick="confirmarLimparTudo()" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold uppercase text-sm shadow-lg shadow-red-600/30">Sim, Apagar</button>
@@ -606,20 +581,10 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation -->
   <nav class="bottom-nav" id="main-bottom-nav">
-    <div onclick="navTo('mode-select')" class="nav-item">
-      <i class="fa-solid fa-bars"></i>
-      Modo
-    </div>
-    <div onclick="navTo('manual-items')" class="nav-item active" id="nav-btn-items">
-      <i class="fa-solid fa-boxes-stacked"></i>
-      Caixas
-    </div>
-    <div onclick="navTo('export')" class="nav-item" id="nav-btn-export">
-      <i class="fa-solid fa-share-nodes"></i>
-      Exportar
-    </div>
+    <div onclick="navTo('mode-select')" class="nav-item"><i class="fa-solid fa-bars"></i> Modo</div>
+    <div onclick="navTo('manual-items')" class="nav-item active" id="nav-btn-items"><i class="fa-solid fa-boxes-stacked"></i> Caixas</div>
+    <div onclick="navTo('export')" class="nav-item" id="nav-btn-export"><i class="fa-solid fa-share-nodes"></i> Exportar</div>
   </nav>
 
   <!-- TECLADO VIRTUAL INJETADO -->
@@ -628,9 +593,7 @@
       <span class="text-[11px] font-black text-slate-500 uppercase tracking-wider pl-1" id="vkb-title">TECLADO</span>
       <button onclick="closeVKB()" class="text-slate-400 hover:text-slate-700 py-1 px-3 text-xl"><i class="fa-solid fa-chevron-down"></i></button>
     </div>
-    <div id="vkb-keys" class="vkb-grid p-3">
-      <!-- Botões injetados via JS -->
-    </div>
+    <div id="vkb-keys" class="vkb-grid p-3"></div>
   </div>
 
   <div id="toast" class="toast">Mensagem...</div>
@@ -692,7 +655,6 @@
 
     function openVKB(inputEl, type) {
       currentVKBInput = inputEl;
-      
       document.querySelectorAll('[data-keyboard]').forEach(el => el.style.borderColor = '#cbd5e1');
       inputEl.style.borderColor = '#005c9e';
 
@@ -702,10 +664,7 @@
       
       let keysHtml = '';
       const numKeys = ['1','2','3','4','5','6','7','8','9'];
-      
-      numKeys.forEach(k => {
-        keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '${k}')">${k}</button>`;
-      });
+      numKeys.forEach(k => { keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '${k}')">${k}</button>`; });
 
       if (type === 'nf') {
         title.innerHTML = '<i class="fa-solid fa-file-invoice text-blue-500 mr-1"></i> TECLADO NF';
@@ -722,18 +681,13 @@
       keysContainer.innerHTML = keysHtml;
       vkb.classList.remove('translate-y-full');
 
-      setTimeout(() => {
-        if(currentVKBInput) currentVKBInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
+      setTimeout(() => { if(currentVKBInput) currentVKBInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
     }
 
     function closeVKB() {
       const vkb = document.getElementById('virtual-kb');
       if(vkb) vkb.classList.add('translate-y-full');
-      if(currentVKBInput) {
-        currentVKBInput.style.borderColor = '#cbd5e1'; 
-        currentVKBInput.blur();
-      }
+      if(currentVKBInput) { currentVKBInput.style.borderColor = '#cbd5e1'; currentVKBInput.blur(); }
       currentVKBInput = null;
     }
 
@@ -759,9 +713,7 @@
             if(currentVKBInput) currentVKBInput.style.borderColor = '#cbd5e1';
             openVKB(nextEl, nextEl.getAttribute('data-keyboard'));
             nextEl.focus(); 
-        } else {
-            closeVKB();
-        }
+        } else { closeVKB(); }
     }
 
     function vkbEnter(e) {
@@ -782,7 +734,7 @@
     }
 
     // ==========================================
-    // LÓGICA DE INATIVIDADE (15 MINUTOS)
+    // LÓGICA DE INATIVIDADE
     // ==========================================
     let inactivityTimer;
     const INACTIVITY_TIME_MS = 15 * 60 * 1000; 
@@ -790,9 +742,7 @@
     function resetTimer() {
       clearTimeout(inactivityTimer);
       if (firebase.auth().currentUser) {
-        inactivityTimer = setTimeout(() => {
-          logout("Sessão expirada por inatividade (15 min).");
-        }, INACTIVITY_TIME_MS);
+        inactivityTimer = setTimeout(() => { logout("Sessão expirada por inatividade (15 min)."); }, INACTIVITY_TIME_MS);
       }
     }
 
@@ -824,11 +774,8 @@
       const nav = document.getElementById('main-bottom-nav');
       const backBtn = document.getElementById('btn-global-back');
 
-      if (viewId === 'login' || viewId === 'mode-select') {
-          backBtn.classList.add('hidden');
-      } else {
-          backBtn.classList.remove('hidden');
-      }
+      if (viewId === 'login' || viewId === 'mode-select') backBtn.classList.add('hidden');
+      else backBtn.classList.remove('hidden');
 
       if (['login', 'mode-select', 'coletor-nf', 'coletor-main'].includes(viewId)) {
         if(nav) nav.style.display = 'none';
@@ -845,7 +792,6 @@
         document.getElementById('col-main-count').innerText = appState.caixas.length;
         setTimeout(() => { const inp = document.getElementById('col-main-scan'); if(inp) { inp.value = ''; inp.focus(); } }, 100);
       }
-      
       closeVKB();
     }
 
@@ -866,11 +812,8 @@
       auth.signInWithEmailAndPassword(email, senha)
         .then(() => { showToast("Login com sucesso!"); })
         .catch(error => {
-            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
-                showToast("❌ Conta não existe ou senha errada. Tente 'Criar meu Cadastro'.");
-            } else {
-                showToast("Erro: " + error.message);
-            }
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') { showToast("❌ Conta não existe ou senha errada. Tente 'Criar meu Cadastro'."); } 
+            else { showToast("Erro: " + error.message); }
         });
     }
 
@@ -889,9 +832,7 @@
             let arr = Array.isArray(ops) ? ops : Object.values(ops || {});
             let exists = arr.some(o => o && o.email && o.email.toLowerCase() === email.toLowerCase());
             
-            if (!exists) {
-               db.ref('cadastros/operadores').push({ nome: nomeOp, email: email, turno: "A" });
-            }
+            if (!exists) db.ref('cadastros/operadores').push({ nome: nomeOp, email: email, turno: "A" });
           });
           showToast("Acesso ativado com sucesso!");
         })
@@ -906,14 +847,11 @@
       if(auth) {
         auth.signOut().then(() => {
           appState.caixas = [];
-          
           document.getElementById('btn-logout').classList.add('hidden');
           document.getElementById('login-email').value = '';
           document.getElementById('login-senha').value = '';
-          
           clearTimeout(inactivityTimer);
           closeVKB();
-          
           showToast(mensagemToast);
           navTo('login');
         });
@@ -945,17 +883,20 @@
       navTo('coletor-main');
     }
 
+    // ==========================================
+    // EXTRAÇÃO DE SCANNER (COM SUPORTE A ESPAÇOS E MDM)
+    // ==========================================
     function processarColetorMain(codigoBruto) {
-      const upper = String(codigoBruto).toUpperCase().trim().replace(/[\x00-\x1F\x7F-\x9F]/g, "");
+      // Remove lixo do scanner, mas mantém os espaços para etiquetas no novo formato
+      const upper = String(codigoBruto).toUpperCase().replace(/[\x00-\x1F\x7F-\x9F]/g, "").trim();
       if(!upper) return;
 
       scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
 
-      if (upper.startsWith('P') && upper.length >= 35) {
-          
+      // 1. Padrão VDA Longo Original Mando (sem espaços)
+      if (upper.startsWith('P') && !upper.includes(' ') && upper.length >= 35) {
           const codF = upper.substring(3, 7);
           scanAtualTemp.forn = mapaFornecedores[codF] || codF;
-          if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
           
           const tail = upper.substring(upper.length - 10);
           scanAtualTemp.lote = tail.substring(0, 4);
@@ -963,70 +904,77 @@
           if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
 
           let miolo = upper.substring(15, upper.length - 10);
-          let melhorPN = "";
-          let bestMatchLength = 0;
+          let quebra = miolo.match(/^(.+?)(0{4,})$/); 
+          if (quebra) scanAtualTemp.pn = quebra[1];
+          else scanAtualTemp.pn = miolo.replace(/0+$/, ''); 
+      } 
+      // 2. Novo Padrão com Espaços (Ex: BC14028500.C   310VHOA1998N260815614)
+      else if (upper.includes(' ')) {
+          const parts = upper.split(/\s+/);
+          scanAtualTemp.pn = parts[0]; 
 
-          // Busca no Sistema de Cadastro (MDM) pelo código correspondente
-          for (const [k, val] of Object.entries(appCatalog)) {
-              let cleanK = k.replace(/[^A-Z0-9]/g, '');
-              if (cleanK && miolo.startsWith(cleanK)) {
-                  if (cleanK.length > bestMatchLength) { 
-                      bestMatchLength = cleanK.length;
-                      melhorPN = k; // Pega o código COM PONTUAÇÃO (ex: BC14030500.E) do banco de dados!
-                      scanAtualTemp.desc = val.desc;
-                      scanAtualTemp.peso = val.peso;
-                      // Resgata o Fornecedor atrelado à peça no sistema
-                      if(val.fornecedor && val.fornecedor !== 'SEM FORNECEDOR') {
-                          scanAtualTemp.forn_catalog = val.fornecedor;
-                      }
+          if (parts.length > 1) {
+              const dataPart = parts.slice(1).join(''); 
+              const matchData = dataPart.match(/^(\d+)([A-Z]{4})(\d{4})N/);
+              
+              if (matchData) {
+                  scanAtualTemp.qtd = parseInt(matchData[1], 10);
+                  scanAtualTemp.lote = matchData[2];
+                  const codF = matchData[3];
+                  scanAtualTemp.forn = mapaFornecedores[codF] || codF;
+              } else {
+                  const matchFallback = dataPart.match(/^(\d+)([A-Z0-9]{4})/);
+                  if (matchFallback) {
+                      scanAtualTemp.qtd = parseInt(matchFallback[1], 10);
+                      scanAtualTemp.lote = matchFallback[2];
                   }
               }
           }
+      } 
+      // 3. Fallback Genérico Total
+      else { scanAtualTemp.pn = upper; }
 
-          if (melhorPN) {
-              scanAtualTemp.pn = melhorPN;
-              // Autocompleta o fornecedor que estava faltando com o do sistema!
-              if(scanAtualTemp.forn_catalog) scanAtualTemp.forn = scanAtualTemp.forn_catalog;
-          } else {
-              let quebra = miolo.match(/^(.+?)(0{4,})$/); 
-              if (quebra) scanAtualTemp.pn = quebra[1];
-              else scanAtualTemp.pn = miolo.replace(/0+$/, ''); 
-          }
+      // ---------------------------------------------------------
+      // CRUZAMENTO COM MASTER HUB (MDM) PARA AUTO-COMPLETAR
+      // ---------------------------------------------------------
+      let searchKey = scanAtualTemp.pn.replace(/[^A-Z0-9]/g, '');
+      let foundInMDM = false;
+      let melhorPNCatalog = "";
 
-      } else {
-          let melhorPN = "";
-          let bestMatchLength = 0;
-          for (const [k, val] of Object.entries(appCatalog)) { 
-              let cleanK = k.replace(/[^A-Z0-9]/g, '');
-              if (cleanK && upper.includes(cleanK)) {
-                  if (cleanK.length > bestMatchLength) {
-                      bestMatchLength = cleanK.length;
-                      melhorPN = k; // Pega original com pontuação
-                      scanAtualTemp.desc = val.desc;
-                      scanAtualTemp.peso = val.peso;
-                      if(val.fornecedor && val.fornecedor !== 'SEM FORNECEDOR') {
-                          scanAtualTemp.forn_catalog = val.fornecedor;
-                      }
+      for (const [k, val] of Object.entries(appCatalog)) { 
+          let cleanK = k.replace(/[^A-Z0-9]/g, '');
+          
+          if (cleanK && (upper.includes(cleanK) || searchKey === cleanK)) {
+              if (cleanK.length > melhorPNCatalog.length) {
+                  melhorPNCatalog = cleanK;
+                  scanAtualTemp.pn = k; // Força o nome bonito do Master Hub (ex: BC14030500.E)
+                  scanAtualTemp.desc = val.desc || scanAtualTemp.desc;
+                  scanAtualTemp.peso = val.peso || scanAtualTemp.peso;
+                  
+                  if(val.fornecedor && val.fornecedor !== 'SEM FORNECEDOR') {
+                      scanAtualTemp.forn = val.fornecedor;
                   }
+                  foundInMDM = true;
               }
-          }
-          if (melhorPN) {
-              scanAtualTemp.pn = melhorPN;
-              if(scanAtualTemp.forn_catalog) scanAtualTemp.forn = scanAtualTemp.forn_catalog;
-          } else {
-              const pnMatch = upper.match(/(3BC[A-Z0-9]+|B[CEGHM][A-Z0-9]+|K[0-9]+)/);
-              if (pnMatch) scanAtualTemp.pn = pnMatch[1].replace(/0+$/, '');
-              else scanAtualTemp.pn = upper;
           }
       }
 
+      // Se não achou no MDM e não tem ponto no nome, limpa possível lixo
+      if (!foundInMDM && !scanAtualTemp.pn.includes('.')) {
+          const pnMatch = scanAtualTemp.pn.match(/(3BC[A-Z0-9]+|B[CEGHM][A-Z0-9]+|K[0-9]+)/);
+          if (pnMatch) scanAtualTemp.pn = pnMatch[1].replace(/0+$/, '');
+      }
+
+      if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
+
+      // Renderiza na tela os inputs de extração
       document.getElementById('col-main-pn').value = scanAtualTemp.pn || '-';
       document.getElementById('col-main-forn').value = scanAtualTemp.forn || appState.cabecalho.fornecedor || '-';
       document.getElementById('col-main-lote').value = scanAtualTemp.lote || '-';
       document.getElementById('col-main-qtd').value = scanAtualTemp.qtd || '-';
       
       showToast("Etiqueta lida! Insira os pesos.");
-      setTimeout(() => advanceTo('col-main-tara'), 100);
+      setTimeout(() => advanceTo('col-main-tara'), 300);
     }
 
     function salvarColetorMain(addAnother) {
@@ -1333,13 +1281,10 @@
         closeLimparModal();
     }
 
-    // ==========================================
-    // DEBOUNCER E AUTO-PROCESSAMENTO DO SCANNER
-    // ==========================================
+    // Leitura inteligente para scanners
     let scanTimeout;
     const scanInput = document.getElementById('col-main-scan');
 
-    // Funciona se o scanner enviar o Enter (fallback original)
     scanInput.addEventListener('keydown', function(event) {
       if (event.key === 'Enter' || event.keyCode === 13 || event.which === 13) { 
         event.preventDefault(); 
@@ -1350,19 +1295,71 @@
       }
     });
 
-    // SISTEMA INTELIGENTE: Pega o código automaticamente MESMO SEM O ENTER!
-    // Ele sente o scanner a digitar, espera 400ms do final e avança sozinho.
     scanInput.addEventListener('input', function(event) {
       clearTimeout(scanTimeout);
       scanTimeout = setTimeout(() => {
         const val = this.value;
-        // Se a string tiver mais de 5 caracteres, já sabemos que foi um bip.
         if (val.trim().length > 5) {
           this.value = '';
           processarColetorMain(val);
         }
       }, 400); 
     });
+
+    // ==========================================
+    // CARREGAR CATÁLOGOS COMBINADOS (Firebase)
+    // ==========================================
+    function carregarCatalogos() {
+      let catMestre = {};
+      let catDyn = {};
+      
+      const updateCatalog = () => {
+          appCatalog = { ...catDyn, ...catMestre }; // Mescla os dois bancos
+          const dl = document.getElementById('cat-list'); 
+          if(dl) {
+              dl.innerHTML = '';
+              for (let k in appCatalog) {
+                  dl.innerHTML += `<option value="${k}">${k} - ${appCatalog[k].desc}</option>`;
+              }
+          }
+      };
+
+      // 1. Escuta o Banco Dinâmico
+      db.ref('dynamicCatalog').on('value', snap => {
+          const val = snap.val();
+          catDyn = {};
+          if (val) {
+              for (let k in val) {
+                  let originalKey = k.replace(/_DOT_/g, '.').replace(/_HASH_/g, '#').replace(/_DOL_/g, '$').replace(/_SLASH_/g, '/').replace(/_OB_/g, '[').replace(/_CB_/g, ']');
+                  catDyn[originalKey.toUpperCase()] = { 
+                      desc: (val[k].desc || val[k].descricao || '').toUpperCase(), 
+                      peso: val[k].peso !== undefined ? Number(val[k].peso) : null,
+                      fornecedor: (val[k].fornecedor || '').toUpperCase()
+                  };
+              }
+          }
+          updateCatalog();
+      });
+
+      // 2. Escuta o Master Hub (MDM) de Produtos Mestre
+      db.ref('cadastros/produtos_mestre').on('value', snap => {
+          const val = snap.val();
+          catMestre = {};
+          if (val) {
+              let arr = Array.isArray(val) ? val.filter(x => x) : Object.values(val);
+              arr.forEach(prod => {
+                  if (prod && prod.partNumber) {
+                      catMestre[prod.partNumber.toUpperCase()] = { 
+                          desc: (prod.descricao || '').toUpperCase(), 
+                          peso: prod.peso !== undefined ? Number(prod.peso) : null,
+                          fornecedor: (prod.fornecedor || '').toUpperCase()
+                      };
+                  }
+              });
+          }
+          updateCatalog();
+      });
+    }
 
     function initFirebaseApp() {
       try {
@@ -1411,31 +1408,16 @@
         });
 
         db.ref('loteNotas').on('value', snap => { desktopLoteNotas = snap.val() || []; document.getElementById('sync-status').classList.replace('bg-slate-500', 'bg-emerald-400'); });
+        
         db.ref('cadastros/fornecedores').on('value', snap => {
           const dl = document.getElementById('forn-list'); dl.innerHTML = '';
           const arr = Array.isArray(snap.val()) ? snap.val().filter(x => x) : Object.values(snap.val() || {});
           arr.forEach(f => dl.innerHTML += `<option value="${(f || '').toUpperCase()}">`);
         });
 
-        // Integração Definitiva com o Master Hub (MDM) de Produtos Mestre
-        db.ref('cadastros/produtos_mestre').on('value', snap => {
-          const val = snap.val();
-          appCatalog = {};
-          const dl = document.getElementById('cat-list'); dl.innerHTML = '';
-          if (val) {
-            let arr = Array.isArray(val) ? val.filter(p => p) : Object.values(val || {});
-            arr.forEach(p => {
-              if (!p.partNumber) return;
-              let originalKey = p.partNumber.toUpperCase();
-              appCatalog[originalKey] = { 
-                desc: (p.descricao || '').toUpperCase(), 
-                peso: p.peso || p.custoUnitario || null,
-                fornecedor: (p.fornecedor || '').toUpperCase()
-              };
-              dl.innerHTML += `<option value="${originalKey}">${originalKey} - ${p.descricao || ''}</option>`;
-            });
-          }
-        });
+        // Chama a nova rotina de união de catálogos
+        carregarCatalogos();
+
       } catch(e) { console.error("Firebase init error:", e); }
     }
 
@@ -1452,4 +1434,5 @@
   </script>
 </body>
 </html>
+
 
