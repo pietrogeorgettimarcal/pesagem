@@ -60,7 +60,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Força fonte 16px para bloquear o auto-zoom do iOS/Android */
     .mobile-input {
       width: 100%;
       padding: 10px 12px;
@@ -184,7 +183,6 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    /* ESTILOS DO TECLADO VIRTUAL */
     .vkb-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -248,7 +246,7 @@
 
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
         <div>
-          <label class="mobile-label">Usuário (E-mail)</label>
+          <label class="mobile-label">Usuário</label>
           <input type="text" id="login-email" class="mobile-input normal-case" placeholder="ex: joao (só o nome)" />
           <p class="text-[9px] text-slate-400 font-bold mt-1 ml-1"><i class="fa-solid fa-circle-info"></i> O @hlcompany.com é inserido sozinho.</p>
         </div>
@@ -383,6 +381,16 @@
         </div>
       </div>
 
+      <!-- NOVO: MULTIPLICADOR DE CAIXAS (COLETOR) -->
+      <div class="bg-indigo-50 rounded-lg shadow-sm border border-indigo-200 p-3 space-y-2 mb-3">
+        <label class="mobile-label text-indigo-800"><i class="fa-solid fa-copy"></i> Multiplicar (Caixas Idênticas)</label>
+        <div class="flex items-center gap-3">
+           <button type="button" onclick="changeMultiplier('col', -1)" class="w-12 h-10 bg-indigo-200 text-indigo-800 rounded-lg font-black text-lg active:scale-95 transition-transform">-</button>
+           <input type="text" readonly data-keyboard="num" id="col-main-multiplier" class="mobile-input text-center font-black text-indigo-900 text-lg flex-1 cursor-pointer" value="1" />
+           <button type="button" onclick="changeMultiplier('col', 1)" class="w-12 h-10 bg-indigo-600 text-white rounded-lg font-black text-lg active:scale-95 transition-transform">+</button>
+        </div>
+      </div>
+
       <div class="space-y-2 pb-6">
         <button onclick="salvarColetorMain(true)" class="btn-large btn-success py-3">
           <i class="fa-solid fa-check"></i> Salvar e Bipar Próxima
@@ -423,7 +431,6 @@
               <option value="B">TURNO B</option>
               <option value="C">TURNO C</option>
               <option value="D">TURNO D</option>
-              <option value="E">TURNO E</option>
               <option value="COMERCIAL">COMERCIAL</option>
             </select>
           </div>
@@ -496,6 +503,17 @@
             </div>
           </div>
         </div>
+
+        <!-- NOVO: MULTIPLICADOR DE CAIXAS (MANUAL) -->
+        <div id="man-multiplier-container" class="bg-indigo-50 p-3 rounded-lg border border-indigo-200 shadow-sm mt-3 space-y-2">
+          <label class="mobile-label text-indigo-800"><i class="fa-solid fa-copy"></i> Multiplicar Lançamento</label>
+          <div class="flex items-center gap-3">
+             <button type="button" onclick="changeMultiplier('man', -1)" class="w-12 h-10 bg-indigo-200 text-indigo-800 rounded-lg font-black text-lg active:scale-95 transition-transform">-</button>
+             <input type="text" readonly data-keyboard="num" id="man-box-multiplier" class="mobile-input text-center font-black text-indigo-900 text-lg flex-1 cursor-pointer" value="1" />
+             <button type="button" onclick="changeMultiplier('man', 1)" class="w-12 h-10 bg-indigo-600 text-white rounded-lg font-black text-lg active:scale-95 transition-transform">+</button>
+          </div>
+        </div>
+
       </div>
     </div>
     
@@ -639,12 +657,13 @@
     };
 
     // ========================================================
-    // CATÁLOGO INTERNO OCULTO (HARDCODED)
+    // CATÁLOGO INTERNO OCULTO
     // ========================================================
     const CATALOGO_INTERNO = {
       "BC380A2200": { desc: "CARCACA DIRECAO", peso: 2.15, fornecedor: "MANDO HEADQUARTER" },
       "BC14030500": { desc: "PINHAO", peso: 0.8, fornecedor: "AÇO PEÇAS" },
-      // COLE SEU CATÁLOGO DE MILHARES DE LINHAS AQUI DENTRO DO SEU ARQUIVO FÍSICO
+      // ==== COLE SEU ARQUIVO AQUI DEPOIS ====
+
     };
 
     let editIndex = -1;
@@ -656,6 +675,21 @@
     let scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
 
     // ==========================================
+    // LÓGICA DO MULTIPLICADOR DE CAIXAS
+    // ==========================================
+    function changeMultiplier(type, delta) {
+        let id = type === 'col' ? 'col-main-multiplier' : 'man-box-multiplier';
+        let input = document.getElementById(id);
+        let val = parseInt(input.value) || 1;
+        val += delta;
+        if (val < 1) val = 1;
+        input.value = val;
+        
+        // Se usar o teclado virtual, ele dispara isso
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    // ==========================================
     // LÓGICA DO TECLADO VIRTUAL E FOCOS
     // ==========================================
     let currentVKBInput = null;
@@ -663,14 +697,8 @@
     function initVKB() {
       const inputs = document.querySelectorAll('[data-keyboard]');
       inputs.forEach(inp => {
-        inp.addEventListener('focus', function(e) {
-          e.preventDefault();
-          openVKB(this, this.getAttribute('data-keyboard'));
-        });
-        inp.addEventListener('click', function(e) {
-          e.preventDefault();
-          openVKB(this, this.getAttribute('data-keyboard'));
-        });
+        inp.addEventListener('focus', function(e) { e.preventDefault(); openVKB(this, this.getAttribute('data-keyboard')); });
+        inp.addEventListener('click', function(e) { e.preventDefault(); openVKB(this, this.getAttribute('data-keyboard')); });
       });
 
       document.addEventListener('click', function(e) {
@@ -693,16 +721,13 @@
       
       let keysHtml = '';
       const numKeys = ['1','2','3','4','5','6','7','8','9'];
-      
-      numKeys.forEach(k => {
-        keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '${k}')">${k}</button>`;
-      });
+      numKeys.forEach(k => keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '${k}')">${k}</button>`);
 
       if (type === 'nf') {
         title.innerHTML = '<i class="fa-solid fa-file-invoice text-blue-500 mr-1"></i> TECLADO NF';
         keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, '-')">-</button>`;
       } else {
-        title.innerHTML = '<i class="fa-solid fa-scale-unbalanced text-emerald-500 mr-1"></i> TECLADO PESAGEM';
+        title.innerHTML = '<i class="fa-solid fa-scale-unbalanced text-emerald-500 mr-1"></i> TECLADO NUMÉRICO';
         keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, ',')">,</button>`;
       }
 
@@ -713,9 +738,7 @@
       keysContainer.innerHTML = keysHtml;
       vkb.classList.remove('translate-y-full');
 
-      setTimeout(() => {
-        if(currentVKBInput) currentVKBInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
+      setTimeout(() => { if(currentVKBInput) currentVKBInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
     }
 
     function closeVKB() {
@@ -731,6 +754,7 @@
     function vkbType(e, char) {
       if(e) e.stopPropagation();
       if(currentVKBInput) {
+        if(currentVKBInput.id.includes('multiplier') && currentVKBInput.value === '1') currentVKBInput.value = ''; // Limpa o "1" padrão ao começar a digitar
         currentVKBInput.value += char;
         currentVKBInput.dispatchEvent(new Event('input', { bubbles: true }));
       }
@@ -740,13 +764,14 @@
       if(e) e.stopPropagation();
       if(currentVKBInput) {
         currentVKBInput.value = currentVKBInput.value.slice(0, -1);
+        if(currentVKBInput.value === '' && currentVKBInput.id.includes('multiplier')) currentVKBInput.value = '1';
         currentVKBInput.dispatchEvent(new Event('input', { bubbles: true }));
       }
     }
 
     function advanceTo(nextId) {
         const nextEl = document.getElementById(nextId);
-        if(nextEl) {
+        if(nextEl && nextEl.style.display !== 'none' && nextEl.offsetParent !== null) {
             if(currentVKBInput) currentVKBInput.style.borderColor = '#cbd5e1';
             openVKB(nextEl, nextEl.getAttribute('data-keyboard'));
             nextEl.focus(); 
@@ -762,52 +787,58 @@
         
         if (id === 'col-main-tara') advanceTo('col-main-pnf');
         else if (id === 'col-main-pnf') advanceTo('col-main-pmando');
-        else if (id === 'col-main-pmando') closeVKB();
+        else if (id === 'col-main-pmando') advanceTo('col-main-multiplier'); // Vai pro multiplicador!
+        else if (id === 'col-main-multiplier') closeVKB();
+        
         else if (id === 'man-box-qtd') advanceTo('man-box-tara');
         else if (id === 'man-box-tara') advanceTo('man-box-pnf');
         else if (id === 'man-box-pnf') advanceTo('man-box-pmando');
-        else if (id === 'man-box-pmando') closeVKB();
+        else if (id === 'man-box-pmando') {
+             if (editIndex === -1) advanceTo('man-box-multiplier');
+             else closeVKB();
+        }
+        else if (id === 'man-box-multiplier') closeVKB();
+        
         else if (id === 'col-nf-input') { closeVKB(); avancarParaBipagem(); }
         else if (id === 'man-nf') { closeVKB(); document.getElementById('man-forn').focus(); }
         else closeVKB();
     }
 
+    // ==========================================
+    // SEGURANÇA: INATIVIDADE (10 MINUTOS) E BLUR
+    // ==========================================
     let inactivityTimer;
-    const INACTIVITY_TIME_MS = 10 * 60 * 1000; // 10 MINUTOS
+    const INACTIVITY_TIME_MS = 10 * 60 * 1000; 
 
     function resetTimer() {
       clearTimeout(inactivityTimer);
-      if (firebase && firebase.auth().currentUser) { 
-        inactivityTimer = setTimeout(() => { logout("Sessão expirada por inatividade (10 min)."); }, INACTIVITY_TIME_MS); 
+      if (firebase && firebase.auth && firebase.auth().currentUser) {
+        inactivityTimer = setTimeout(() => { logout("Sessão expirada por inatividade (10 min)."); }, INACTIVITY_TIME_MS);
       }
     }
 
-    // Ouve quando a tela apaga, aplicativo minimiza, ou o navegador vai pro fundo.
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") {
-        if (firebase && firebase.auth().currentUser) {
-           logout("Sessão encerrada por segurança (App em 2º plano).");
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            if (firebase && firebase.auth && firebase.auth().currentUser) {
+                logout("Sessão encerrada por segurança (app minimizado).");
+            }
         }
-      }
     });
 
     function showToast(msg) {
       const toast = document.getElementById('toast');
-      toast.innerText = msg;
-      toast.classList.add('show');
+      toast.innerText = msg; toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
     function setToday() {
       const hoje = new Date();
-      const formatado = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
-      document.getElementById('man-data').value = formatado;
+      document.getElementById('man-data').value = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
     }
 
     function formatarEmail(valor) {
       let v = valor.trim().toLowerCase();
-      if (v && !v.includes('@')) v += '@hlcompany.com';
-      return v;
+      return (v && !v.includes('@')) ? v + '@hlcompany.com' : v;
     }
 
     function navTo(viewId) {
@@ -819,11 +850,7 @@
       const nav = document.getElementById('main-bottom-nav');
       const backBtn = document.getElementById('btn-global-back');
 
-      if (viewId === 'login' || viewId === 'mode-select') {
-          backBtn.classList.add('hidden');
-      } else {
-          backBtn.classList.remove('hidden');
-      }
+      if (viewId === 'login' || viewId === 'mode-select') backBtn.classList.add('hidden'); else backBtn.classList.remove('hidden');
 
       if (['login', 'mode-select', 'coletor-nf', 'coletor-main'].includes(viewId)) {
         if(nav) nav.style.display = 'none';
@@ -856,17 +883,9 @@
       const emailRaw = document.getElementById('login-email').value;
       const senha = document.getElementById('login-senha').value;
       if (!emailRaw || !senha) { showToast("Preencha usuário e senha."); return; }
-      const email = formatarEmail(emailRaw);
-      
-      auth.signInWithEmailAndPassword(email, senha)
+      auth.signInWithEmailAndPassword(formatarEmail(emailRaw), senha)
         .then(() => { showToast("Login com sucesso!"); })
-        .catch(error => {
-            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
-                showToast("❌ Conta não existe ou senha errada. Tente 'Criar meu Cadastro'.");
-            } else {
-                showToast("Erro: " + error.message);
-            }
-        });
+        .catch(error => { showToast(error.code === 'auth/invalid-credential' ? "❌ Conta não existe ou senha errada." : "Erro: " + error.message); });
     }
 
     function fazerCadastro() {
@@ -880,41 +899,30 @@
       auth.createUserWithEmailAndPassword(email, senha)
         .then(() => {
           db.ref('cadastros/operadores').once('value').then(snap => {
-            let ops = snap.val();
-            let arr = Array.isArray(ops) ? ops : Object.values(ops || {});
-            let exists = arr.some(o => o && o.email && o.email.toLowerCase() === email.toLowerCase());
-            
-            if (!exists) {
+            let ops = snap.val(); let arr = Array.isArray(ops) ? ops : Object.values(ops || {});
+            if (!arr.some(o => o && o.email && o.email.toLowerCase() === email.toLowerCase())) {
                db.ref('cadastros/operadores').push({ nome: nomeOp, email: email, turno: "A" });
             }
           });
           showToast("Acesso ativado com sucesso!");
         })
-        .catch(error => {
-            if (error.code === 'auth/email-already-in-use') showToast("❌ Esse usuário já existe! Clique em 'Entrar'.");
-            else if (error.code === 'auth/weak-password') showToast("❌ A senha deve ter 6 caracteres no mínimo.");
-            else showToast("Falha: " + error.message);
-        });
+        .catch(error => { showToast(error.code === 'auth/email-already-in-use' ? "❌ Usuário já existe!" : "Falha: " + error.message); });
     }
 
     function logout(mensagemToast = "Deslogado com sucesso.") {
       if(auth) {
         auth.signOut().then(() => {
           appState.caixas = [];
-          
           document.getElementById('btn-logout').classList.add('hidden');
-          document.getElementById('login-email').value = '';
-          document.getElementById('login-senha').value = '';
-          
-          clearTimeout(inactivityTimer);
-          closeVKB();
-          
-          showToast(mensagemToast);
-          navTo('login');
+          document.getElementById('login-email').value = ''; document.getElementById('login-senha').value = '';
+          clearTimeout(inactivityTimer); closeVKB(); showToast(mensagemToast); navTo('login');
         });
       }
     }
 
+    // ==========================================
+    // BUSCA INTELIGENTE DE PEÇAS NO BANCO
+    // ==========================================
     function buscarInfoPeca(rawInput) {
         let cleanInput = rawInput.replace(/[^A-Z0-9]/g, '');
         let bestMatch = { pn: rawInput, desc: "", peso: null, fornecedor: "" };
@@ -936,47 +944,39 @@
                 }
             }
         }
-        
         return bestMatch;
     }
 
     function iniciarFluxo(modo) {
       appState.modo = modo;
       if (modo === 'coletor') {
-        document.getElementById('col-nf-input').value = appState.cabecalho.nota_fiscal_principal;
-        navTo('coletor-nf');
+        document.getElementById('col-nf-input').value = appState.cabecalho.nota_fiscal_principal; navTo('coletor-nf');
       } else {
         setToday();
         document.getElementById('man-nf').value = appState.cabecalho.nota_fiscal_principal;
         document.getElementById('man-forn').value = appState.cabecalho.fornecedor;
-        document.getElementById('man-turno').value = appState.cabecalho.turno || "A";
-        navTo('manual-header');
+        document.getElementById('man-turno').value = appState.cabecalho.turno || "A"; navTo('manual-header');
       }
     }
 
     function avancarParaBipagem() {
       const nf = document.getElementById('col-nf-input').value.trim();
       if(!nf) { showToast("Digite a Nota Fiscal!"); return; }
-      
       appState.cabecalho.nota_fiscal_principal = nf.toUpperCase();
-      const hoje = new Date();
-      appState.cabecalho.data_conferencia = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
-      
+      const hoje = new Date(); appState.cabecalho.data_conferencia = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
       navTo('coletor-main');
     }
 
     // ==========================================
-    // DEBOUNCER DO SCANNER E PROCESSAMENTO
+    // DEBOUNCER DO SCANNER
     // ==========================================
     let scanTimeout;
     const scanInput = document.getElementById('col-main-scan');
 
     scanInput.addEventListener('keydown', function(event) {
       if (event.key === 'Enter' || event.keyCode === 13) { 
-        event.preventDefault(); 
-        clearTimeout(scanTimeout);
-        const val = this.value; 
-        this.value = ''; 
+        event.preventDefault(); clearTimeout(scanTimeout);
+        const val = this.value; this.value = ''; 
         if (val) processarColetorMain(val); 
       }
     });
@@ -985,10 +985,7 @@
       clearTimeout(scanTimeout);
       scanTimeout = setTimeout(() => {
         const val = this.value;
-        if (val.trim().length > 5) {
-          this.value = '';
-          processarColetorMain(val);
-        }
+        if (val.trim().length > 5) { this.value = ''; processarColetorMain(val); }
       }, 400); 
     });
 
@@ -998,9 +995,8 @@
 
       scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
 
-      // 1. FORMATO METALSIDER: Ex: BC41235600.B     490VEDA1683N...
+      // 1. NOVO FORMATO ESPAÇADO
       let novoFormatoMatch = upper.match(/^([A-Z0-9.-]+)\s+(\d+)([A-Z0-9]{4})(\d{4})/);
-
       if (novoFormatoMatch) {
           let extraidoPN = novoFormatoMatch[1];
           let possivelQtd = parseInt(novoFormatoMatch[2], 10);
@@ -1012,21 +1008,11 @@
           if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
 
           let infoPeca = buscarInfoPeca(extraidoPN);
-          if (infoPeca.desc) {
-              scanAtualTemp.pn = infoPeca.pn;
-              scanAtualTemp.desc = infoPeca.desc;
-              scanAtualTemp.peso = infoPeca.peso;
-              if (infoPeca.fornecedor && (!scanAtualTemp.forn || scanAtualTemp.forn === codF || scanAtualTemp.forn.length < 3)) {
-                  scanAtualTemp.forn = infoPeca.fornecedor;
-              }
-          } else {
-              scanAtualTemp.pn = extraidoPN;
-          }
-
+          if (infoPeca.desc) { scanAtualTemp.pn = infoPeca.pn; scanAtualTemp.desc = infoPeca.desc; scanAtualTemp.peso = infoPeca.peso; } 
+          else { scanAtualTemp.pn = extraidoPN; }
       } 
-      // 2. FORMATO VDA MANDO LONGO: Ex: P00000100000000BC380A22000000000VGGA008500
+      // 2. FORMATO VDA MANDO
       else if (upper.startsWith('P') && upper.length >= 35) {
-          
           const codF = upper.substring(3, 7);
           scanAtualTemp.forn = mapaFornecedores[codF] || codF;
           if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
@@ -1037,34 +1023,25 @@
           if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
 
           let infoPeca = buscarInfoPeca(upper);
-
           if (infoPeca.desc) {
-              scanAtualTemp.pn = infoPeca.pn;
-              scanAtualTemp.desc = infoPeca.desc;
-              scanAtualTemp.peso = infoPeca.peso;
-              if (infoPeca.fornecedor && (!scanAtualTemp.forn || scanAtualTemp.forn === codF || scanAtualTemp.forn.length < 3)) {
+              scanAtualTemp.pn = infoPeca.pn; scanAtualTemp.desc = infoPeca.desc; scanAtualTemp.peso = infoPeca.peso;
+              if (infoPeca.fornecedor && (!scanAtualTemp.forn || scanAtualTemp.forn === codF || scanAtualTemp.forn === "0000" || scanAtualTemp.forn.length < 3)) {
                   scanAtualTemp.forn = infoPeca.fornecedor;
               }
           } else {
-              let miolo = upper.substring(15, upper.length - 10);
-              let quebra = miolo.match(/^(.+?)(0{4,})$/); 
-              if (quebra) scanAtualTemp.pn = quebra[1];
-              else scanAtualTemp.pn = miolo.replace(/0+$/, ''); 
+              let miolo = upper.substring(15, upper.length - 10); let quebra = miolo.match(/^(.+?)(0{4,})$/); 
+              scanAtualTemp.pn = quebra ? quebra[1] : miolo.replace(/0+$/, ''); 
           }
-
       } 
-      // 3. FALLBACK GLOBAL (Puxa qualquer formato perdido cruzando com o banco)
+      // 3. FALLBACK GLOBAL
       else {
           let infoPeca = buscarInfoPeca(upper);
           if (infoPeca.desc) {
-              scanAtualTemp.pn = infoPeca.pn;
-              scanAtualTemp.desc = infoPeca.desc;
-              scanAtualTemp.peso = infoPeca.peso;
+              scanAtualTemp.pn = infoPeca.pn; scanAtualTemp.desc = infoPeca.desc; scanAtualTemp.peso = infoPeca.peso;
               if (infoPeca.fornecedor) scanAtualTemp.forn = infoPeca.fornecedor;
           } else {
               const pnMatch = upper.match(/(3BC[A-Z0-9]+|B[CEGHM][A-Z0-9]+|K[0-9]+)/);
-              if (pnMatch) scanAtualTemp.pn = pnMatch[1].replace(/0+$/, '');
-              else scanAtualTemp.pn = upper;
+              scanAtualTemp.pn = pnMatch ? pnMatch[1].replace(/0+$/, '') : upper;
           }
       }
 
@@ -1074,7 +1051,6 @@
       document.getElementById('col-main-qtd').value = scanAtualTemp.qtd || '-';
       
       showToast("Etiqueta lida! Insira os pesos.");
-      
       setTimeout(() => advanceTo('col-main-tara'), 300);
     }
 
@@ -1083,40 +1059,45 @@
       const tara = document.getElementById('col-main-tara').value;
       const pnf = document.getElementById('col-main-pnf').value;
       const pmando = document.getElementById('col-main-pmando').value;
+      
+      // Lê o valor do multiplicador e garante que é um número válido (mínimo 1)
+      const multiplier = parseInt(document.getElementById('col-main-multiplier').value) || 1;
 
       if (!pn || pn === '-') { showToast("Bipe uma etiqueta primeiro."); return; }
       if (!tara && !pmando) { showToast("Preencha ao menos a Tara ou o Peso Mando."); return; }
 
-      const itemData = {
-        caixa_no: appState.caixas.length + 1,
-        observacao: scanAtualTemp.pn,
-        descricao: scanAtualTemp.desc,
-        lote: scanAtualTemp.lote,
-        peso_unitario: scanAtualTemp.peso,
-        quantidade_mencionada: scanAtualTemp.qtd,
-        peso_embalagem: tara,
-        peso_bruto_nf: pnf,
-        peso_bruto_mando: pmando,
-        id: 'mob_' + Date.now()
-      };
+      // Loop de multiplicação (Registra "N" vezes idênticas, mas com IDs únicos)
+      for (let i = 0; i < multiplier; i++) {
+          const itemData = {
+            caixa_no: appState.caixas.length + 1,
+            observacao: scanAtualTemp.pn,
+            descricao: scanAtualTemp.desc,
+            lote: scanAtualTemp.lote,
+            peso_unitario: scanAtualTemp.peso,
+            quantidade_mencionada: scanAtualTemp.qtd,
+            peso_embalagem: tara,
+            peso_bruto_nf: pnf,
+            peso_bruto_mando: pmando,
+            id: 'mob_' + Date.now() + '_' + i // Garante um ID único pra cada clone
+          };
+          appState.caixas.push(itemData);
+      }
 
-      appState.caixas.push(itemData);
-      showToast("Caixa salva!");
+      showToast(multiplier > 1 ? `${multiplier} Caixas salvas com sucesso!` : "Caixa salva!");
 
       if(addAnother) {
-        document.getElementById('col-main-pn').value = '';
-        document.getElementById('col-main-forn').value = '';
-        document.getElementById('col-main-lote').value = '';
-        document.getElementById('col-main-qtd').value = '';
-        document.getElementById('col-main-tara').value = '';
-        document.getElementById('col-main-pnf').value = '';
-        document.getElementById('col-main-pmando').value = '';
+        ['pn', 'forn', 'lote', 'qtd', 'tara', 'pnf', 'pmando'].forEach(id => document.getElementById('col-main-'+id).value = '');
+        document.getElementById('col-main-multiplier').value = '1'; // Reseta o multiplicador
         navTo('coletor-main'); 
-      } else {
-        navTo('export');
+      } else { 
+        document.getElementById('col-main-multiplier').value = '1'; // Reseta o multiplicador
+        navTo('export'); 
       }
     }
 
+    // ==========================================
+    // MANUAL MODE
+    // ==========================================
     function onManualPnInput(val) {
       const raw = String(val).trim().toUpperCase();
       const feedback = document.getElementById('man-desc-feedback');
@@ -1128,16 +1109,10 @@
       if(info && info.desc) {
           feedback.innerHTML = `<b>${info.desc}</b>`;
           feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-center';
-          
-          if (raw.length > 5 && info.pn !== raw && info.pn.replace(/[^A-Z0-9]/g, '') === raw) {
-              pnInput.value = info.pn;
-          }
-
+          if (raw.length > 5 && info.pn !== raw && info.pn.replace(/[^A-Z0-9]/g, '') === raw) { pnInput.value = info.pn; }
           if (info.fornecedor && (!fornHeader.value || fornHeader.value.trim() === '')) {
-              fornHeader.value = info.fornecedor.toUpperCase();
-              appState.cabecalho.fornecedor = info.fornecedor.toUpperCase();
+              fornHeader.value = info.fornecedor.toUpperCase(); appState.cabecalho.fornecedor = info.fornecedor.toUpperCase();
           }
-
       } else if (raw.length > 3) {
           feedback.innerText = '⚠️ PN NÃO ENCONTRADO';
           feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-rose-50 border border-rose-200 text-rose-700 text-center';
@@ -1178,6 +1153,10 @@
       document.getElementById('man-desc-feedback').innerText = 'DIGITE O CÓDIGO...';
       document.getElementById('man-desc-feedback').className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-white border border-slate-200 text-slate-500 text-center';
       
+      // Reseta e mostra o campo Multiplicador (Apenas para caixas Novas)
+      document.getElementById('man-box-multiplier').value = '1';
+      document.getElementById('man-multiplier-container').style.display = 'block';
+
       const modal = document.getElementById('modal-add-manual');
       modal.classList.remove('hidden');
       setTimeout(() => { modal.classList.remove('translate-y-full'); document.getElementById('man-box-pn').focus(); }, 10);
@@ -1195,6 +1174,9 @@
       document.getElementById('man-box-pmando').value = c.peso_bruto_mando || '';
       onManualPnInput(c.observacao || '');
       
+      // Esconde o Multiplicador ao Editar para não duplicar caixas acidentalmente
+      document.getElementById('man-multiplier-container').style.display = 'none';
+
       const modal = document.getElementById('modal-add-manual');
       modal.classList.remove('hidden');
       setTimeout(() => modal.classList.remove('translate-y-full'), 10);
@@ -1225,28 +1207,45 @@
       appState.cabecalho.fornecedor = document.getElementById('man-forn').value.toUpperCase();
       appState.cabecalho.turno = document.getElementById('man-turno').value; 
 
-      const itemData = {
-        caixa_no: editIndex > -1 ? appState.caixas[editIndex].caixa_no : (appState.caixas.length + 1),
-        observacao: info.pn || pn,
-        descricao: desc, lote: lote, peso_unitario: pesoUnit,
-        quantidade_mencionada: qtd, peso_embalagem: tara, peso_bruto_nf: pnf, peso_bruto_mando: pmando
-      };
+      // Pega o multiplicador (se estiver editando, força 1 para não criar clones acidentais)
+      let multiplier = 1;
+      if (editIndex === -1) {
+          multiplier = parseInt(document.getElementById('man-box-multiplier').value) || 1;
+      }
 
-      if (editIndex > -1) appState.caixas[editIndex] = itemData;
-      else appState.caixas.push(itemData);
+      for (let i = 0; i < multiplier; i++) {
+          const itemData = {
+            caixa_no: editIndex > -1 ? appState.caixas[editIndex].caixa_no : (appState.caixas.length + 1),
+            observacao: info.pn || pn,
+            descricao: desc, lote: lote, peso_unitario: pesoUnit,
+            quantidade_mencionada: qtd, peso_embalagem: tara, peso_bruto_nf: pnf, peso_bruto_mando: pmando,
+            id: 'mob_' + Date.now() + '_' + i
+          };
 
-      showToast("Caixa salva!");
+          if (editIndex > -1) {
+              appState.caixas[editIndex] = itemData; // Se for edição, apenas sobrepõe a existente (multiplier será sempre 1)
+          } else {
+              appState.caixas.push(itemData); // Insere novas idênticas
+          }
+      }
+
+      showToast(multiplier > 1 ? `${multiplier} Caixas salvas com sucesso!` : "Caixa salva!");
       renderManualItemsList();
       
       if(addAnother && editIndex === -1) {
         document.getElementById('man-box-pn').value = '';
         document.getElementById('man-box-pmando').value = '';
+        document.getElementById('man-box-multiplier').value = '1';
         document.getElementById('man-box-pn').focus();
       } else {
+        document.getElementById('man-box-multiplier').value = '1';
         closeManualAddModal();
       }
     }
 
+    // ==========================================
+    // EXPORTAÇÃO
+    // ==========================================
     function openEmailModal() {
       const modal = document.getElementById('modal-email');
       const box = document.getElementById('email-box');
@@ -1389,6 +1388,9 @@
         closeLimparModal();
     }
 
+    // ==========================================
+    // INICIALIZAÇÃO E LISTENER DO FIREBASE
+    // ==========================================
     function initFirebaseApp() {
       try {
         const firebaseConfig = {
@@ -1442,6 +1444,7 @@
           arr.forEach(f => dl.innerHTML += `<option value="${(f || '').toUpperCase()}">`);
         });
 
+        // Puxa e cria o catálogo a partir do Master Hub
         db.ref('cadastros/produtos_mestre').on('value', snap => {
           const val = snap.val();
           if (val) {
@@ -1470,6 +1473,7 @@
                   peso: val[k].peso !== undefined ? Number(val[k].peso) : null,
                   fornecedor: val[k].forn || val[k].fornecedor || '' 
               };
+              
               dl.innerHTML += `<option value="${originalKey}">${originalKey} - ${val[k].desc || ''}</option>`;
             }
           }
@@ -1490,4 +1494,5 @@
   </script>
 </body>
 </html>
+
 
