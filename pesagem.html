@@ -183,17 +183,18 @@
       transform: translateX(-50%) translateY(0);
     }
 
+    /* ESTILOS DO TECLADO VIRTUAL AJUSTADOS (MENORES) */
     .vkb-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
+      gap: 6px; /* Espaço menor entre teclas */
     }
     .vkb-key {
       background: white;
-      border-radius: 10px;
-      padding: 14px 0;
+      border-radius: 8px;
+      padding: 8px 0; /* Menos padding vertical */
       text-align: center;
-      font-size: 24px;
+      font-size: 20px; /* Fonte menor */
       font-weight: 900;
       color: #1e293b;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -204,8 +205,8 @@
       touch-action: manipulation;
     }
     .vkb-key:active { background: #cbd5e1; transform: scale(0.95); }
-    .vkb-key.action { background: #e2e8f0; color: #475569; font-size: 20px;}
-    .vkb-key.enter { background: #005c9e; color: white; grid-column: span 3; border: none; font-size: 16px; text-transform: uppercase; padding: 16px 0; margin-top: 4px; box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2); }
+    .vkb-key.action { background: #e2e8f0; color: #475569; font-size: 18px;}
+    .vkb-key.enter { background: #005c9e; color: white; grid-column: span 3; border: none; font-size: 14px; text-transform: uppercase; padding: 10px 0; margin-top: 2px; box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2); }
     .vkb-key.enter:active { transform: scale(0.98); background: #004b80; }
   </style>
 </head>
@@ -381,7 +382,6 @@
         </div>
       </div>
 
-      <!-- NOVO: MULTIPLICADOR DE CAIXAS (COLETOR) -->
       <div class="bg-indigo-50 rounded-lg shadow-sm border border-indigo-200 p-3 space-y-2 mb-3">
         <label class="mobile-label text-indigo-800"><i class="fa-solid fa-copy"></i> Multiplicar (Caixas Idênticas)</label>
         <div class="flex items-center gap-3">
@@ -504,7 +504,6 @@
           </div>
         </div>
 
-        <!-- NOVO: MULTIPLICADOR DE CAIXAS (MANUAL) -->
         <div id="man-multiplier-container" class="bg-indigo-50 p-3 rounded-lg border border-indigo-200 shadow-sm mt-3 space-y-2">
           <label class="mobile-label text-indigo-800"><i class="fa-solid fa-copy"></i> Multiplicar Lançamento</label>
           <div class="flex items-center gap-3">
@@ -625,12 +624,12 @@
   </nav>
 
   <!-- TECLADO VIRTUAL INJETADO -->
-  <div id="virtual-kb" class="fixed bottom-0 left-0 w-full bg-slate-100/95 backdrop-blur-sm shadow-[0_-10px_20px_rgba(0,0,0,0.1)] transform translate-y-full transition-transform duration-300 z-[999] rounded-t-2xl pb-[env(safe-area-inset-bottom,16px)] border-t border-slate-200">
-    <div class="flex justify-between items-center p-3 border-b border-slate-200 bg-white rounded-t-2xl">
-      <span class="text-[11px] font-black text-slate-500 uppercase tracking-wider pl-1" id="vkb-title">TECLADO</span>
+  <div id="virtual-kb" class="fixed bottom-0 left-0 w-full bg-slate-100/95 backdrop-blur-sm shadow-[0_-10px_20px_rgba(0,0,0,0.1)] transform translate-y-full transition-transform duration-300 z-[999] rounded-t-2xl pb-[env(safe-area-inset-bottom,8px)] border-t border-slate-200">
+    <div class="flex justify-between items-center p-2 border-b border-slate-200 bg-white rounded-t-2xl">
+      <span class="text-[11px] font-black text-slate-500 uppercase tracking-wider pl-2" id="vkb-title">TECLADO</span>
       <button onclick="closeVKB()" class="text-slate-400 hover:text-slate-700 py-1 px-3 text-xl"><i class="fa-solid fa-chevron-down"></i></button>
     </div>
-    <div id="vkb-keys" class="vkb-grid p-3">
+    <div id="vkb-keys" class="vkb-grid p-2">
       <!-- Botões injetados via JS -->
     </div>
   </div>
@@ -684,8 +683,6 @@
         val += delta;
         if (val < 1) val = 1;
         input.value = val;
-        
-        // Se usar o teclado virtual, ele dispara isso
         input.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
@@ -721,7 +718,10 @@
       
       let keysHtml = '';
       const numKeys = ['1','2','3','4','5','6','7','8','9'];
-      numKeys.forEach(k => keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '${k}')">${k}</button>`);
+      
+      numKeys.forEach(k => {
+        keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '${k}')">${k}</button>`;
+      });
 
       if (type === 'nf') {
         title.innerHTML = '<i class="fa-solid fa-file-invoice text-blue-500 mr-1"></i> TECLADO NF';
@@ -738,7 +738,7 @@
       keysContainer.innerHTML = keysHtml;
       vkb.classList.remove('translate-y-full');
 
-      setTimeout(() => { if(currentVKBInput) currentVKBInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+      setTimeout(() => { if(currentVKBInput) currentVKBInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 200);
     }
 
     function closeVKB() {
@@ -754,7 +754,7 @@
     function vkbType(e, char) {
       if(e) e.stopPropagation();
       if(currentVKBInput) {
-        if(currentVKBInput.id.includes('multiplier') && currentVKBInput.value === '1') currentVKBInput.value = ''; // Limpa o "1" padrão ao começar a digitar
+        if(currentVKBInput.id.includes('multiplier') && currentVKBInput.value === '1') currentVKBInput.value = '';
         currentVKBInput.value += char;
         currentVKBInput.dispatchEvent(new Event('input', { bubbles: true }));
       }
@@ -787,7 +787,7 @@
         
         if (id === 'col-main-tara') advanceTo('col-main-pnf');
         else if (id === 'col-main-pnf') advanceTo('col-main-pmando');
-        else if (id === 'col-main-pmando') advanceTo('col-main-multiplier'); // Vai pro multiplicador!
+        else if (id === 'col-main-pmando') advanceTo('col-main-multiplier'); 
         else if (id === 'col-main-multiplier') closeVKB();
         
         else if (id === 'man-box-qtd') advanceTo('man-box-tara');
@@ -805,22 +805,35 @@
     }
 
     // ==========================================
-    // SEGURANÇA: INATIVIDADE (10 MINUTOS) E BLUR
+    // SEGURANÇA: INATIVIDADE (10 MINUTOS) INTELIGENTE
     // ==========================================
     let inactivityTimer;
-    const INACTIVITY_TIME_MS = 10 * 60 * 1000; 
+    let lastActivityTime = Date.now();
+    const INACTIVITY_TIME_MS = 10 * 60 * 1000; // 10 minutos cravados
 
-    function resetTimer() {
-      clearTimeout(inactivityTimer);
+    function checkInactivityAndLogout() {
       if (firebase && firebase.auth && firebase.auth().currentUser) {
-        inactivityTimer = setTimeout(() => { logout("Sessão expirada por inatividade (10 min)."); }, INACTIVITY_TIME_MS);
+         logout("Sessão expirada por inatividade (10 min).");
       }
     }
 
+    function resetTimer() {
+      lastActivityTime = Date.now();
+      clearTimeout(inactivityTimer);
+      if (firebase && firebase.auth && firebase.auth().currentUser) {
+        inactivityTimer = setTimeout(checkInactivityAndLogout, INACTIVITY_TIME_MS);
+      }
+    }
+
+    // Apenas checa se passou 10 minutos quando o operador VOLTAR para o app. Não desloga imediatamente ao sair!
     document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden') {
+        if (document.visibilityState === 'visible') {
             if (firebase && firebase.auth && firebase.auth().currentUser) {
-                logout("Sessão encerrada por segurança (app minimizado).");
+                if (Date.now() - lastActivityTime >= INACTIVITY_TIME_MS) {
+                    logout("Sessão expirada. Você ficou fora por mais de 10 minutos.");
+                } else {
+                    resetTimer(); // Retomou a tempo! Reinicia os 10 minutos de tolerância.
+                }
             }
         }
     });
@@ -920,9 +933,6 @@
       }
     }
 
-    // ==========================================
-    // BUSCA INTELIGENTE DE PEÇAS NO BANCO
-    // ==========================================
     function buscarInfoPeca(rawInput) {
         let cleanInput = rawInput.replace(/[^A-Z0-9]/g, '');
         let bestMatch = { pn: rawInput, desc: "", peso: null, fornecedor: "" };
@@ -967,9 +977,6 @@
       navTo('coletor-main');
     }
 
-    // ==========================================
-    // DEBOUNCER DO SCANNER
-    // ==========================================
     let scanTimeout;
     const scanInput = document.getElementById('col-main-scan');
 
@@ -995,7 +1002,6 @@
 
       scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
 
-      // 1. NOVO FORMATO ESPAÇADO
       let novoFormatoMatch = upper.match(/^([A-Z0-9.-]+)\s+(\d+)([A-Z0-9]{4})(\d{4})/);
       if (novoFormatoMatch) {
           let extraidoPN = novoFormatoMatch[1];
@@ -1011,7 +1017,6 @@
           if (infoPeca.desc) { scanAtualTemp.pn = infoPeca.pn; scanAtualTemp.desc = infoPeca.desc; scanAtualTemp.peso = infoPeca.peso; } 
           else { scanAtualTemp.pn = extraidoPN; }
       } 
-      // 2. FORMATO VDA MANDO
       else if (upper.startsWith('P') && upper.length >= 35) {
           const codF = upper.substring(3, 7);
           scanAtualTemp.forn = mapaFornecedores[codF] || codF;
@@ -1033,7 +1038,6 @@
               scanAtualTemp.pn = quebra ? quebra[1] : miolo.replace(/0+$/, ''); 
           }
       } 
-      // 3. FALLBACK GLOBAL
       else {
           let infoPeca = buscarInfoPeca(upper);
           if (infoPeca.desc) {
@@ -1059,14 +1063,11 @@
       const tara = document.getElementById('col-main-tara').value;
       const pnf = document.getElementById('col-main-pnf').value;
       const pmando = document.getElementById('col-main-pmando').value;
-      
-      // Lê o valor do multiplicador e garante que é um número válido (mínimo 1)
       const multiplier = parseInt(document.getElementById('col-main-multiplier').value) || 1;
 
       if (!pn || pn === '-') { showToast("Bipe uma etiqueta primeiro."); return; }
       if (!tara && !pmando) { showToast("Preencha ao menos a Tara ou o Peso Mando."); return; }
 
-      // Loop de multiplicação (Registra "N" vezes idênticas, mas com IDs únicos)
       for (let i = 0; i < multiplier; i++) {
           const itemData = {
             caixa_no: appState.caixas.length + 1,
@@ -1078,7 +1079,7 @@
             peso_embalagem: tara,
             peso_bruto_nf: pnf,
             peso_bruto_mando: pmando,
-            id: 'mob_' + Date.now() + '_' + i // Garante um ID único pra cada clone
+            id: 'mob_' + Date.now() + '_' + i
           };
           appState.caixas.push(itemData);
       }
@@ -1087,17 +1088,14 @@
 
       if(addAnother) {
         ['pn', 'forn', 'lote', 'qtd', 'tara', 'pnf', 'pmando'].forEach(id => document.getElementById('col-main-'+id).value = '');
-        document.getElementById('col-main-multiplier').value = '1'; // Reseta o multiplicador
+        document.getElementById('col-main-multiplier').value = '1'; 
         navTo('coletor-main'); 
       } else { 
-        document.getElementById('col-main-multiplier').value = '1'; // Reseta o multiplicador
+        document.getElementById('col-main-multiplier').value = '1'; 
         navTo('export'); 
       }
     }
 
-    // ==========================================
-    // MANUAL MODE
-    // ==========================================
     function onManualPnInput(val) {
       const raw = String(val).trim().toUpperCase();
       const feedback = document.getElementById('man-desc-feedback');
@@ -1153,7 +1151,6 @@
       document.getElementById('man-desc-feedback').innerText = 'DIGITE O CÓDIGO...';
       document.getElementById('man-desc-feedback').className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-white border border-slate-200 text-slate-500 text-center';
       
-      // Reseta e mostra o campo Multiplicador (Apenas para caixas Novas)
       document.getElementById('man-box-multiplier').value = '1';
       document.getElementById('man-multiplier-container').style.display = 'block';
 
@@ -1174,7 +1171,6 @@
       document.getElementById('man-box-pmando').value = c.peso_bruto_mando || '';
       onManualPnInput(c.observacao || '');
       
-      // Esconde o Multiplicador ao Editar para não duplicar caixas acidentalmente
       document.getElementById('man-multiplier-container').style.display = 'none';
 
       const modal = document.getElementById('modal-add-manual');
@@ -1207,7 +1203,6 @@
       appState.cabecalho.fornecedor = document.getElementById('man-forn').value.toUpperCase();
       appState.cabecalho.turno = document.getElementById('man-turno').value; 
 
-      // Pega o multiplicador (se estiver editando, força 1 para não criar clones acidentais)
       let multiplier = 1;
       if (editIndex === -1) {
           multiplier = parseInt(document.getElementById('man-box-multiplier').value) || 1;
@@ -1222,11 +1217,8 @@
             id: 'mob_' + Date.now() + '_' + i
           };
 
-          if (editIndex > -1) {
-              appState.caixas[editIndex] = itemData; // Se for edição, apenas sobrepõe a existente (multiplier será sempre 1)
-          } else {
-              appState.caixas.push(itemData); // Insere novas idênticas
-          }
+          if (editIndex > -1) { appState.caixas[editIndex] = itemData; } 
+          else { appState.caixas.push(itemData); }
       }
 
       showToast(multiplier > 1 ? `${multiplier} Caixas salvas com sucesso!` : "Caixa salva!");
@@ -1243,9 +1235,6 @@
       }
     }
 
-    // ==========================================
-    // EXPORTAÇÃO
-    // ==========================================
     function openEmailModal() {
       const modal = document.getElementById('modal-email');
       const box = document.getElementById('email-box');
@@ -1388,9 +1377,6 @@
         closeLimparModal();
     }
 
-    // ==========================================
-    // INICIALIZAÇÃO E LISTENER DO FIREBASE
-    // ==========================================
     function initFirebaseApp() {
       try {
         const firebaseConfig = {
@@ -1444,7 +1430,6 @@
           arr.forEach(f => dl.innerHTML += `<option value="${(f || '').toUpperCase()}">`);
         });
 
-        // Puxa e cria o catálogo a partir do Master Hub
         db.ref('cadastros/produtos_mestre').on('value', snap => {
           const val = snap.val();
           if (val) {
