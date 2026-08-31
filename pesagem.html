@@ -8,1023 +8,1390 @@
   <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2800/2800118.png">
+  
   <title>App Pesagem Mobile - HL Mando</title>
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
   <style>
     :root {
       --primary: #005c9e;
       --primary-dark: #004b80;
       --bg: #f8fafc;
       --text: #1e293b;
-      --ink: #0f172a;
     }
+    
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg);
       color: var(--text);
-      margin: 0; padding: 0;
-      height: 100vh; height: 100dvh;
-      display: flex; flex-direction: column;
-      overflow: hidden; touch-action: pan-y;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      touch-action: pan-y;
     }
-    .view-container { flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 90px; display: none; animation: fadeIn 0.2s ease; width: 100%; }
-    .view-container.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    .mobile-input { width: 100%; padding: 10px 12px; font-size: 16px !important; border: 1px solid #cbd5e1; border-radius: 8px; background-color: #f1f5f9; transition: all 0.2s; outline: none; text-transform: uppercase; font-weight: 700; box-sizing: border-box; }
-    .mobile-input:focus { border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 2px rgba(0, 92, 158, 0.15); font-size: 16px !important; }
-    .mobile-label { display: block; font-size: 11px; font-weight: 800; color: #64748b; margin-bottom: 4px; text-transform: uppercase; }
-    .btn-large { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px; border-radius: 10px; font-weight: 900; font-size: 15px; text-transform: uppercase; transition: active 0.1s; border: none; cursor: pointer; }
-    .btn-large:active { transform: scale(0.97); }
-    .btn-primary { background-color: var(--primary); color: white; box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2); }
-    .btn-success { background-color: #10b981; color: white; }
-    .btn-soft { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
-    .seg { display: flex; border: 1.5px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
-    .seg button { flex: 1; padding: 10px; border: none; background: transparent; font-weight: 800; font-size: 11px; text-transform: uppercase; color: #94a3b8; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px; }
-    .seg button.on { background: var(--ink); color: #fff; }
-    .card { background: #fff; border-radius: 16px; padding: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #eef1f6; }
-    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #e2e8f0; display: none; justify-content: space-around; padding: 6px 0; padding-bottom: env(safe-area-inset-bottom, 8px); box-shadow: 0 -4px 15px rgba(0,0,0,0.03); z-index: 50; }
-    .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; font-size: 10px; font-weight: 800; padding: 8px; border-radius: 8px; flex: 1; text-transform: uppercase; cursor: pointer; }
-    .nav-item.active { color: var(--primary); }
-    .nav-item i { font-size: 18px; margin-bottom: 2px; }
-    .box-card { background: white; border-radius: 10px; padding: 14px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border: 1px solid #e2e8f0; border-left: 4px solid var(--primary); cursor: pointer; }
-    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #1e293b; color: white; padding: 12px 20px; border-radius: 20px; font-weight: bold; font-size: 13px; z-index: 1000; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 12px rgba(0,0,0,0.15); white-space: nowrap; display: flex; align-items: center; gap: 8px; }
-    .toast.show { transform: translateX(-50%) translateY(0); }
-    .vkb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .vkb-key { background: white; border-radius: 10px; padding: 14px 0; text-align: center; font-size: 24px; font-weight: 900; color: #1e293b; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; transition: all 0.1s; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+
+    .view-container {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 90px;
+      display: none;
+      animation: fadeIn 0.2s ease;
+      width: 100%;
+    }
+    
+    .view-container.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Força fonte 16px para bloquear o auto-zoom do iOS/Android */
+    .mobile-input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 16px !important; 
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background-color: #f1f5f9;
+      transition: all 0.2s;
+      outline: none;
+      text-transform: uppercase;
+      font-weight: 700;
+      box-sizing: border-box;
+    }
+    .mobile-input:focus {
+      border-color: var(--primary);
+      background-color: #fff;
+      box-shadow: 0 0 0 2px rgba(0, 92, 158, 0.15);
+      font-size: 16px !important;
+    }
+    
+    .mobile-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748b;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .btn-large {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      font-weight: 900;
+      font-size: 15px;
+      text-transform: uppercase;
+      transition: active 0.1s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-large:active {
+      transform: scale(0.97);
+    }
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+      box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2);
+    }
+    .btn-success {
+      background-color: #10b981;
+      color: white;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      display: none;
+      justify-content: space-around;
+      padding: 6px 0;
+      padding-bottom: env(safe-area-inset-bottom, 8px);
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
+      z-index: 50;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 8px;
+      border-radius: 8px;
+      flex: 1;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .nav-item.active {
+      color: var(--primary);
+    }
+    .nav-item i {
+      font-size: 18px;
+      margin-bottom: 2px;
+    }
+
+    .box-card {
+      background: white;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid var(--primary);
+      cursor: pointer;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: #1e293b;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 13px;
+      z-index: 1000;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      white-space: nowrap;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ESTILOS DO TECLADO VIRTUAL */
+    .vkb-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .vkb-key {
+      background: white;
+      border-radius: 10px;
+      padding: 14px 0;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 900;
+      color: #1e293b;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid #e2e8f0;
+      transition: all 0.1s;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
     .vkb-key:active { background: #cbd5e1; transform: scale(0.95); }
-    .vkb-key.action { background: #e2e8f0; color: #475569; font-size: 20px; }
+    .vkb-key.action { background: #e2e8f0; color: #475569; font-size: 20px;}
     .vkb-key.enter { background: #005c9e; color: white; grid-column: span 3; border: none; font-size: 16px; text-transform: uppercase; padding: 16px 0; margin-top: 4px; box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2); }
     .vkb-key.enter:active { transform: scale(0.98); background: #004b80; }
-    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
-    .modal-box { background: #fff; border-radius: 16px; padding: 24px; max-width: 380px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
   </style>
 </head>
 <body>
+
   <header class="bg-[#0f172a] text-white p-3 flex justify-between items-center shrink-0 shadow-md z-10 pt-[env(safe-area-inset-top,12px)]">
-    
+    <div class="flex items-center gap-2">
       <button id="btn-global-back" onclick="navigateBack()" class="hidden text-slate-300 hover:text-white px-2 py-1 text-lg">
-        **
+        <i class="fa-solid fa-arrow-left"></i>
       </button>
       
-        **
-      
-
-
-      
+      <div class="bg-white p-1.5 rounded-md shadow-sm ml-1">
+        <i class="fa-solid fa-scale-balanced text-[#0f172a] text-lg"></i>
+      </div>
+      <div>
         <h1 class="font-black text-sm leading-tight tracking-tight">HL MANDO</h1>
-        Pesagem Mobile
-
-
-      
-
-
-    
-
-
-    
+        <p class="text-[9px] text-slate-300 opacity-80 uppercase tracking-widest font-bold">Pesagem Mobile</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
       <button onclick="logout('Deslogado com sucesso.')" id="btn-logout" class="hidden text-[10px] bg-slate-800 px-2 py-1.5 rounded text-slate-300 hover:text-white font-bold uppercase tracking-wider">
-        ** Sair
+        <i class="fa-solid fa-right-from-bracket"></i> Sair
       </button>
-      
-
-
-    
-
-
+      <div id="sync-status" class="w-2.5 h-2.5 rounded-full bg-slate-500 animate-pulse" title="Status DB"></div>
+    </div>
   </header>
 
-  
-  <main id="view-login" class="view-container active">
-    
-      
-        
-          **
-        
+  <!-- TELA 0: LOGIN SEGURA -->
+  <main id="view-login" class="view-container active p-4">
+    <div class="flex flex-col h-full justify-center max-w-sm mx-auto space-y-5 pb-20">
+      <div class="text-center">
+        <div class="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
+          <i class="fa-solid fa-user-lock text-2xl"></i>
+        </div>
+        <h2 class="font-black text-2xl text-slate-800 tracking-tight">ACESSO</h2>
+        <p class="text-slate-500 font-bold text-xs mt-1">Identifique-se para iniciar a pesagem</p>
+      </div>
 
-
-        <h2 class="font-black text-[26px] text-slate-900 tracking-tight m-0">Acesso ao sistema</h2>
-        Identifique-se com usuario ou e-mail
-
-
-      
-
-
-      
-        
-          <button type="button" id="btn-login-user" onclick="setLoginType('USER')" class="on">NOME DE USUARIO</button>
-          <button type="button" id="btn-login-email" onclick="setLoginType('EMAIL')">E-MAIL</button>
-        
-
-
-        
-          <label class="mobile-label" id="label-login-input">Nome de usuario</label>
-          
-            **
-            <input type="text" id="login-email" class="mobile-input pl-10 normal-case" placeholder="ex: joao.silva" autocomplete="off" />
-          
-
-
-          Voce pode usar seu nome de usuario ou apelido cadastrado.
-
-
-        
-
-
-        
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div>
+          <label class="mobile-label">Usuário (E-mail)</label>
+          <input type="text" id="login-email" class="mobile-input normal-case" placeholder="ex: joao (só o nome)" />
+          <p class="text-[9px] text-slate-400 font-bold mt-1 ml-1"><i class="fa-solid fa-circle-info"></i> O @hlcompany.com é inserido sozinho.</p>
+        </div>
+        <div>
           <label class="mobile-label">Senha</label>
-          
-            **
-            <input type="password" id="login-senha" class="mobile-input pl-10 pr-10 normal-case" placeholder="--------" autocomplete="off" />
-            <button type="button" onclick="toggleSenha()" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg text-slate-400">
-              **
-            </button>
-          
-
-
-        
-
-
-        
-          <button onclick="fazerLogin()" class="btn-large btn-primary">Entrar</button>
-          <button onclick="abrirModalCadastro()" class="btn-large btn-soft">** Criar acesso (Requer liberacao)</button>
-        
-
-
-      
-
-
-      
-        ** Sessao encerrada apos 10 min sem uso
-ou ao fechar o aplicativo
-      
-
-
-    
-
-
+          <input type="password" id="login-senha" class="mobile-input normal-case" placeholder="••••••••" />
+        </div>
+        <div class="pt-3 space-y-3">
+          <button onclick="fazerLogin()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
+            Entrar no Sistema
+          </button>
+          <button onclick="fazerCadastro()" class="btn-large bg-slate-100 text-slate-700 hover:bg-slate-200">
+            Criar meu Cadastro
+          </button>
+        </div>
+      </div>
+    </div>
   </main>
 
-  
-  
-    
-      
-        <h3 class="font-black text-lg text-slate-800">** Criar Acesso</h3>
-        <button onclick="fecharModalCadastro()" class="text-slate-400 hover:text-slate-600 text-xl p-1">**</button>
-      
-
-
-      
-        
-          <label class="mobile-label">Nome de usuario / E-mail</label>
-          <input type="text" id="cad-usuario" class="mobile-input normal-case" placeholder="ex: joao.silva ou joao.silva@hlcompany.com" autocomplete="off" />
-        
-
-
-        
-          <label class="mobile-label">Senha (min. 6 caracteres)</label>
-          <input type="password" id="cad-senha" class="mobile-input normal-case" placeholder="--------" autocomplete="off" />
-        
-
-
-        
-          **
-          Seu nome precisa estar liberado pelo admin no sistema de cadastro. Caso contrario, a criacao sera negada.
-
-
-        
-
-
-        <button onclick="executarCadastro()" class="btn-large btn-primary">
-          ** Validar e Criar Acesso
-        </button>
-      
-
-
-    
-
-
-  
-
-
-
-  
+  <!-- TELA 1: HOME (ESCOLHA DE MODO) -->
   <main id="view-mode-select" class="view-container p-4">
-    
+    <div class="flex flex-col items-center justify-center h-full space-y-6 pt-4 pb-20 max-w-sm mx-auto">
       
-        
-          **
-        
+      <div class="bg-blue-600 text-white w-full rounded-2xl p-4 shadow-lg shadow-blue-500/30 flex items-center gap-4">
+        <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+          <i class="fa-solid fa-user-check text-lg"></i>
+        </div>
+        <div>
+          <p class="text-[9px] font-black uppercase text-blue-200">Operador Logado</p>
+          <p id="lbl-operador-logado" class="font-black text-lg tracking-tight">-</p>
+          <p id="lbl-operador-turno" class="text-[10px] font-bold text-blue-100 uppercase">-</p>
+        </div>
+      </div>
 
-
-        
-          Operador Logado
-
-
-          -
-
-
-          -
-
-
-        
-
-
-      
-
-
-      
+      <div class="text-center w-full">
         <h2 class="font-black text-lg text-slate-800 uppercase tracking-tight mb-4">Escolha o Modo</h2>
-        
+        <div class="space-y-4 w-full">
           <button onclick="iniciarFluxo('coletor')" class="btn-large btn-primary py-5 relative overflow-hidden">
-            
-              **
-              MODO COLETOR
-              Leitura de etiquetas (VDA)
-            
-
-
-            
-
-
-            RAPIDO
+            <div class="flex flex-col items-center gap-1 relative z-10">
+              <i class="fa-solid fa-barcode text-2xl mb-1"></i> 
+              <span>MODO COLETOR</span>
+              <span class="text-[10px] font-semibold text-blue-200 normal-case">Leitura de etiquetas (VDA)</span>
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 z-0"></div>
+            <span class="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-[9px] px-2 py-0.5 font-black rounded-bl-lg z-10">RÁPIDO</span>
           </button>
+          
           <button onclick="iniciarFluxo('manual')" class="btn-large bg-white text-slate-700 py-5 border-2 border-slate-200 shadow-sm">
-            
-              **
-              MODO MANUAL
-              Digitacao passo a passo
-            
-
-
+            <div class="flex flex-col items-center gap-1">
+              <i class="fa-solid fa-keyboard text-2xl mb-1"></i> 
+              <span>MODO MANUAL</span>
+              <span class="text-[10px] font-semibold text-slate-400 normal-case">Digitação passo a passo</span>
+            </div>
           </button>
-        
-
-
-      
-
-
-    
-
-
+        </div>
+      </div>
+    </div>
   </main>
 
-  
+  <!-- FLUXO COLETOR 1: DADOS NF -->
   <main id="view-coletor-nf" class="view-container p-4">
-    
+    <div class="max-w-sm mx-auto space-y-5 pt-4">
       <h2 class="font-black text-lg text-slate-800 flex items-center gap-2 uppercase">
-        ** Informe a Nota Fiscal
+        <i class="fa-solid fa-file-invoice text-blue-600"></i> Informe a Nota Fiscal
       </h2>
       
-        <label class="mobile-label">Nota Fiscal (Obrigatorio)</label>
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+        <label class="mobile-label">Nota Fiscal (Obrigatório)</label>
         <input type="text" readonly data-keyboard="nf" id="col-nf-input" class="mobile-input text-lg font-black cursor-pointer" placeholder="EX: 0197859" />
-        O fornecedor e outros dados serao puxados automaticamente no primeiro bip.
-
-
-      
-
+        <p class="text-[10px] text-slate-400 font-bold mt-2">O fornecedor e outros dados serão puxados automaticamente no primeiro bip.</p>
+      </div>
 
       <button onclick="avancarParaBipagem()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
-        Iniciar Bipagem **
+        Iniciar Bipagem <i class="fa-solid fa-arrow-right"></i>
       </button>
-    
-
-
+    </div>
   </main>
 
-  
+  <!-- FLUXO COLETOR: SCANNER E PESAGEM INTEGRADOS -->
   <main id="view-coletor-main" class="view-container p-3">
-    
+    <div class="max-w-sm mx-auto space-y-3 pt-2">
       
-        <label class="mobile-label text-blue-100 mb-2">** Bipe a Etiqueta VDA</label>
+      <div class="bg-blue-600 rounded-lg p-3 text-center shadow-lg shadow-blue-500/30">
+        <label class="mobile-label text-blue-100 mb-2"><i class="fa-solid fa-barcode"></i> Bipe a Etiqueta VDA</label>
         <input type="text" id="col-main-scan" class="mobile-input text-center font-mono font-black text-blue-900 bg-white border-none py-3" placeholder="Aponte o leitor aqui..." autocomplete="off" />
-        Caixas lidas nesta nota: 0
+        <div id="col-main-feedback" class="text-[10px] font-bold text-blue-200 mt-2 uppercase">Caixas lidas nesta nota: <span id="col-main-count" class="text-white font-black text-sm">0</span></div>
+      </div>
 
-
-      
-
-
-      
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-3">
         <h2 class="font-black text-xs text-slate-800 mb-2 flex items-center gap-1 uppercase border-b border-slate-100 pb-2">
-          ** Dados da Peca Extraidos
+          <i class="fa-solid fa-box-open text-blue-600"></i> Dados da Peça Extraídos
         </h2>
-        
-          <label class="mobile-label text-[9px]">Part Number</label><input type="text" id="col-main-pn" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="mobile-label text-[9px]">Part Number</label>
+            <input type="text" id="col-main-pn" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
+          </div>
+          <div>
+            <label class="mobile-label text-[9px]">Lote</label>
+            <input type="text" id="col-main-lote" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
+          </div>
+        </div>
+        <div class="mt-2 grid grid-cols-2 gap-2">
+          <div>
+            <label class="mobile-label text-[9px]">Qtd (Peças)</label>
+            <input type="text" id="col-main-qtd" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold" readonly placeholder="-" />
+          </div>
+          <div>
+            <label class="mobile-label text-[9px]">Fornecedor</label>
+            <input type="text" id="col-main-forn" class="mobile-input bg-slate-50 text-slate-600 border-none text-[10px] truncate" readonly placeholder="-" />
+          </div>
+        </div>
+      </div>
 
-
-          <label class="mobile-label text-[9px]">Lote</label><input type="text" id="col-main-lote" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
-
-
-        
-
-
-        
-          <label class="mobile-label text-[9px]">Qtd (Pecas)</label><input type="text" id="col-main-qtd" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold" readonly placeholder="-" />
-
-
-          <label class="mobile-label text-[9px]">Fornecedor</label><input type="text" id="col-main-forn" class="mobile-input bg-slate-50 text-slate-600 border-none text-[10px] truncate" readonly placeholder="-" />
-
-
-        
-
-
-      
-
-
-      
+      <div class="bg-slate-50 rounded-lg shadow-sm border border-slate-200 p-3 space-y-3">
         <h2 class="font-black text-sm text-slate-800 flex items-center gap-2 uppercase border-b border-slate-200 pb-2">
-          ** Inserir Pesos
+          <i class="fa-solid fa-scale-unbalanced text-emerald-600"></i> Inserir Pesos
         </h2>
-        
+        <div>
           <label class="mobile-label text-blue-800">1. Tara (Embalagem Vazia)</label>
           <input type="text" readonly data-keyboard="num" id="col-main-tara" class="mobile-input bg-white border-blue-300 text-base font-black text-blue-900 cursor-pointer" placeholder="Ex: 0,5" />
-        
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+          <div>
+            <label class="mobile-label text-slate-600">2. Peso Bruto NF</label>
+            <input type="text" readonly data-keyboard="num" id="col-main-pnf" class="mobile-input bg-white text-sm cursor-pointer" placeholder="0,0" />
+          </div>
+          <div>
+            <label class="mobile-label text-emerald-700">3. Peso Físico</label>
+            <input type="text" readonly data-keyboard="num" id="col-main-pmando" class="mobile-input bg-emerald-100 border-emerald-300 text-emerald-900 font-black text-sm cursor-pointer" placeholder="0,0" />
+          </div>
+        </div>
+      </div>
 
-
-        
-          <label class="mobile-label text-slate-600">2. Peso Bruto NF</label><input type="text" readonly data-keyboard="num" id="col-main-pnf" class="mobile-input bg-white text-sm cursor-pointer" placeholder="0,0" />
-
-
-          <label class="mobile-label text-emerald-700">3. Peso Fisico</label><input type="text" readonly data-keyboard="num" id="col-main-pmando" class="mobile-input bg-emerald-100 border-emerald-300 text-emerald-900 font-black text-sm cursor-pointer" placeholder="0,0" />
-
-
-        
-
-
-      
-
-
-      
-        <button onclick="salvarColetorMain(true)" class="btn-large btn-success py-3">** Salvar e Bipar Proxima</button>
-        <button onclick="salvarColetorMain(false)" class="btn-large bg-slate-800 text-white shadow-lg py-3 text-sm">** Salvar e Exportar</button>
-      
-
-
-    
-
-
+      <div class="space-y-2 pb-6">
+        <button onclick="salvarColetorMain(true)" class="btn-large btn-success py-3">
+          <i class="fa-solid fa-check"></i> Salvar e Bipar Próxima
+        </button>
+        <button onclick="salvarColetorMain(false)" class="btn-large bg-slate-800 text-white shadow-lg py-3 text-sm">
+          <i class="fa-solid fa-flag-checkered"></i> Salvar e Exportar
+        </button>
+      </div>
+    </div>
   </main>
 
-  
+  <!-- FLUXO MANUAL 1: DADOS NF -->
   <main id="view-manual-header" class="view-container p-4">
-    
-      <h2 class="font-black text-lg text-slate-800 mb-3 flex items-center gap-2 uppercase">** Digitacao Manual</h2>
+    <div class="max-w-sm mx-auto">
+      <h2 class="font-black text-lg text-slate-800 mb-3 flex items-center gap-2 uppercase">
+        <i class="fa-solid fa-keyboard text-slate-600"></i> Digitação Manual
+      </h2>
       
-        <label class="mobile-label">Notas Fiscais (Separe por hifen)</label><input type="text" readonly data-keyboard="nf" id="man-nf" class="mobile-input text-sm cursor-pointer" placeholder="EX: 0197859" />
-
-
-        <label class="mobile-label">Fornecedor</label><input type="text" id="man-forn" list="forn-list" class="mobile-input text-sm" placeholder="EX: ACO PECAS" /><datalist id="forn-list"></datalist>
-
-
-        
-          <label class="mobile-label flex justify-between">Data HOJE</label><input type="text" id="man-data" class="mobile-input text-sm" placeholder="DD/MM/AAAA" />
-
-
-          
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-3">
+        <div>
+          <label class="mobile-label">Notas Fiscais (Separe por hífen)</label>
+          <input type="text" readonly data-keyboard="nf" id="man-nf" class="mobile-input text-sm cursor-pointer" placeholder="EX: 0197859" />
+        </div>
+        <div>
+          <label class="mobile-label">Fornecedor</label>
+          <input type="text" id="man-forn" list="forn-list" class="mobile-input text-sm" placeholder="EX: AÇO PEÇAS" />
+          <datalist id="forn-list"></datalist>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="mobile-label flex justify-between">Data <span onclick="setToday()" class="text-blue-600 cursor-pointer">HOJE</span></label>
+            <input type="text" id="man-data" class="mobile-input text-sm" placeholder="DD/MM/AAAA" />
+          </div>
+          <div>
             <label class="mobile-label">Turno</label>
             <select id="man-turno" class="mobile-input bg-white text-sm">
-              <option value="A">TURNO A</option><option value="B">TURNO B</option><option value="C">TURNO C</option><option value="D">TURNO D</option><option value="E">TURNO E</option><option value="COMERCIAL">COMERCIAL</option>
+              <option value="A">TURNO A</option>
+              <option value="B">TURNO B</option>
+              <option value="C">TURNO C</option>
+              <option value="D">TURNO D</option>
+              <option value="E">TURNO E</option>
+              <option value="COMERCIAL">COMERCIAL</option>
             </select>
-          
-
-
-        
-
-
-      
-
-
-      <button onclick="navTo('manual-items')" class="btn-large btn-primary mt-5">Avancar para Caixas **</button>
-    
-
-
+          </div>
+        </div>
+      </div>
+      <button onclick="navTo('manual-items')" class="btn-large btn-primary mt-5">
+        Avançar para Caixas <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
   </main>
 
-  
+  <!-- FLUXO MANUAL 2: LISTA DE CAIXAS -->
   <main id="view-manual-items" class="view-container p-3 bg-slate-50">
-    
-      <h2 class="font-black text-base text-slate-800 flex items-center gap-2 uppercase">** Caixas Lidas</h2>
-      0 itens
-    
+    <div class="flex justify-between items-center mb-3 max-w-sm mx-auto">
+      <h2 class="font-black text-base text-slate-800 flex items-center gap-2 uppercase">
+        <i class="fa-solid fa-boxes-stacked text-indigo-600"></i> Caixas Lidas
+      </h2>
+      <span id="man-items-counter" class="bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded text-[10px]">0 itens</span>
+    </div>
 
+    <div id="man-items-list" class="space-y-2 pb-20 max-w-sm mx-auto"></div>
 
-    
-
-
-    
-      <button onclick="openManualAddModal()" class="btn-large btn-primary pointer-events-auto shadow-lg shadow-blue-500/30 max-w-sm">** Add Caixa Manual</button>
-    
-
-
+    <div class="fixed bottom-[65px] left-0 w-full p-3 bg-gradient-to-t from-slate-50 to-transparent pointer-events-none flex justify-center">
+      <button onclick="openManualAddModal()" class="btn-large btn-primary pointer-events-auto shadow-lg shadow-blue-500/30 max-w-sm">
+        <i class="fa-solid fa-plus"></i> Add Caixa Manual
+      </button>
+    </div>
   </main>
 
-  
-  
+  <!-- MODAL ADIÇÃO MANUAL -->
+  <div id="modal-add-manual" class="fixed inset-0 bg-white z-[100] hidden flex-col transition-transform translate-y-full duration-300">
+    <div class="bg-[#0f172a] text-white p-3 flex justify-between items-center shrink-0">
+      <h2 id="modal-man-title" class="font-bold text-base">CAIXA Nº 1</h2>
+      <button onclick="closeManualAddModal()" class="text-white text-xl p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
     
-      <h2 id="modal-man-title" class="font-bold text-base">CAIXA N 1</h2>
-      <button onclick="closeManualAddModal()" class="text-white text-xl p-1 cursor-pointer">**</button>
-    
-
-
-    
-      
-        
-          <label class="mobile-label">Part Number / Codigo</label>
+    <div class="flex-1 overflow-y-auto p-3 bg-slate-50 space-y-3">
+      <div class="max-w-sm mx-auto">
+        <div>
+          <label class="mobile-label">Part Number / Código</label>
           <input type="text" id="man-box-pn" list="cat-list" oninput="onManualPnInput(this.value)" class="mobile-input font-mono text-blue-800 font-bold" placeholder="EX: BC14030500" />
           <datalist id="cat-list"></datalist>
-          DIGITE O CODIGO DA PECA...
-
-
-        
-
-
-        
-          <label class="mobile-label">Lote</label><input type="text" id="man-box-lote" class="mobile-input text-sm" placeholder="LOTE" />
-
-
-          <label class="mobile-label">Qtd</label><input type="text" readonly data-keyboard="num" id="man-box-qtd" class="mobile-input text-sm font-bold cursor-pointer" placeholder="Qtd" />
-
-
-        
-
-
-        
-          <label class="mobile-label">Tara (Embalagem)</label><input type="text" readonly data-keyboard="num" id="man-box-tara" class="mobile-input text-sm cursor-pointer" placeholder="Kg" />
-
-
-          
-            <label class="mobile-label text-[9px]">Peso Bruto NF</label><input type="text" readonly data-keyboard="num" id="man-box-pnf" class="mobile-input bg-slate-50 text-sm cursor-pointer" placeholder="0,0" />
-
-
-            <label class="mobile-label text-[9px] text-emerald-700">Peso Fisico</label><input type="text" readonly data-keyboard="num" id="man-box-pmando" class="mobile-input border-emerald-300 bg-emerald-50 text-emerald-800 font-black text-sm cursor-pointer" placeholder="0,0" />
-
-
-          
-
-
-        
-
-
-      
-
-
+          <div id="man-desc-feedback" class="text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-white border border-slate-200 text-slate-500 text-center">
+            DIGITE O CÓDIGO DA PEÇA...
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 mt-3">
+          <div>
+            <label class="mobile-label">Lote</label>
+            <input type="text" id="man-box-lote" class="mobile-input text-sm" placeholder="LOTE" />
+          </div>
+          <div>
+            <label class="mobile-label">Qtd</label>
+            <input type="text" readonly data-keyboard="num" id="man-box-qtd" class="mobile-input text-sm font-bold cursor-pointer" placeholder="Qtd" />
+          </div>
+        </div>
+        <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm mt-3 space-y-2">
+          <div>
+            <label class="mobile-label">Tara (Embalagem)</label>
+            <input type="text" readonly data-keyboard="num" id="man-box-tara" class="mobile-input text-sm cursor-pointer" placeholder="Kg" />
+          </div>
+          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+            <div>
+              <label class="mobile-label text-[9px]">Peso Bruto NF</label>
+              <input type="text" readonly data-keyboard="num" id="man-box-pnf" class="mobile-input bg-slate-50 text-sm cursor-pointer" placeholder="0,0" />
+            </div>
+            <div>
+              <label class="mobile-label text-[9px] text-emerald-700">Peso Físico</label>
+              <input type="text" readonly data-keyboard="num" id="man-box-pmando" class="mobile-input border-emerald-300 bg-emerald-50 text-emerald-800 font-black text-sm cursor-pointer" placeholder="0,0" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     
+    <div class="p-3 bg-white border-t border-slate-200 shrink-0 space-y-2 pb-[env(safe-area-inset-bottom,12px)] flex flex-col items-center">
+      <div class="w-full max-w-sm flex flex-col gap-2">
+        <button onclick="salvarManual(true)" class="btn-large btn-success py-3 text-sm">
+          <i class="fa-solid fa-check"></i> Salvar e Add Outra
+        </button>
+        <button onclick="salvarManual(false)" class="btn-large btn-primary bg-slate-800 py-3 text-sm">
+          Salvar e Fechar
+        </button>
+      </div>
+    </div>
+  </div>
 
-
-    
-      
-        <button onclick="salvarManual(true)" class="btn-large btn-success py-3 text-sm">** Salvar e Add Outra</button>
-        <button onclick="salvarManual(false)" class="btn-large btn-primary bg-slate-800 py-3 text-sm">Salvar e Fechar</button>
-      
-
-
-    
-
-
-  
-
-
-
-  
+  <!-- TELA 3: RESUMO E EXPORTAÇÃO -->
   <main id="view-export" class="view-container p-4">
-    
-      
-        **
+    <div class="max-w-sm mx-auto">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 text-center mb-5">
+        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+          <i class="fa-solid fa-clipboard-check text-2xl"></i>
+        </div>
+        <h2 class="font-black text-lg text-slate-800 uppercase mb-1">Conferência Pronta</h2>
+        <p class="text-[11px] text-slate-500 font-bold"><span id="resumo-qtd-caixas">0</span> caixas registradas.</p>
+      </div>
 
-
-        <h2 class="font-black text-lg text-slate-800 uppercase mb-1">Conferencia Pronta</h2>
-        0 caixas registradas.
-
-
-      
-
-
-      
-        <button onclick="openEmailModal()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">** Enviar por E-mail</button>
-        <button onclick="gerarExcel()" class="btn-large bg-white text-emerald-700 border-2 border-emerald-600">** Apenas Salvar Excel</button>
-        <button onclick="sincronizarComDesktop()" class="btn-large btn-primary shadow-lg shadow-blue-600/30">** Enviar p/ Desktop</button>
+      <div class="space-y-3">
+        <button onclick="openEmailModal()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
+          <i class="fa-solid fa-envelope"></i> Enviar por E-mail
+        </button>
         
-          <button onclick="abrirModalLimpar()" class="btn-large bg-red-50 text-red-600 border border-red-200 text-sm">** Limpar / Iniciar Nova</button>
+        <button onclick="gerarExcel()" class="btn-large bg-white text-emerald-700 border-2 border-emerald-600">
+          <i class="fa-solid fa-download"></i> Apenas Salvar Excel
+        </button>
         
-
-
-      
-
-
-    
-
-
+        <button onclick="sincronizarComDesktop()" class="btn-large btn-primary shadow-lg shadow-blue-600/30">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Enviar p/ Desktop
+        </button>
+        
+        <div class="pt-5 border-t border-slate-200 mt-5">
+          <button onclick="abrirModalLimpar()" class="btn-large bg-red-50 text-red-600 border border-red-200 text-sm">
+            <i class="fa-solid fa-trash-can"></i> Limpar / Iniciar Nova
+          </button>
+        </div>
+      </div>
+    </div>
   </main>
 
-  
-  
-    
-      
-        <h3 class="font-black text-base text-slate-800">** Enviar Planilha</h3>
-        <button onclick="closeEmailModal()" class="text-slate-400 hover:text-slate-600 text-xl p-1">**</button>
-      
+  <!-- MODAL ENVIO DE E-MAIL -->
+  <div id="modal-email" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center z-[200] px-4 opacity-0 transition-opacity">
+    <div class="bg-white p-5 rounded-2xl w-full max-w-sm shadow-xl transform scale-95 transition-transform duration-200" id="email-box">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-black text-base text-slate-800"><i class="fa-solid fa-envelope text-emerald-600"></i> Enviar Planilha</h3>
+        <button onclick="closeEmailModal()" class="text-slate-400 hover:text-slate-600 text-xl p-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
 
+      <div class="space-y-3 mb-5">
+        <div>
+          <label class="mobile-label">E-mail Operador</label>
+          <input type="text" id="email-logado" class="mobile-input bg-slate-100 text-slate-500 font-bold" readonly />
+        </div>
+        <div>
+          <label class="mobile-label">E-mail Adicional (Opcional)</label>
+          <input type="email" id="email-extra" class="mobile-input normal-case" placeholder="ex: gestor@hlcompany.com" />
+        </div>
+        <div class="bg-blue-50 border border-blue-200 p-2.5 rounded-lg flex items-start gap-2">
+          <i class="fa-solid fa-circle-info text-blue-500 mt-0.5 text-[10px]"></i>
+          <p class="text-[9px] text-blue-800 font-bold uppercase leading-tight">
+            O sistema usará o compartilhamento nativo. Escolha seu app de E-mail (Gmail/Outlook) e o Excel já estará anexado automaticamente!
+          </p>
+        </div>
+      </div>
 
-      
-        <label class="mobile-label">E-mail Operador</label><input type="text" id="email-logado" class="mobile-input bg-slate-100 text-slate-500 font-bold" readonly />
+      <button onclick="confirmarEnvioEmail()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
+        Abrir Compartilhamento
+      </button>
+    </div>
+  </div>
 
-
-        <label class="mobile-label">E-mail Adicional (Opcional)</label><input type="email" id="email-extra" class="mobile-input normal-case" placeholder="ex: gestor@hlcompany.com" />
-
-
-      
-
-
-      <button onclick="confirmarEnvioEmail()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">Abrir Compartilhamento</button>
-    
-
-
-  
-
-
-
-  
-  
-    
-      **
-
-
-      <h3 class="font-black text-lg text-slate-800 mb-1">Atencao!</h3>
-      Deseja apagar todos os dados desta nota? Esta acao nao pode ser desfeita.
-
-
-      
+  <!-- MODAL CONFIRMAÇÃO LIMPAR -->
+  <div id="modal-limpar" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center z-[300] px-4 opacity-0 transition-opacity">
+    <div class="bg-white p-5 rounded-2xl w-full max-w-xs shadow-xl text-center transform scale-95 transition-transform duration-200" id="limpar-box">
+      <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+      </div>
+      <h3 class="font-black text-lg text-slate-800 mb-1">Atenção!</h3>
+      <p class="text-xs text-slate-500 font-bold mb-5">Deseja apagar todos os dados desta nota? Esta ação não pode ser desfeita.</p>
+      <div class="flex gap-2">
         <button onclick="closeLimparModal()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold uppercase text-sm">Cancelar</button>
         <button onclick="confirmarLimparTudo()" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold uppercase text-sm shadow-lg shadow-red-600/30">Sim, Apagar</button>
-      
+      </div>
+    </div>
+  </div>
 
-
-    
-
-
-  
-
-
-
-  
+  <!-- Bottom Navigation -->
   <nav class="bottom-nav" id="main-bottom-nav">
-    ** Modo
-
-
-    ** Caixas
-
-
-    ** Exportar
-
-
+    <div onclick="navTo('mode-select')" class="nav-item">
+      <i class="fa-solid fa-bars"></i>
+      Modo
+    </div>
+    <div onclick="navTo('manual-items')" class="nav-item active" id="nav-btn-items">
+      <i class="fa-solid fa-boxes-stacked"></i>
+      Caixas
+    </div>
+    <div onclick="navTo('export')" class="nav-item" id="nav-btn-export">
+      <i class="fa-solid fa-share-nodes"></i>
+      Exportar
+    </div>
   </nav>
 
-  
-  
-    
-      TECLADO
-      <button onclick="closeVKB()" class="text-slate-400 hover:text-slate-700 py-1 px-3 text-xl">**</button>
-    
+  <!-- TECLADO VIRTUAL INJETADO -->
+  <div id="virtual-kb" class="fixed bottom-0 left-0 w-full bg-slate-100/95 backdrop-blur-sm shadow-[0_-10px_20px_rgba(0,0,0,0.1)] transform translate-y-full transition-transform duration-300 z-[999] rounded-t-2xl pb-[env(safe-area-inset-bottom,16px)] border-t border-slate-200">
+    <div class="flex justify-between items-center p-3 border-b border-slate-200 bg-white rounded-t-2xl">
+      <span class="text-[11px] font-black text-slate-500 uppercase tracking-wider pl-1" id="vkb-title">TECLADO</span>
+      <button onclick="closeVKB()" class="text-slate-400 hover:text-slate-700 py-1 px-3 text-xl"><i class="fa-solid fa-chevron-down"></i></button>
+    </div>
+    <div id="vkb-keys" class="vkb-grid p-3">
+      <!-- Botões injetados via JS -->
+    </div>
+  </div>
 
-
-    
-
-
-  
-
-
-  Mensagem...
-
-
+  <div id="toast" class="toast">Mensagem...</div>
 
   <script>
-    var appState = {
-      modo: null,
+    let appState = {
+      modo: null, 
       cabecalho: { fornecedor: "", nota_fiscal_principal: "", data_conferencia: "", operador: "", turno: "A" },
       caixas: []
     };
-    var mapaFornecedores = {
-      '1065': 'CARIBOR', '3131': 'DETWYLLER', '0824': 'ACO PECAS', '0172': 'DASOL',
+    
+    const mapaFornecedores = {
+      '1065': 'CARIBOR', '3131': 'DETWYLLER', '0824': 'AÇO PEÇAS', '0172': 'DASOL',
       '1107': 'MAXDELL', '1189': 'WHB', '1296': 'KROMAFLEX', '0945': 'TEC PACK',
       '2953': 'HYDRO', '1354': 'SULAMERICANA', '0838': 'CATION', '1336': 'LIPOS',
       '1719': 'METALAC', '1998': 'SADA', '1823': 'MICROJUNTAS', '1683': 'METALSIDER',
       '3030': 'PAPERGREEN', '1824': 'TEKFOR', '3124': 'EMBAS', '0683': 'KAYABA',
       '1467': 'FIAT BETIM', '000031': 'FIAT PERNAMBUCO', '1356': 'LOOPSMOL', '0957': 'LABEL',
-      '2989': 'MAIL EBS', '1870': 'CONTINENTAL', '1963': 'SANGSIN MEXICO', '0001': 'MANDO HEADQUARTER',
-      '1836': 'BOULEVARD MANDO MEXICO', '1892': 'TAMAS KOREA', '1382': 'JTT',
+      '2989': 'MAIL EBS', '1870': 'CONTINENTAL', '1963': 'SANGSIN MÉXICO', '0001': 'MANDO HEADQUARTER',
+      '1836': 'BOULEVARD MANDO MÉXICO', '1892': 'TAMAS KOREA', '1382': 'JTT',
       '1905': 'SENSATA', '3795': 'HL KLEMOVE'
     };
-    var CATALOGO_INTERNO = {
-      "BC380A2200": { desc: "CARCACA DIRECAO", peso: 2.15, fornecedor: "MANDO HEADQUARTER" },
-      "BC14030500": { desc: "PINHAO", peso: 0.8, fornecedor: "ACO PECAS" }
-    };
-    var editIndex = -1;
-    var db = null;
-    var auth = null;
-    var desktopLoteNotas = [];
-    var appCatalog = {};
-    var currentView = 'login';
-    var scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
-    var loginMode = 'USER';
 
-    // ============ TECLADO VIRTUAL ============
-    var currentVKBInput = null;
+    // ========================================================
+    // CATÁLOGO INTERNO OCULTO (HARDCODED)
+    // ========================================================
+    const CATALOGO_INTERNO = {
+      "BC380A2200": { desc: "CARCACA DIRECAO", peso: 2.15, fornecedor: "MANDO HEADQUARTER" },
+      "BC14030500": { desc: "PINHAO", peso: 0.8, fornecedor: "AÇO PEÇAS" },
+      // COLE SEU CATÁLOGO DE MILHARES DE LINHAS AQUI DENTRO DO SEU ARQUIVO FÍSICO
+    };
+
+    let editIndex = -1;
+    let db = null;
+    let auth = null;
+    let desktopLoteNotas = [];
+    let appCatalog = {};
+    let currentView = 'login';
+    let scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
+
+    // ==========================================
+    // LÓGICA DO TECLADO VIRTUAL E FOCOS
+    // ==========================================
+    let currentVKBInput = null;
+
     function initVKB() {
-      var inputs = document.querySelectorAll('[data-keyboard]');
-      inputs.forEach(function(inp) {
-        inp.addEventListener('focus', function(e) { e.preventDefault(); openVKB(this, this.getAttribute('data-keyboard')); });
-        inp.addEventListener('click', function(e) { e.preventDefault(); openVKB(this, this.getAttribute('data-keyboard')); });
+      const inputs = document.querySelectorAll('[data-keyboard]');
+      inputs.forEach(inp => {
+        inp.addEventListener('focus', function(e) {
+          e.preventDefault();
+          openVKB(this, this.getAttribute('data-keyboard'));
+        });
+        inp.addEventListener('click', function(e) {
+          e.preventDefault();
+          openVKB(this, this.getAttribute('data-keyboard'));
+        });
       });
+
       document.addEventListener('click', function(e) {
-        var vkb = document.getElementById('virtual-kb');
-        if (vkb && currentVKBInput && !vkb.contains(e.target) && e.target !== currentVKBInput && !e.target.hasAttribute('data-keyboard')) closeVKB();
+        const vkb = document.getElementById('virtual-kb');
+        if (vkb && currentVKBInput && !vkb.contains(e.target) && e.target !== currentVKBInput && !e.target.hasAttribute('data-keyboard')) {
+            closeVKB();
+        }
       });
     }
+
     function openVKB(inputEl, type) {
       currentVKBInput = inputEl;
-      document.querySelectorAll('[data-keyboard]').forEach(function(el) { el.style.borderColor = '#cbd5e1'; });
+      
+      document.querySelectorAll('[data-keyboard]').forEach(el => el.style.borderColor = '#cbd5e1');
       inputEl.style.borderColor = '#005c9e';
-      var vkb = document.getElementById('virtual-kb');
-      var keysContainer = document.getElementById('vkb-keys');
-      var title = document.getElementById('vkb-title');
-      var keysHtml = '';
-      ['1','2','3','4','5','6','7','8','9'].forEach(function(k) {
-        keysHtml += '<button type="button" class="vkb-key" onclick="vkbType(event, \'' + k + '\')">' + k + '</button>';
+
+      const vkb = document.getElementById('virtual-kb');
+      const keysContainer = document.getElementById('vkb-keys');
+      const title = document.getElementById('vkb-title');
+      
+      let keysHtml = '';
+      const numKeys = ['1','2','3','4','5','6','7','8','9'];
+      
+      numKeys.forEach(k => {
+        keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '${k}')">${k}</button>`;
       });
+
       if (type === 'nf') {
-        title.innerHTML = '** TECLADO NF';
-        keysHtml += '<button type="button" class="vkb-key action" onclick="vkbType(event, \'-\')">-</button>';
+        title.innerHTML = '<i class="fa-solid fa-file-invoice text-blue-500 mr-1"></i> TECLADO NF';
+        keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, '-')">-</button>`;
       } else {
-        title.innerHTML = '** TECLADO PESAGEM';
-        keysHtml += '<button type="button" class="vkb-key action" onclick="vkbType(event, \',\')">,</button>';
+        title.innerHTML = '<i class="fa-solid fa-scale-unbalanced text-emerald-500 mr-1"></i> TECLADO PESAGEM';
+        keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, ',')">,</button>`;
       }
-      keysHtml += '<button type="button" class="vkb-key" onclick="vkbType(event, \'0\')">0</button>';
-      keysHtml += '<button type="button" class="vkb-key action" onclick="vkbBackspace(event)">**</button>';
-      keysHtml += '<button type="button" class="vkb-key enter" onclick="vkbEnter(event)">AVANCAR / OK **</button>';
+
+      keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '0')">0</button>`;
+      keysHtml += `<button type="button" class="vkb-key action" onclick="vkbBackspace(event)"><i class="fa-solid fa-delete-left"></i></button>`;
+      keysHtml += `<button type="button" class="vkb-key enter" onclick="vkbEnter(event)">AVANÇAR / OK <i class="fa-solid fa-arrow-turn-down fa-rotate-90 ml-1"></i></button>`;
+
       keysContainer.innerHTML = keysHtml;
       vkb.classList.remove('translate-y-full');
-      setTimeout(function() { if(currentVKBInput) currentVKBInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+
+      setTimeout(() => {
+        if(currentVKBInput) currentVKBInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
     }
+
     function closeVKB() {
-      var vkb = document.getElementById('virtual-kb');
+      const vkb = document.getElementById('virtual-kb');
       if(vkb) vkb.classList.add('translate-y-full');
-      if(currentVKBInput) { currentVKBInput.style.borderColor = '#cbd5e1'; currentVKBInput.blur(); }
+      if(currentVKBInput) {
+        currentVKBInput.style.borderColor = '#cbd5e1'; 
+        currentVKBInput.blur();
+      }
       currentVKBInput = null;
     }
-    function vkbType(e, char) { if(e) e.stopPropagation(); if(currentVKBInput) { currentVKBInput.value += char; currentVKBInput.dispatchEvent(new Event('input', { bubbles: true })); } }
-    function vkbBackspace(e) { if(e) e.stopPropagation(); if(currentVKBInput) { currentVKBInput.value = currentVKBInput.value.slice(0, -1); currentVKBInput.dispatchEvent(new Event('input', { bubbles: true })); } }
-    function advanceTo(nextId) { var nextEl = document.getElementById(nextId); if(nextEl) { if(currentVKBInput) currentVKBInput.style.borderColor = '#cbd5e1'; openVKB(nextEl, nextEl.getAttribute('data-keyboard')); nextEl.focus(); } else closeVKB(); }
-    function vkbEnter(e) {
+
+    function vkbType(e, char) {
       if(e) e.stopPropagation();
-      if(!currentVKBInput) return;
-      var id = currentVKBInput.id;
-      if (id === 'col-main-tara') advanceTo('col-main-pnf');
-      else if (id === 'col-main-pnf') advanceTo('col-main-pmando');
-      else if (id === 'col-main-pmando') closeVKB();
-      else if (id === 'man-box-qtd') advanceTo('man-box-tara');
-      else if (id === 'man-box-tara') advanceTo('man-box-pnf');
-      else if (id === 'man-box-pnf') advanceTo('man-box-pmando');
-      else if (id === 'man-box-pmando') closeVKB();
-      else if (id === 'col-nf-input') { closeVKB(); avancarParaBipagem(); }
-      else if (id === 'man-nf') { closeVKB(); document.getElementById('man-forn').focus(); }
-      else closeVKB();
-    }
-
-    // ============ INATIVIDADE 10 MIN ============
-    var INACTIVITY_TIME_MS = 10 * 60 * 1000;
-    var LS_LAST_ACT = 'hl_last_act';
-    var inactivityTimer = null;
-    var backgroundTimer = null;
-    var lastActivityTime = Date.now();
-    function marcarAtividade() { lastActivityTime = Date.now(); try { localStorage.setItem(LS_LAST_ACT, String(lastActivityTime)); } catch(e) {} }
-    function tempoInativoMs() { var base = lastActivityTime; try { var salvo = parseInt(localStorage.getItem(LS_LAST_ACT) || '0', 10); if(!isNaN(salvo) && salvo > base) base = salvo; } catch(e) {} return Date.now() - base; }
-    function checkInactivityAndLogout() { if (auth && auth.currentUser && tempoInativoMs() >= INACTIVITY_TIME_MS) { logout("Sessao encerrada: 10 minutos sem atividade."); return true; } return false; }
-    function resetTimer() {
-      marcarAtividade();
-      clearTimeout(inactivityTimer);
-      clearTimeout(backgroundTimer);
-      if (auth && auth.currentUser) { inactivityTimer = setTimeout(function() { logout("Sessao expirada por inatividade (10 min)."); }, INACTIVITY_TIME_MS); }
-    }
-    document.addEventListener("visibilitychange", function() {
-      if (document.visibilityState === "hidden") {
-        if (auth && auth.currentUser) { clearTimeout(inactivityTimer); backgroundTimer = setTimeout(function() { logout("Sessao expirada em segundo plano (10 min)."); }, INACTIVITY_TIME_MS); }
-      } else { clearTimeout(backgroundTimer); if (!checkInactivityAndLogout()) resetTimer(); }
-    });
-    window.addEventListener('beforeunload', function(e) { if (auth && auth.currentUser) { e.preventDefault(); e.returnValue = 'Voce esta logado. Deseja realmente sair?'; return 'Voce esta logado. Deseja realmente sair?'; } });
-
-    function showToast(msg) {
-      var toast = document.getElementById('toast');
-      toast.innerText = msg;
-      toast.classList.add('show');
-      setTimeout(function() { toast.classList.remove('show'); }, 3000);
-    }
-    function setToday() { var hoje = new Date(); document.getElementById('man-data').value = String(hoje.getDate()).padStart(2,'0')+'/'+String(hoje.getMonth()+1).padStart(2,'0')+'/'+hoje.getFullYear(); }
-
-    // ============ LOGIN TOGGLE ============
-    function setLoginType(type) {
-      loginMode = type;
-      var btnUser = document.getElementById('btn-login-user');
-      var btnEmail = document.getElementById('btn-login-email');
-      var label = document.getElementById('label-login-input');
-      var input = document.getElementById('login-email');
-      var hint = document.getElementById('hint-login');
-      if (!btnUser || !btnEmail) return;
-      if (type === 'USER') {
-        btnUser.classList.add('on'); btnEmail.classList.remove('on');
-        if (label) label.innerText = 'Nome de usuario';
-        if (input) input.placeholder = 'ex: joao.silva';
-        if (hint) hint.innerText = 'Voce pode usar seu nome de usuario ou apelido cadastrado.';
-      } else {
-        btnEmail.classList.add('on'); btnUser.classList.remove('on');
-        if (label) label.innerText = 'E-mail completo';
-        if (input) input.placeholder = 'ex: email@exemplo.com';
-        if (hint) hint.innerText = 'Digite seu endereco de e-mail cadastrado.';
+      if(currentVKBInput) {
+        currentVKBInput.value += char;
+        currentVKBInput.dispatchEvent(new Event('input', { bubbles: true }));
       }
     }
-    function toggleSenha() {
-      var inp = document.getElementById('login-senha');
-      var ic = document.getElementById('icon-senha');
-      if (!inp) return;
-      if (inp.type === 'password') { inp.type = 'text'; ic.className = 'fa-regular fa-eye-slash'; }
-      else { inp.type = 'password'; ic.className = 'fa-regular fa-eye'; }
+
+    function vkbBackspace(e) {
+      if(e) e.stopPropagation();
+      if(currentVKBInput) {
+        currentVKBInput.value = currentVKBInput.value.slice(0, -1);
+        currentVKBInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
     }
+
+    function advanceTo(nextId) {
+        const nextEl = document.getElementById(nextId);
+        if(nextEl) {
+            if(currentVKBInput) currentVKBInput.style.borderColor = '#cbd5e1';
+            openVKB(nextEl, nextEl.getAttribute('data-keyboard'));
+            nextEl.focus(); 
+        } else {
+            closeVKB();
+        }
+    }
+
+    function vkbEnter(e) {
+        if(e) e.stopPropagation();
+        if(!currentVKBInput) return;
+        const id = currentVKBInput.id;
+        
+        if (id === 'col-main-tara') advanceTo('col-main-pnf');
+        else if (id === 'col-main-pnf') advanceTo('col-main-pmando');
+        else if (id === 'col-main-pmando') closeVKB();
+        else if (id === 'man-box-qtd') advanceTo('man-box-tara');
+        else if (id === 'man-box-tara') advanceTo('man-box-pnf');
+        else if (id === 'man-box-pnf') advanceTo('man-box-pmando');
+        else if (id === 'man-box-pmando') closeVKB();
+        else if (id === 'col-nf-input') { closeVKB(); avancarParaBipagem(); }
+        else if (id === 'man-nf') { closeVKB(); document.getElementById('man-forn').focus(); }
+        else closeVKB();
+    }
+
+    let inactivityTimer;
+    const INACTIVITY_TIME_MS = 10 * 60 * 1000; // 10 MINUTOS
+
+    function resetTimer() {
+      clearTimeout(inactivityTimer);
+      if (firebase && firebase.auth().currentUser) { 
+        inactivityTimer = setTimeout(() => { logout("Sessão expirada por inatividade (10 min)."); }, INACTIVITY_TIME_MS); 
+      }
+    }
+
+    // Ouve quando a tela apaga, aplicativo minimiza, ou o navegador vai pro fundo.
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        if (firebase && firebase.auth().currentUser) {
+           logout("Sessão encerrada por segurança (App em 2º plano).");
+        }
+      }
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function setToday() {
+      const hoje = new Date();
+      const formatado = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
+      document.getElementById('man-data').value = formatado;
+    }
+
     function formatarEmail(valor) {
-      var v = valor.trim().toLowerCase();
-      if (!v) return v;
-      if (loginMode === 'USER' || !v.includes('@')) { var cleanUser = v.replace(/[^a-z0-9._-]/g, ''); return cleanUser + '@hlcompany.com'; }
+      let v = valor.trim().toLowerCase();
+      if (v && !v.includes('@')) v += '@hlcompany.com';
       return v;
     }
 
     function navTo(viewId) {
-      document.querySelectorAll('.view-container').forEach(function(el) { el.classList.remove('active'); });
-      var target = document.getElementById('view-' + viewId);
+      document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById(`view-${viewId}`);
       if(target) target.classList.add('active');
       currentView = viewId;
-      var nav = document.getElementById('main-bottom-nav');
-      var backBtn = document.getElementById('btn-global-back');
-      if (viewId === 'login' || viewId === 'mode-select') backBtn.classList.add('hidden');
-      else backBtn.classList.remove('hidden');
-      if (['login', 'mode-select', 'coletor-nf', 'coletor-main'].includes(viewId)) { if(nav) nav.style.display = 'none'; }
-      else { if(nav) nav.style.display = 'flex'; document.querySelectorAll('.nav-item').forEach(function(el) { el.classList.remove('active'); }); var btn = document.getElementById('nav-btn-' + (viewId === 'manual-items' ? 'items' : viewId)); if(btn) btn.classList.add('active'); }
+      
+      const nav = document.getElementById('main-bottom-nav');
+      const backBtn = document.getElementById('btn-global-back');
+
+      if (viewId === 'login' || viewId === 'mode-select') {
+          backBtn.classList.add('hidden');
+      } else {
+          backBtn.classList.remove('hidden');
+      }
+
+      if (['login', 'mode-select', 'coletor-nf', 'coletor-main'].includes(viewId)) {
+        if(nav) nav.style.display = 'none';
+      } else {
+        if(nav) nav.style.display = 'flex';
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        const btn = document.getElementById(`nav-btn-${viewId === 'manual-items' ? 'items' : viewId}`);
+        if(btn) btn.classList.add('active');
+      }
+
       if (viewId === 'manual-items') renderManualItemsList();
       if (viewId === 'export') document.getElementById('resumo-qtd-caixas').innerText = appState.caixas.length;
-      if (viewId === 'coletor-main') { document.getElementById('col-main-count').innerText = appState.caixas.length; setTimeout(function() { var inp = document.getElementById('col-main-scan'); if(inp) { inp.value = ''; inp.focus(); } }, 100); }
+      if (viewId === 'coletor-main') {
+        document.getElementById('col-main-count').innerText = appState.caixas.length;
+        setTimeout(() => { const inp = document.getElementById('col-main-scan'); if(inp) { inp.value = ''; inp.focus(); } }, 100);
+      }
+      
       closeVKB();
     }
+
     function navigateBack() {
-      if (currentView === 'coletor-nf') navTo('mode-select');
-      else if (currentView === 'coletor-main') navTo('coletor-nf');
-      else if (currentView === 'manual-header') navTo('mode-select');
-      else if (currentView === 'manual-items') navTo('manual-header');
-      else if (currentView === 'export') navTo('mode-select');
+        if (currentView === 'coletor-nf') navTo('mode-select');
+        else if (currentView === 'coletor-main') navTo('coletor-nf');
+        else if (currentView === 'manual-header') navTo('mode-select');
+        else if (currentView === 'manual-items') navTo('manual-header');
+        else if (currentView === 'export') navTo('mode-select');
     }
 
-    // ============ LOGIN ============
-    document.addEventListener('DOMContentLoaded', function() {
-      var loginSenha = document.getElementById('login-senha');
-      if (loginSenha) loginSenha.addEventListener('keydown', function(event) { if (event.key === 'Enter') { event.preventDefault(); fazerLogin(); } });
-    });
     function fazerLogin() {
-      var userRaw = document.getElementById('login-email').value;
-      var senha = document.getElementById('login-senha').value;
-      if (!userRaw || !senha) { showToast("Preencha usuario/e-mail e senha."); return; }
-      var emailFinal = formatarEmail(userRaw);
-      auth.signInWithEmailAndPassword(emailFinal, senha).then(function() {
-        showToast("Login efetuado com sucesso!");
-        document.getElementById('login-senha').value = '';
-      }).catch(function(error) {
-        showToast(error.code === 'auth/invalid-credential' ? "Usuario/e-mail ou senha incorretos." : "Erro: " + error.message);
-      });
+      const emailRaw = document.getElementById('login-email').value;
+      const senha = document.getElementById('login-senha').value;
+      if (!emailRaw || !senha) { showToast("Preencha usuário e senha."); return; }
+      const email = formatarEmail(emailRaw);
+      
+      auth.signInWithEmailAndPassword(email, senha)
+        .then(() => { showToast("Login com sucesso!"); })
+        .catch(error => {
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
+                showToast("❌ Conta não existe ou senha errada. Tente 'Criar meu Cadastro'.");
+            } else {
+                showToast("Erro: " + error.message);
+            }
+        });
     }
 
-    // ============ CADASTRO ============
-    function abrirModalCadastro() {
-      document.getElementById('cad-usuario').value = '';
-      document.getElementById('cad-senha').value = '';
-      document.getElementById('modal-cadastro-usuario').style.display = 'flex';
-    }
-    function fecharModalCadastro() { document.getElementById('modal-cadastro-usuario').style.display = 'none'; }
-    function executarCadastro() {
-      var userRaw = document.getElementById('cad-usuario').value.trim();
-      var senha = document.getElementById('cad-senha').value.trim();
-      if (!userRaw || !senha) { showToast("Preencha o nome de usuario/e-mail e a senha."); return; }
-      var targetU = userRaw.toLowerCase();
-      var emailFinal = targetU;
-      if (!emailFinal.includes('@')) { emailFinal = emailFinal.replace(/[^a-z0-9._-]/g, '') + '@hlcompany.com'; }
-      db.ref('cadastros/operadores').once('value').then(function(snap) {
-        var ops = snap.val();
-        var arr = Array.isArray(ops) ? ops.filter(Boolean) : Object.values(ops || {}).filter(Boolean);
-        var targetE = emailFinal.toLowerCase();
-        var operadorAutorizado = arr.find(function(o) {
-          var u = (typeof o === 'object' && o.usuario) ? String(o.usuario).trim().toLowerCase() : '';
-          var e = (typeof o === 'object' && o.email) ? String(o.email).trim().toLowerCase() : '';
-          return (u && u === targetU) || (e && e === targetU) || (e && e === targetE);
+    function fazerCadastro() {
+      const emailRaw = document.getElementById('login-email').value;
+      const senha = document.getElementById('login-senha').value;
+      if (!emailRaw || !senha) { showToast("Preencha usuário e senha para cadastrar."); return; }
+      
+      const email = formatarEmail(emailRaw);
+      const nomeOp = emailRaw.split('@')[0].toUpperCase();
+      
+      auth.createUserWithEmailAndPassword(email, senha)
+        .then(() => {
+          db.ref('cadastros/operadores').once('value').then(snap => {
+            let ops = snap.val();
+            let arr = Array.isArray(ops) ? ops : Object.values(ops || {});
+            let exists = arr.some(o => o && o.email && o.email.toLowerCase() === email.toLowerCase());
+            
+            if (!exists) {
+               db.ref('cadastros/operadores').push({ nome: nomeOp, email: email, turno: "A" });
+            }
+          });
+          showToast("Acesso ativado com sucesso!");
+        })
+        .catch(error => {
+            if (error.code === 'auth/email-already-in-use') showToast("❌ Esse usuário já existe! Clique em 'Entrar'.");
+            else if (error.code === 'auth/weak-password') showToast("❌ A senha deve ter 6 caracteres no mínimo.");
+            else showToast("Falha: " + error.message);
         });
-        if (!operadorAutorizado) { showToast("Usuario nao cadastrado. Fale com o admin."); return; }
-        auth.createUserWithEmailAndPassword(emailFinal, senha).then(function() {
-          fecharModalCadastro();
-          showToast("Acesso validado e vinculado com sucesso!");
-        }).catch(function(error) {
-          var msg = "Erro ao cadastrar: " + error.message;
-          if (error.code === 'auth/email-already-in-use') msg = "Esta credencial ja existe! Tente fazer Login.";
-          if (error.code === 'auth/weak-password') msg = "A senha deve ter pelo menos 6 caracteres.";
-          showToast(msg);
-        });
-      }).catch(function(err) { showToast("Erro ao verificar autorizacao."); });
     }
 
-    function logout(mensagemToast) {
+    function logout(mensagemToast = "Deslogado com sucesso.") {
       if(auth) {
-        auth.signOut().then(function() {
+        auth.signOut().then(() => {
           appState.caixas = [];
+          
           document.getElementById('btn-logout').classList.add('hidden');
+          document.getElementById('login-email').value = '';
           document.getElementById('login-senha').value = '';
+          
           clearTimeout(inactivityTimer);
-          clearTimeout(backgroundTimer);
-          try { localStorage.removeItem(LS_LAST_ACT); } catch(e) {}
           closeVKB();
-          showToast(mensagemToast || "Sessao terminada.");
+          
+          showToast(mensagemToast);
           navTo('login');
         });
       }
     }
+
     function buscarInfoPeca(rawInput) {
-      var cleanInput = rawInput.replace(/[^A-Z0-9]/g, '');
-      var bestMatch = { pn: rawInput, desc: "", peso: null, fornecedor: "" };
-      var maxLen = 0;
-      var allCatalogs = Object.assign({}, CATALOGO_INTERNO, appCatalog);
-      for (var k in allCatalogs) {
-        var val = allCatalogs[k];
-        var cleanK = k.replace(/[^A-Z0-9]/g, '');
-        if (cleanK && cleanInput.includes(cleanK) && cleanK.length > maxLen) {
-          maxLen = cleanK.length;
-          bestMatch = { pn: k, desc: val.desc || val.descricao || "", peso: val.peso || val.custoUnitario || null, fornecedor: val.fornecedor || val.forn || "" };
+        let cleanInput = rawInput.replace(/[^A-Z0-9]/g, '');
+        let bestMatch = { pn: rawInput, desc: "", peso: null, fornecedor: "" };
+        let maxLen = 0;
+
+        const allCatalogs = { ...CATALOGO_INTERNO, ...appCatalog };
+
+        for (const [k, val] of Object.entries(allCatalogs)) {
+            let cleanK = k.replace(/[^A-Z0-9]/g, '');
+            if (cleanK && cleanInput.includes(cleanK)) {
+                if (cleanK.length > maxLen) {
+                    maxLen = cleanK.length;
+                    bestMatch = { 
+                        pn: k, 
+                        desc: val.desc || val.descricao || "", 
+                        peso: val.peso || val.custoUnitario || null,
+                        fornecedor: val.fornecedor || val.forn || ""
+                    };
+                }
+            }
         }
-      }
-      return bestMatch;
+        
+        return bestMatch;
     }
+
     function iniciarFluxo(modo) {
       appState.modo = modo;
-      if (modo === 'coletor') { document.getElementById('col-nf-input').value = appState.cabecalho.nota_fiscal_principal; navTo('coletor-nf'); }
-      else { setToday(); document.getElementById('man-nf').value = appState.cabecalho.nota_fiscal_principal; document.getElementById('man-forn').value = appState.cabecalho.fornecedor; document.getElementById('man-turno').value = appState.cabecalho.turno || "A"; navTo('manual-header'); }
+      if (modo === 'coletor') {
+        document.getElementById('col-nf-input').value = appState.cabecalho.nota_fiscal_principal;
+        navTo('coletor-nf');
+      } else {
+        setToday();
+        document.getElementById('man-nf').value = appState.cabecalho.nota_fiscal_principal;
+        document.getElementById('man-forn').value = appState.cabecalho.fornecedor;
+        document.getElementById('man-turno').value = appState.cabecalho.turno || "A";
+        navTo('manual-header');
+      }
     }
+
     function avancarParaBipagem() {
-      var nf = document.getElementById('col-nf-input').value.trim();
+      const nf = document.getElementById('col-nf-input').value.trim();
       if(!nf) { showToast("Digite a Nota Fiscal!"); return; }
+      
       appState.cabecalho.nota_fiscal_principal = nf.toUpperCase();
-      var hoje = new Date();
-      appState.cabecalho.data_conferencia = String(hoje.getDate()).padStart(2,'0')+'/'+String(hoje.getMonth()+1).padStart(2,'0')+'/'+hoje.getFullYear();
+      const hoje = new Date();
+      appState.cabecalho.data_conferencia = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
+      
       navTo('coletor-main');
     }
-    var scanTimeout;
-    var scanInput = document.getElementById('col-main-scan');
-    scanInput.addEventListener('keydown', function(event) { if (event.key === 'Enter' || event.keyCode === 13) { event.preventDefault(); clearTimeout(scanTimeout); var val = this.value; this.value = ''; if (val) processarColetorMain(val); } });
-    scanInput.addEventListener('input', function(event) { clearTimeout(scanTimeout); scanTimeout = setTimeout(function() { var val = scanInput.value; if (val.trim().length > 5) { scanInput.value = ''; processarColetorMain(val); } }, 400); });
-    function processarColetorMain(codigoBruto) {
-      var upper = String(codigoBruto).toUpperCase().trim().replace(/[\x00-\x1F\x7F-\x9F]/g, "");
-      if(!upper) return;
-      scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
-      var novoFormatoMatch = upper.match(/^([A-Z0-9.-]+)\s+(\d+)([A-Z0-9]{4})(\d{4})/);
-      if (novoFormatoMatch) {
-        var extraidoPN = novoFormatoMatch[1]; var possivelQtd = parseInt(novoFormatoMatch[2], 10);
-        scanAtualTemp.lote = novoFormatoMatch[3]; var codF = novoFormatoMatch[4];
-        scanAtualTemp.forn = mapaFornecedores[codF] || codF;
-        if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
-        if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
-        var infoPeca = buscarInfoPeca(extraidoPN);
-        if (infoPeca.desc) { scanAtualTemp.pn = infoPeca.pn; scanAtualTemp.desc = infoPeca.desc; scanAtualTemp.peso = infoPeca.peso; if (infoPeca.fornecedor && (!scanAtualTemp.forn || scanAtualTemp.forn === codF || scanAtualTemp.forn.length < 3)) scanAtualTemp.forn = infoPeca.fornecedor; }
-        else scanAtualTemp.pn = extraidoPN;
-      } else if (upper.startsWith('P') && upper.length >= 35) {
-        var codF = upper.substring(3, 7); scanAtualTemp.forn = mapaFornecedores[codF] || codF;
-        if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
-        var tail = upper.substring(upper.length - 10); scanAtualTemp.lote = tail.substring(0, 4);
-        var possivelQtd = parseInt(tail.substring(4), 10);
-        if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
-        var infoPeca = buscarInfoPeca(upper);
-        if (infoPeca.desc) { scanAtualTemp.pn = infoPeca.pn; scanAtualTemp.desc = infoPeca.desc; scanAtualTemp.peso = infoPeca.peso; if (infoPeca.fornecedor && (!scanAtualTemp.forn || scanAtualTemp.forn === codF || scanAtualTemp.forn.length < 3)) scanAtualTemp.forn = infoPeca.fornecedor; }
-        else { var miolo = upper.substring(15, upper.length - 10); var quebra = miolo.match(/^(.+?)(0{4,})$/); if (quebra) scanAtualTemp.pn = quebra[1]; else scanAtualTemp.pn = miolo.replace(/0+$/, ''); }
-      } else {
-        var infoPeca = buscarInfoPeca(upper);
-        if (infoPeca.desc) { scanAtualTemp.pn = infoPeca.pn; scanAtualTemp.desc = infoPeca.desc; scanAtualTemp.peso = infoPeca.peso; if (infoPeca.fornecedor) scanAtualTemp.forn = infoPeca.fornecedor; }
-        else { var pnMatch = upper.match(/(3BC[A-Z0-9]+|B[CEGHM][A-Z0-9]+|K[0-9]+)/); if (pnMatch) scanAtualTemp.pn = pnMatch[1].replace(/0+$/, ''); else scanAtualTemp.pn = upper; }
+
+    // ==========================================
+    // DEBOUNCER DO SCANNER E PROCESSAMENTO
+    // ==========================================
+    let scanTimeout;
+    const scanInput = document.getElementById('col-main-scan');
+
+    scanInput.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' || event.keyCode === 13) { 
+        event.preventDefault(); 
+        clearTimeout(scanTimeout);
+        const val = this.value; 
+        this.value = ''; 
+        if (val) processarColetorMain(val); 
       }
+    });
+
+    scanInput.addEventListener('input', function(event) {
+      clearTimeout(scanTimeout);
+      scanTimeout = setTimeout(() => {
+        const val = this.value;
+        if (val.trim().length > 5) {
+          this.value = '';
+          processarColetorMain(val);
+        }
+      }, 400); 
+    });
+
+    function processarColetorMain(codigoBruto) {
+      const upper = String(codigoBruto).toUpperCase().trim().replace(/[\x00-\x1F\x7F-\x9F]/g, "");
+      if(!upper) return;
+
+      scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
+
+      // 1. FORMATO METALSIDER: Ex: BC41235600.B     490VEDA1683N...
+      let novoFormatoMatch = upper.match(/^([A-Z0-9.-]+)\s+(\d+)([A-Z0-9]{4})(\d{4})/);
+
+      if (novoFormatoMatch) {
+          let extraidoPN = novoFormatoMatch[1];
+          let possivelQtd = parseInt(novoFormatoMatch[2], 10);
+          scanAtualTemp.lote = novoFormatoMatch[3];
+          let codF = novoFormatoMatch[4];
+
+          scanAtualTemp.forn = mapaFornecedores[codF] || codF;
+          if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
+          if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
+
+          let infoPeca = buscarInfoPeca(extraidoPN);
+          if (infoPeca.desc) {
+              scanAtualTemp.pn = infoPeca.pn;
+              scanAtualTemp.desc = infoPeca.desc;
+              scanAtualTemp.peso = infoPeca.peso;
+              if (infoPeca.fornecedor && (!scanAtualTemp.forn || scanAtualTemp.forn === codF || scanAtualTemp.forn.length < 3)) {
+                  scanAtualTemp.forn = infoPeca.fornecedor;
+              }
+          } else {
+              scanAtualTemp.pn = extraidoPN;
+          }
+
+      } 
+      // 2. FORMATO VDA MANDO LONGO: Ex: P00000100000000BC380A22000000000VGGA008500
+      else if (upper.startsWith('P') && upper.length >= 35) {
+          
+          const codF = upper.substring(3, 7);
+          scanAtualTemp.forn = mapaFornecedores[codF] || codF;
+          if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
+          
+          const tail = upper.substring(upper.length - 10);
+          scanAtualTemp.lote = tail.substring(0, 4);
+          const possivelQtd = parseInt(tail.substring(4), 10);
+          if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
+
+          let infoPeca = buscarInfoPeca(upper);
+
+          if (infoPeca.desc) {
+              scanAtualTemp.pn = infoPeca.pn;
+              scanAtualTemp.desc = infoPeca.desc;
+              scanAtualTemp.peso = infoPeca.peso;
+              if (infoPeca.fornecedor && (!scanAtualTemp.forn || scanAtualTemp.forn === codF || scanAtualTemp.forn.length < 3)) {
+                  scanAtualTemp.forn = infoPeca.fornecedor;
+              }
+          } else {
+              let miolo = upper.substring(15, upper.length - 10);
+              let quebra = miolo.match(/^(.+?)(0{4,})$/); 
+              if (quebra) scanAtualTemp.pn = quebra[1];
+              else scanAtualTemp.pn = miolo.replace(/0+$/, ''); 
+          }
+
+      } 
+      // 3. FALLBACK GLOBAL (Puxa qualquer formato perdido cruzando com o banco)
+      else {
+          let infoPeca = buscarInfoPeca(upper);
+          if (infoPeca.desc) {
+              scanAtualTemp.pn = infoPeca.pn;
+              scanAtualTemp.desc = infoPeca.desc;
+              scanAtualTemp.peso = infoPeca.peso;
+              if (infoPeca.fornecedor) scanAtualTemp.forn = infoPeca.fornecedor;
+          } else {
+              const pnMatch = upper.match(/(3BC[A-Z0-9]+|B[CEGHM][A-Z0-9]+|K[0-9]+)/);
+              if (pnMatch) scanAtualTemp.pn = pnMatch[1].replace(/0+$/, '');
+              else scanAtualTemp.pn = upper;
+          }
+      }
+
       document.getElementById('col-main-pn').value = scanAtualTemp.pn || '-';
       document.getElementById('col-main-forn').value = scanAtualTemp.forn || appState.cabecalho.fornecedor || '-';
       document.getElementById('col-main-lote').value = scanAtualTemp.lote || '-';
       document.getElementById('col-main-qtd').value = scanAtualTemp.qtd || '-';
+      
       showToast("Etiqueta lida! Insira os pesos.");
-      setTimeout(function() { advanceTo('col-main-tara'); }, 300);
+      
+      setTimeout(() => advanceTo('col-main-tara'), 300);
     }
+
     function salvarColetorMain(addAnother) {
-      var pn = document.getElementById('col-main-pn').value; var tara = document.getElementById('col-main-tara').value;
-      var pnf = document.getElementById('col-main-pnf').value; var pmando = document.getElementById('col-main-pmando').value;
+      const pn = document.getElementById('col-main-pn').value;
+      const tara = document.getElementById('col-main-tara').value;
+      const pnf = document.getElementById('col-main-pnf').value;
+      const pmando = document.getElementById('col-main-pmando').value;
+
       if (!pn || pn === '-') { showToast("Bipe uma etiqueta primeiro."); return; }
       if (!tara && !pmando) { showToast("Preencha ao menos a Tara ou o Peso Mando."); return; }
-      var itemData = { caixa_no: appState.caixas.length + 1, observacao: scanAtualTemp.pn, descricao: scanAtualTemp.desc, lote: scanAtualTemp.lote, peso_unitario: scanAtualTemp.peso, quantidade_mencionada: scanAtualTemp.qtd, peso_embalagem: tara, peso_bruto_nf: pnf, peso_bruto_mando: pmando, id: 'mob_' + Date.now() };
-      appState.caixas.push(itemData); showToast("Caixa salva!");
-      if(addAnother) { ['pn','forn','lote','qtd','tara','pnf','pmando'].forEach(function(id) { var el = document.getElementById('col-main-' + id); if(el) el.value = ''; }); navTo('coletor-main'); }
-      else navTo('export');
+
+      const itemData = {
+        caixa_no: appState.caixas.length + 1,
+        observacao: scanAtualTemp.pn,
+        descricao: scanAtualTemp.desc,
+        lote: scanAtualTemp.lote,
+        peso_unitario: scanAtualTemp.peso,
+        quantidade_mencionada: scanAtualTemp.qtd,
+        peso_embalagem: tara,
+        peso_bruto_nf: pnf,
+        peso_bruto_mando: pmando,
+        id: 'mob_' + Date.now()
+      };
+
+      appState.caixas.push(itemData);
+      showToast("Caixa salva!");
+
+      if(addAnother) {
+        document.getElementById('col-main-pn').value = '';
+        document.getElementById('col-main-forn').value = '';
+        document.getElementById('col-main-lote').value = '';
+        document.getElementById('col-main-qtd').value = '';
+        document.getElementById('col-main-tara').value = '';
+        document.getElementById('col-main-pnf').value = '';
+        document.getElementById('col-main-pmando').value = '';
+        navTo('coletor-main'); 
+      } else {
+        navTo('export');
+      }
     }
+
     function onManualPnInput(val) {
-      var raw = String(val).trim().toUpperCase();
-      var feedback = document.getElementById('man-desc-feedback'); var pnInput = document.getElementById('man-box-pn'); var fornHeader = document.getElementById('man-forn');
-      var info = buscarInfoPeca(raw);
-      if(info && info.desc) { feedback.innerHTML = '**' + info.desc + '**'; feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-center'; if (raw.length > 5 && info.pn !== raw && info.pn.replace(/[^A-Z0-9]/g, '') === raw) pnInput.value = info.pn; if (info.fornecedor && (!fornHeader.value || fornHeader.value.trim() === '')) { fornHeader.value = info.fornecedor.toUpperCase(); appState.cabecalho.fornecedor = info.fornecedor.toUpperCase(); } }
-      else if (raw.length > 3) { feedback.innerText = 'PN NAO ENCONTRADO'; feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-rose-50 border border-rose-200 text-rose-700 text-center'; }
+      const raw = String(val).trim().toUpperCase();
+      const feedback = document.getElementById('man-desc-feedback');
+      const pnInput = document.getElementById('man-box-pn');
+      const fornHeader = document.getElementById('man-forn');
+      
+      let info = buscarInfoPeca(raw);
+      
+      if(info && info.desc) {
+          feedback.innerHTML = `<b>${info.desc}</b>`;
+          feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-center';
+          
+          if (raw.length > 5 && info.pn !== raw && info.pn.replace(/[^A-Z0-9]/g, '') === raw) {
+              pnInput.value = info.pn;
+          }
+
+          if (info.fornecedor && (!fornHeader.value || fornHeader.value.trim() === '')) {
+              fornHeader.value = info.fornecedor.toUpperCase();
+              appState.cabecalho.fornecedor = info.fornecedor.toUpperCase();
+          }
+
+      } else if (raw.length > 3) {
+          feedback.innerText = '⚠️ PN NÃO ENCONTRADO';
+          feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-rose-50 border border-rose-200 text-rose-700 text-center';
+      }
     }
+
     function renderManualItemsList() {
-      var list = document.getElementById('man-items-list'); document.getElementById('man-items-counter').innerText = appState.caixas.length + ' CAIXAS';
-      if (appState.caixas.length === 0) { list.innerHTML = '** Nenhuma caixa.
-
-'; return; }
+      const list = document.getElementById('man-items-list');
+      document.getElementById('man-items-counter').innerText = `${appState.caixas.length} CAIXAS`;
+      
+      if (appState.caixas.length === 0) {
+        list.innerHTML = `<div class="text-center p-6 text-slate-400 font-bold text-xs uppercase"><i class="fa-solid fa-box-open text-3xl mb-2 opacity-50 block"></i> Nenhuma caixa.</div>`;
+        return;
+      }
       list.innerHTML = '';
-      appState.caixas.forEach(function(c, idx) {
-        list.innerHTML += 'CX ' + c.caixa_no + '
-
-' + (c.observacao || 'S/ CODIGO') + '
-
-
-
-QTD: ' + (c.quantidade_mencionada || '-') + ' LOTE: ' + (c.lote || '-') + ' TARA: ' + (c.peso_embalagem || '-') + ' kg
-
-NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + '**
-
-
-
-';
+      appState.caixas.forEach((c, idx) => {
+        list.innerHTML += `
+          <div class="box-card" onclick="openManualEditModal(${idx})">
+            <div class="flex justify-between items-start mb-1">
+              <div class="font-black text-slate-800 text-sm">CX ${c.caixa_no}</div>
+              <div class="font-bold text-blue-700 bg-blue-50 px-2 rounded text-[10px]">${c.observacao || 'S/ CÓDIGO'}</div>
+            </div>
+            <div class="text-[10px] font-bold text-slate-500 mb-2 border-t border-slate-100 pt-1.5 flex justify-between">
+              <span>QTD: ${c.quantidade_mencionada || '-'}</span> <span>LOTE: ${c.lote || '-'}</span> <span>TARA: ${c.peso_embalagem || '-'} kg</span>
+            </div>
+            <div class="text-[10px] font-bold text-slate-500 pt-1 border-t border-slate-100 flex justify-between">
+              <span>NF: ${c.peso_bruto_nf || '-'}</span> <span>Mando: <b class="text-emerald-600">${c.peso_bruto_mando || '-'}</b></span>
+            </div>
+          </div>
+        `;
       });
     }
-    function openManualAddModal() {
-      editIndex = -1; document.getElementById('modal-man-title').innerText = 'CAIXA N ' + (appState.caixas.length + 1);
-      ['pn','lote','qtd','tara','pnf','pmando'].forEach(function(id) { var el = document.getElementById('man-box-' + id); if(el) el.value = ''; });
-      document.getElementById('man-desc-feedback').innerText = 'DIGITE O CODIGO...';
-      document.getElementById('man-desc-feedback').className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-white border border-slate-200 text-slate-500 text-center';
-      var modal = document.getElementById('modal-add-manual'); modal.classList.remove('hidden'); setTimeout(function() { modal.classList.remove('translate-y-full'); document.getElementById('man-box-pn').focus(); }, 10);
-    }
-    function openManualEditModal(idx) {
-      editIndex = idx; var c = appState.caixas[idx];
-      document.getElementById('modal-man-title').innerText = 'EDITAR CX N ' + c.caixa_no;
-      document.getElementById('man-box-pn').value = c.observacao || ''; document.getElementById('man-box-lote').value = c.lote || ''; document.getElementById('man-box-qtd').value = c.quantidade_mencionada || ''; document.getElementById('man-box-tara').value = c.peso_embalagem || ''; document.getElementById('man-box-pnf').value = c.peso_bruto_nf || ''; document.getElementById('man-box-pmando').value = c.peso_bruto_mando || '';
-      onManualPnInput(c.observacao || ''); var modal = document.getElementById('modal-add-manual'); modal.classList.remove('hidden'); setTimeout(function() { modal.classList.remove('translate-y-full'); }, 10);
-    }
-    function closeManualAddModal() { var modal = document.getElementById('modal-add-manual'); modal.classList.add('translate-y-full'); setTimeout(function() { modal.classList.add('hidden'); }, 300); closeVKB(); }
-    function salvarManual(addAnother) {
-      var pn = document.getElementById('man-box-pn').value.trim().toUpperCase(); var lote = document.getElementById('man-box-lote').value; var qtd = document.getElementById('man-box-qtd').value; var tara = document.getElementById('man-box-tara').value; var pnf = document.getElementById('man-box-pnf').value; var pmando = document.getElementById('man-box-pmando').value;
-      if (!pn && !pmando) { showToast("Preencha PN ou Peso."); return; }
-      var info = buscarInfoPeca(pn); var desc = info.desc || ""; var pesoUnit = info.peso || null;
-      appState.cabecalho.nota_fiscal_principal = document.getElementById('man-nf').value.toUpperCase(); appState.cabecalho.fornecedor = document.getElementById('man-forn').value.toUpperCase(); appState.cabecalho.turno = document.getElementById('man-turno').value;
-      var itemData = { caixa_no: editIndex > -1 ? appState.caixas[editIndex].caixa_no : (appState.caixas.length + 1), observacao: info.pn || pn, descricao: desc, lote: lote, peso_unitario: pesoUnit, quantidade_mencionada: qtd, peso_embalagem: tara, peso_bruto_nf: pnf, peso_bruto_mando: pmando };
-      if (editIndex > -1) appState.caixas[editIndex] = itemData; else appState.caixas.push(itemData);
-      showToast("Caixa salva!"); renderManualItemsList();
-      if(addAnother && editIndex === -1) { document.getElementById('man-box-pn').value = ''; document.getElementById('man-box-pmando').value = ''; document.getElementById('man-box-pn').focus(); }
-      else closeManualAddModal();
-    }
-    function openEmailModal() {
-      var modal = document.getElementById('modal-email'); var box = document.getElementById('email-box');
-      var userEmail = appState.cabecalho.operador ? appState.cabecalho.operador.toLowerCase() + '@hlcompany.com' : 'operador@hlcompany.com';
-      try { var user = firebase.auth().currentUser; if (user && user.email) userEmail = user.email; } catch (e) {}
-      document.getElementById('email-logado').value = userEmail; document.getElementById('email-extra').value = '';
-      modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(function() { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
-    }
-    function closeEmailModal() { var modal = document.getElementById('modal-email'); var box = document.getElementById('email-box'); modal.classList.add('opacity-0'); box.classList.add('scale-95'); setTimeout(function() { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200); }
-    function criarWorkbookBase() {
-      var wb = XLSX.utils.book_new();
-      var wsData = [["CONFERENCIA / PESAGEM","","","","","",""],["NOTA FISCAL","ITEM","TOTAL DE PECA","FORNECEDOR","DATA CONFERENCIA","OPERADOR",""],[appState.cabecalho.nota_fiscal_principal,"","",appState.cabecalho.fornecedor,appState.cabecalho.data_conferencia,appState.cabecalho.operador,""],["","","","","","",""],["CAIXA N","QTD MENCIONADA","PESO EMBALAGEM","PESO BRUTO/NF","PESO BRUTO MANDO","LOTE","PART NUMBER"]];
-      var totalLinhas = Math.max(40, appState.caixas.length);
-      for (var i = 1; i <= totalLinhas; i++) { var c = appState.caixas.find(function(item) { return Number(item.caixa_no) === i; }); if (c) wsData.push([i,c.quantidade_mencionada||"",c.peso_embalagem||"",c.peso_bruto_nf||"",c.peso_bruto_mando||"",c.lote||"",c.observacao||""]); else wsData.push([i,"","","","","",""]); }
-      var ws = XLSX.utils.aoa_to_sheet(wsData);
-      var borda = { style: "thin", color: { rgb: "000000" } }; ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }];
-      for (var R = 0; R < wsData.length; ++R) { for (var C = 0; C < 7; ++C) { var cellRef = XLSX.utils.encode_cell({ r: R, c: C }); if (!ws[cellRef]) ws[cellRef] = { v: "", t: "s" }; var s = { font: { name: "Arial", sz: 10 }, alignment: { horizontal: "center", vertical: "center" } }; if (R === 0 || R === 1 || R === 4) { s.font.bold = true; s.border = {top:borda,bottom:borda,left:borda,right:borda}; s.fill = { fgColor: { rgb: "EAEAEA" } }; } else if (R > 4) { s.border = {top:borda,bottom:borda,left:borda,right:borda}; } ws[cellRef].s = s; } }
-      ws['!cols'] = [{wch:10},{wch:18},{wch:18},{wch:18},{wch:20},{wch:15},{wch:25}];
-      XLSX.utils.book_append_sheet(wb, ws, "Pesagem"); return wb;
-    }
-    async function confirmarEnvioEmail() {
-      var emailLogado = document.getElementById('email-logado').value.trim(); var emailExtra = document.getElementById('email-extra').value.trim();
-      var dest = emailLogado; if (emailExtra) dest += ',' + emailExtra;
-      var nf = appState.cabecalho.nota_fiscal_principal || 'S/N'; var fileName = 'Conferencia_NF_' + nf + '.xlsx'; var subject = 'Planilha de Pesagem - NF ' + nf;
-      var textBody = 'Ola,\n\nSegue em anexo a planilha de pesagem referente a NF ' + nf + '.\n\nPara: ' + dest + '\n\nEnviado via App Mobile HL Mando.';
-      if (typeof XLSX === 'undefined') { showToast("Excel indisponivel."); return; }
-      var wb = criarWorkbookBase(); var excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-      var blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      var file = new File([blob], fileName, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      var shareSuccess = false;
-      if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: subject, text: textBody }); showToast("Aberto no app de e-mail!"); shareSuccess = true; closeEmailModal(); } catch (error) { console.log("Plano B...", error); } }
-      if (!shareSuccess) { XLSX.writeFile(wb, fileName); var encodedSubject = encodeURIComponent(subject); var encodedBody = encodeURIComponent(textBody + "\n\nATENCAO: O ARQUIVO FOI BAIXADO. CLIQUE NO CLIPE DE PAPEL PARA INCLUIR A PLANILHA."); window.location.href = 'mailto:' + dest + '?subject=' + encodedSubject + '&body=' + encodedBody; closeEmailModal(); }
-    }
-    function gerarExcel() { if (typeof XLSX === 'undefined') { showToast("Excel indisponivel."); return; } var wb = criarWorkbookBase(); XLSX.writeFile(wb, 'Conferencia_Pesagem.xlsx'); showToast("Excel Gerado e Baixado!"); }
-    function sincronizarComDesktop() { if (!db || appState.caixas.length === 0) { showToast("Nada para enviar."); return; } var novaNota = { modo: appState.modo, title: "Lancamento Mobile", cabecalho: appState.cabecalho, caixas: appState.caixas }; db.ref('loteNotas').set([...desktopLoteNotas, novaNota]).then(function() { showToast("Enviado para o Desktop!"); }); }
-    function abrirModalLimpar() { var modal = document.getElementById('modal-limpar'); var box = document.getElementById('limpar-box'); modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(function() { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10); }
-    function closeLimparModal() { var modal = document.getElementById('modal-limpar'); var box = document.getElementById('limpar-box'); modal.classList.add('opacity-0'); box.classList.add('scale-95'); setTimeout(function() { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200); }
-    function confirmarLimparTudo() { appState.caixas = []; appState.cabecalho.nota_fiscal_principal = ""; navTo('mode-select'); showToast("Dados zerados."); closeLimparModal(); }
 
-    // ============ FIREBASE ============
+    function openManualAddModal() {
+      editIndex = -1;
+      document.getElementById('modal-man-title').innerText = `CAIXA Nº ${appState.caixas.length + 1}`;
+      ['pn', 'lote', 'qtd', 'tara', 'pnf', 'pmando'].forEach(id => document.getElementById(`man-box-${id}`).value = '');
+      document.getElementById('man-desc-feedback').innerText = 'DIGITE O CÓDIGO...';
+      document.getElementById('man-desc-feedback').className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-white border border-slate-200 text-slate-500 text-center';
+      
+      const modal = document.getElementById('modal-add-manual');
+      modal.classList.remove('hidden');
+      setTimeout(() => { modal.classList.remove('translate-y-full'); document.getElementById('man-box-pn').focus(); }, 10);
+    }
+
+    function openManualEditModal(idx) {
+      editIndex = idx;
+      const c = appState.caixas[idx];
+      document.getElementById('modal-man-title').innerText = `EDITAR CX Nº ${c.caixa_no}`;
+      document.getElementById('man-box-pn').value = c.observacao || '';
+      document.getElementById('man-box-lote').value = c.lote || '';
+      document.getElementById('man-box-qtd').value = c.quantidade_mencionada || '';
+      document.getElementById('man-box-tara').value = c.peso_embalagem || '';
+      document.getElementById('man-box-pnf').value = c.peso_bruto_nf || '';
+      document.getElementById('man-box-pmando').value = c.peso_bruto_mando || '';
+      onManualPnInput(c.observacao || '');
+      
+      const modal = document.getElementById('modal-add-manual');
+      modal.classList.remove('hidden');
+      setTimeout(() => modal.classList.remove('translate-y-full'), 10);
+    }
+
+    function closeManualAddModal() {
+      const modal = document.getElementById('modal-add-manual');
+      modal.classList.add('translate-y-full');
+      setTimeout(() => modal.classList.add('hidden'), 300);
+      closeVKB();
+    }
+
+    function salvarManual(addAnother) {
+      const pn = document.getElementById('man-box-pn').value.trim().toUpperCase();
+      const lote = document.getElementById('man-box-lote').value;
+      const qtd = document.getElementById('man-box-qtd').value;
+      const tara = document.getElementById('man-box-tara').value;
+      const pnf = document.getElementById('man-box-pnf').value;
+      const pmando = document.getElementById('man-box-pmando').value;
+
+      if (!pn && !pmando) { showToast("Preencha PN ou Peso."); return; }
+
+      let info = buscarInfoPeca(pn);
+      let desc = info.desc || ""; 
+      let pesoUnit = info.peso || null;
+
+      appState.cabecalho.nota_fiscal_principal = document.getElementById('man-nf').value.toUpperCase();
+      appState.cabecalho.fornecedor = document.getElementById('man-forn').value.toUpperCase();
+      appState.cabecalho.turno = document.getElementById('man-turno').value; 
+
+      const itemData = {
+        caixa_no: editIndex > -1 ? appState.caixas[editIndex].caixa_no : (appState.caixas.length + 1),
+        observacao: info.pn || pn,
+        descricao: desc, lote: lote, peso_unitario: pesoUnit,
+        quantidade_mencionada: qtd, peso_embalagem: tara, peso_bruto_nf: pnf, peso_bruto_mando: pmando
+      };
+
+      if (editIndex > -1) appState.caixas[editIndex] = itemData;
+      else appState.caixas.push(itemData);
+
+      showToast("Caixa salva!");
+      renderManualItemsList();
+      
+      if(addAnother && editIndex === -1) {
+        document.getElementById('man-box-pn').value = '';
+        document.getElementById('man-box-pmando').value = '';
+        document.getElementById('man-box-pn').focus();
+      } else {
+        closeManualAddModal();
+      }
+    }
+
+    function openEmailModal() {
+      const modal = document.getElementById('modal-email');
+      const box = document.getElementById('email-box');
+      
+      let userEmail = appState.cabecalho.operador ? `${appState.cabecalho.operador.toLowerCase()}@hlcompany.com` : 'operador@hlcompany.com';
+      try { const user = firebase.auth().currentUser; if (user && user.email) userEmail = user.email; } catch (e) {}
+      
+      document.getElementById('email-logado').value = userEmail;
+      document.getElementById('email-extra').value = '';
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+    }
+
+    function closeEmailModal() {
+      const modal = document.getElementById('modal-email');
+      const box = document.getElementById('email-box');
+      modal.classList.add('opacity-0');
+      box.classList.add('scale-95');
+      setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
+    }
+
+    function criarWorkbookBase() {
+      const wb = XLSX.utils.book_new();
+      const wsData = [
+        ["CONFERÊNCIA / PESAGEM", "", "", "", "", "", ""],
+        ["NOTA FISCAL", "ITEM", "TOTAL DE PEÇA", "FORNECEDOR", "DATA CONFERÊNCIA", "OPERADOR", ""],
+        [ appState.cabecalho.nota_fiscal_principal, "", "", appState.cabecalho.fornecedor, appState.cabecalho.data_conferencia, appState.cabecalho.operador, "" ],
+        ["", "", "", "", "", "", ""],
+        ["CAIXA Nº", "QTD MENCIONADA", "PESO EMBALAGEM", "PESO BRUTO/NF", "PESO BRUTO MANDO", "LOTE", "PART NUMBER"]
+      ];
+
+      const totalLinhas = Math.max(40, appState.caixas.length);
+      for (let i = 1; i <= totalLinhas; i++) {
+        const c = appState.caixas.find(item => Number(item.caixa_no) === i);
+        if (c) wsData.push([ i, c.quantidade_mencionada || "", c.peso_embalagem || "", c.peso_bruto_nf || "", c.peso_bruto_mando || "", c.lote || "", c.observacao || "" ]);
+        else wsData.push([i, "", "", "", "", "", ""]);
+      }
+
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      const borda = { style: "thin", color: { rgb: "000000" } };
+      ws['!merges'] = [ { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } } ];
+
+      for (let R = 0; R < wsData.length; ++R) {
+        for (let C = 0; C < 7; ++C) {
+          const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!ws[cellRef]) ws[cellRef] = { v: "", t: "s" };
+          let s = { font: { name: "Arial", sz: 10 }, alignment: { horizontal: "center", vertical: "center" } };
+          if (R === 0 || R === 1 || R === 4) { s.font.bold = true; s.border = {top: borda, bottom: borda, left: borda, right: borda}; s.fill = { fgColor: { rgb: "EAEAEA" } }; }
+          else if (R > 4) { s.border = {top: borda, bottom: borda, left: borda, right: borda}; }
+          ws[cellRef].s = s;
+        }
+      }
+      ws['!cols'] = [ { wch: 10 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 15 }, { wch: 25 } ];
+
+      XLSX.utils.book_append_sheet(wb, ws, "Pesagem");
+      return wb;
+    }
+
+    async function confirmarEnvioEmail() {
+      const emailLogado = document.getElementById('email-logado').value.trim();
+      const emailExtra = document.getElementById('email-extra').value.trim();
+      let dest = emailLogado;
+      if (emailExtra) dest += `,${emailExtra}`;
+
+      const nf = appState.cabecalho.nota_fiscal_principal || 'S/N';
+      const fileName = `Conferencia_NF_${nf}.xlsx`;
+      const subject = `Planilha de Pesagem - NF ${nf}`;
+      const textBody = `Olá,\n\nSegue em anexo a planilha de pesagem referente à NF ${nf}.\n\nPara: ${dest}\n\nEnviado via App Mobile HL Mando.`;
+
+      if (typeof XLSX === 'undefined') { showToast("Excel indisponível."); return; }
+      
+      const wb = criarWorkbookBase();
+      
+      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const file = new File([blob], fileName, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+      let shareSuccess = false;
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: subject,
+            text: textBody
+          });
+          showToast("Aberto no app de e-mail!");
+          shareSuccess = true;
+          closeEmailModal();
+        } catch (error) {
+          console.log("Compartilhamento nativo bloqueado (normal no preview). Acionando plano B...", error);
+        }
+      } 
+      
+      if (!shareSuccess) {
+        XLSX.writeFile(wb, fileName); 
+        const encodedSubject = encodeURIComponent(subject);
+        const encodedBody = encodeURIComponent(textBody + "\n\n⚠️ ATENÇÃO: O ARQUIVO FOI BAIXADO. CLIQUE NO CLIPE DE PAPEL (ANEXO) PARA INCLUIR A PLANILHA QUE ACABOU DE BAIXAR.");
+        
+        window.location.href = `mailto:${dest}?subject=${encodedSubject}&body=${encodedBody}`;
+        closeEmailModal();
+      }
+    }
+
+    function gerarExcel() {
+      if (typeof XLSX === 'undefined') { showToast("Excel indisponível."); return; }
+      const wb = criarWorkbookBase();
+      XLSX.writeFile(wb, `Conferencia_Pesagem.xlsx`);
+      showToast("Excel Gerado e Baixado!");
+    }
+
+    function sincronizarComDesktop() {
+      if (!db || appState.caixas.length === 0) { showToast("Nada para enviar."); return; }
+      const novaNota = { modo: appState.modo, title: "Lançamento Mobile", cabecalho: appState.cabecalho, caixas: appState.caixas };
+      db.ref('loteNotas').set([...desktopLoteNotas, novaNota]).then(() => showToast("Enviado para o Desktop!"));
+    }
+
+    function abrirModalLimpar() {
+        const modal = document.getElementById('modal-limpar');
+        const box = document.getElementById('limpar-box');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+    }
+
+    function closeLimparModal() {
+        const modal = document.getElementById('modal-limpar');
+        const box = document.getElementById('limpar-box');
+        modal.classList.add('opacity-0');
+        box.classList.add('scale-95');
+        setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
+    }
+
+    function confirmarLimparTudo() {
+        appState.caixas = [];
+        appState.cabecalho.nota_fiscal_principal = "";
+        navTo('mode-select');
+        showToast("Dados zerados.");
+        closeLimparModal();
+    }
+
     function initFirebaseApp() {
       try {
-        var firebaseConfig = {
+        const firebaseConfig = {
           apiKey: "AIzaSyBQ7_k7huhS8oAyKp0OsbEajXFmrNxcrlo",
           authDomain: "kyro-7cb7a.firebaseapp.com",
           databaseURL: "https://kyro-7cb7a-default-rtdb.firebaseio.com",
@@ -1033,56 +1400,92 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
           messagingSenderId: "368737182812",
           appId: "1:368737182812:web:7be81b22a1a1fec5c97299"
         };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        db = firebase.database(); auth = firebase.auth();
-        try { auth.setPersistence(firebase.auth.Auth.Persistence.SESSION); } catch(e) {}
-        auth.onAuthStateChanged(function(user) {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        auth = firebase.auth();
+
+        auth.onAuthStateChanged((user) => {
           if (user) {
             resetTimer();
-            var emailPart = (user.email || '').split('@')[0];
-            appState.cabecalho.operador = emailPart.toUpperCase();
-            appState.cabecalho.turno = "A";
-            document.getElementById('lbl-operador-logado').innerText = emailPart.toUpperCase();
-            document.getElementById('lbl-operador-turno').innerText = "TURNO A";
-            db.ref('cadastros/operadores').once('value').then(function(snap) {
-              var ops = snap.val();
-              var arr = Array.isArray(ops) ? ops.filter(Boolean) : Object.values(ops || {}).filter(Boolean);
-              var targetEmail = (user.email || '').trim().toLowerCase();
-              var targetUser = targetEmail.split('@')[0];
-              var opProfile = arr.find(function(o) {
-                var dbEmail = (typeof o === 'object' && o.email) ? String(o.email).trim().toLowerCase() : '';
-                var dbUser = (typeof o === 'object' && o.usuario) ? String(o.usuario).trim().toLowerCase() : '';
-                var dbNome = (typeof o === 'object' && o.nome) ? String(o.nome).trim().toLowerCase() : String(o).trim().toLowerCase();
-                return (dbEmail && dbEmail === targetEmail) || (dbUser && dbUser === targetUser) || (dbNome === targetUser);
-              });
-              if (opProfile) {
-                var pNome = typeof opProfile === 'object' ? (opProfile.nome || opProfile.usuario || targetUser) : String(opProfile);
-                var pTurno = typeof opProfile === 'object' ? (opProfile.turno || 'A') : 'A';
-                appState.cabecalho.operador = String(pNome).toUpperCase();
-                appState.cabecalho.turno = String(pTurno).toUpperCase();
-                document.getElementById('lbl-operador-logado').innerText = String(pNome).toUpperCase();
-                document.getElementById('lbl-operador-turno').innerText = "TURNO " + String(pTurno).toUpperCase();
-                var turnoSelect = document.getElementById('man-turno');
-                if (turnoSelect) turnoSelect.value = pTurno;
-              }
-              document.getElementById('btn-logout').classList.remove('hidden');
-              if (currentView === 'login') navTo('mode-select');
-            }).catch(function(err) { document.getElementById('btn-logout').classList.remove('hidden'); if (currentView === 'login') navTo('mode-select'); });
+
+            db.ref('cadastros/operadores').once('value').then(snap => {
+               let ops = snap.val();
+               let arr = Array.isArray(ops) ? ops : Object.values(ops || {});
+               let opProfile = arr.find(o => o && o.email && o.email.toLowerCase() === user.email.toLowerCase());
+
+               if (opProfile) {
+                   appState.cabecalho.operador = opProfile.nome;
+                   appState.cabecalho.turno = opProfile.turno;
+                   document.getElementById('lbl-operador-logado').innerText = opProfile.nome;
+                   document.getElementById('lbl-operador-turno').innerText = "TURNO " + opProfile.turno;
+               } else {
+                   const userName = user.email.split('@')[0].toUpperCase();
+                   appState.cabecalho.operador = userName;
+                   appState.cabecalho.turno = "A";
+                   document.getElementById('lbl-operador-logado').innerText = userName;
+                   document.getElementById('lbl-operador-turno').innerText = "TURNO A";
+               }
+
+               document.getElementById('btn-logout').classList.remove('hidden');
+               if (currentView === 'login') navTo('mode-select');
+            });
           } else {
-            clearTimeout(inactivityTimer); clearTimeout(backgroundTimer);
-            try { localStorage.removeItem(LS_LAST_ACT); } catch(e) {}
+            clearTimeout(inactivityTimer);
             navTo('login');
           }
         });
-        db.ref('loteNotas').on('value', function(snap) { desktopLoteNotas = snap.val() || []; document.getElementById('sync-status').classList.replace('bg-slate-500','bg-emerald-400'); });
-        db.ref('cadastros/fornecedores').on('value', function(snap) { var dl = document.getElementById('forn-list'); if(!dl) return; dl.innerHTML = ''; var arr = Array.isArray(snap.val()) ? snap.val().filter(function(x) { return x; }) : Object.values(snap.val() || {}); arr.forEach(function(f) { dl.innerHTML += '<option value="' + (f || '').toUpperCase() + '">'; }); });
-        db.ref('cadastros/produtos_mestre').on('value', function(snap) { var val = snap.val(); if (val) { var arr = Array.isArray(val) ? val.filter(function(x) { return x; }) : Object.values(val || {}); arr.forEach(function(p) { if (p && p.partNumber) appCatalog[p.partNumber.toUpperCase()] = { desc: p.descricao, peso: p.custoUnitario || p.peso, fornecedor: p.fornecedor }; }); } });
-        db.ref('dynamicCatalog').on('value', function(snap) { var val = snap.val(); if (val) { var dl = document.getElementById('cat-list'); if (dl) dl.innerHTML = ''; for (var k in val) { var originalKey = k.replace(/_DOT_/g,'.').replace(/_HASH_/g,'#').replace(/_DOL_/g,'$').replace(/_SLASH_/g,'/').replace(/_OB_/g,'[').replace(/_CB_/g,']'); appCatalog[originalKey.toUpperCase()] = { desc: (val[k].desc || val[k].descricao || '').toUpperCase(), peso: val[k].peso !== undefined ? Number(val[k].peso) : null, fornecedor: val[k].forn || val[k].fornecedor || '' }; if (dl) dl.innerHTML += '<option value="' + originalKey + '">' + originalKey + ' - ' + (val[k].desc || '') + '</option>'; } } });
+
+        db.ref('loteNotas').on('value', snap => { desktopLoteNotas = snap.val() || []; document.getElementById('sync-status').classList.replace('bg-slate-500', 'bg-emerald-400'); });
+        db.ref('cadastros/fornecedores').on('value', snap => {
+          const dl = document.getElementById('forn-list'); dl.innerHTML = '';
+          const arr = Array.isArray(snap.val()) ? snap.val().filter(x => x) : Object.values(snap.val() || {});
+          arr.forEach(f => dl.innerHTML += `<option value="${(f || '').toUpperCase()}">`);
+        });
+
+        db.ref('cadastros/produtos_mestre').on('value', snap => {
+          const val = snap.val();
+          if (val) {
+            const arr = Array.isArray(val) ? val.filter(x => x) : Object.values(val || {});
+            arr.forEach(p => {
+               if (p && p.partNumber) {
+                   appCatalog[p.partNumber.toUpperCase()] = { 
+                       desc: p.descricao, 
+                       peso: p.custoUnitario || p.peso,
+                       fornecedor: p.fornecedor
+                   };
+               }
+            });
+          }
+        });
+
+        db.ref('dynamicCatalog').on('value', snap => {
+          const val = snap.val();
+          if (val) {
+            const dl = document.getElementById('cat-list'); dl.innerHTML = '';
+            for (let k in val) {
+              let originalKey = k.replace(/_DOT_/g, '.').replace(/_HASH_/g, '#').replace(/_DOL_/g, '$').replace(/_SLASH_/g, '/').replace(/_OB_/g, '[').replace(/_CB_/g, ']');
+              
+              appCatalog[originalKey.toUpperCase()] = { 
+                  desc: (val[k].desc || val[k].descricao || '').toUpperCase(), 
+                  peso: val[k].peso !== undefined ? Number(val[k].peso) : null,
+                  fornecedor: val[k].forn || val[k].fornecedor || '' 
+              };
+              dl.innerHTML += `<option value="${originalKey}">${originalKey} - ${val[k].desc || ''}</option>`;
+            }
+          }
+        });
       } catch(e) { console.error("Firebase init error:", e); }
     }
+
     window.onload = function() {
-      initFirebaseApp(); initVKB(); marcarAtividade();
-      ['touchstart','mousemove','mousedown','keypress','scroll','input','click'].forEach(function(evt) { document.addEventListener(evt, resetTimer, true); });
+      initFirebaseApp();
+      initVKB();
+      const loginEmail = document.getElementById('login-email');
+      if(loginEmail) loginEmail.addEventListener('blur', function() { this.value = formatarEmail(this.value); });
+      
+      ['touchstart', 'mousemove', 'mousedown', 'keypress', 'scroll'].forEach(evt => {
+        document.addEventListener(evt, resetTimer, true);
+      });
     };
   </script>
 </body>
