@@ -1,1615 +1,1615 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, interactive-widget=resizes-content">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0f172a">
-<meta name="mobile-web-app-capable" content="yes">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2800/2800118.png">
-<title>App Pesagem Mobile - HL Mando</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-<style>
-:root {
---primary: #005c9e;
---primary-dark: #004b80;
---bg: #f8fafc;
---text: #1e293b;
-}
-body {
-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-background-color: var(--bg);
-color: var(--text);
-margin: 0;
-padding: 0;
-height: 100vh;
-height: 100dvh;
-display: flex;
-flex-direction: column;
-overflow: hidden;
-touch-action: pan-y;
-}
-.view-container {
-flex: 1;
-overflow-y: auto;
-overflow-x: hidden;
-padding-bottom: 90px;
-display: none;
-animation: fadeIn 0.2s ease;
-width: 100%;
-}
-.view-container.active {
-display: block;
-}
-@keyframes fadeIn {
-from { opacity: 0; transform: translateY(5px); }
-to { opacity: 1; transform: translateY(0); }
-}
-/* Força fonte 16px para bloquear o auto-zoom do iOS/Android */
-.mobile-input {
-width: 100%;
-padding: 10px 12px;
-font-size: 16px !important;
-border: 1px solid #cbd5e1;
-border-radius: 8px;
-background-color: #f1f5f9;
-transition: all 0.2s;
-outline: none;
-text-transform: uppercase;
-font-weight: 700;
-box-sizing: border-box;
-}
-.mobile-input:focus {
-border-color: var(--primary);
-background-color: #fff;
-box-shadow: 0 0 0 2px rgba(0, 92, 158, 0.15);
-font-size: 16px !important;
-}
-.mobile-label {
-display: block;
-font-size: 11px;
-font-weight: 800;
-color: #64748b;
-margin-bottom: 4px;
-text-transform: uppercase;
-}
-.btn-large {
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 8px;
-width: 100%;
-padding: 14px;
-border-radius: 10px;
-font-weight: 900;
-font-size: 15px;
-text-transform: uppercase;
-transition: active 0.1s;
-border: none;
-cursor: pointer;
-}
-.btn-large:active {
-transform: scale(0.97);
-}
-.btn-primary {
-background-color: var(--primary);
-color: white;
-box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2);
-}
-.btn-success {
-background-color: #10b981;
-color: white;
-}
-.bottom-nav {
-position: fixed;
-bottom: 0;
-left: 0;
-width: 100%;
-background: white;
-border-top: 1px solid #e2e8f0;
-display: none;
-justify-content: space-around;
-padding: 6px 0;
-padding-bottom: env(safe-area-inset-bottom, 8px);
-box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
-z-index: 50;
-}
-.nav-item {
-display: flex;
-flex-direction: column;
-align-items: center;
-color: #94a3b8;
-font-size: 10px;
-font-weight: 800;
-padding: 8px;
-border-radius: 8px;
-flex: 1;
-text-transform: uppercase;
-cursor: pointer;
-}
-.nav-item.active {
-color: var(--primary);
-}
-.nav-item i {
-font-size: 18px;
-margin-bottom: 2px;
-}
-.box-card {
-background: white;
-border-radius: 10px;
-padding: 14px;
-margin-bottom: 10px;
-box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-border: 1px solid #e2e8f0;
-border-left: 4px solid var(--primary);
-cursor: pointer;
-}
-.toast {
-position: fixed;
-top: 20px;
-left: 50%;
-transform: translateX(-50%) translateY(-100px);
-background: #1e293b;
-color: white;
-padding: 12px 20px;
-border-radius: 20px;
-font-weight: bold;
-font-size: 13px;
-z-index: 1000;
-transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-white-space: nowrap;
-}
-.toast.show {
-transform: translateX(-50%) translateY(0);
-}
-/* ESTILOS DO TECLADO VIRTUAL */
-.vkb-grid {
-display: grid;
-grid-template-columns: repeat(3, 1fr);
-gap: 8px;
-}
-.vkb-key {
-background: white;
-border-radius: 10px;
-padding: 14px 0;
-text-align: center;
-font-size: 24px;
-font-weight: 900;
-color: #1e293b;
-box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-border: 1px solid #e2e8f0;
-transition: all 0.1s;
-user-select: none;
--webkit-user-select: none;
-touch-action: manipulation;
-}
-.vkb-key:active { background: #cbd5e1; transform: scale(0.95); }
-.vkb-key.action { background: #e2e8f0; color: #475569; font-size: 20px;}
-.vkb-key.enter { background: #005c9e; color: white; grid-column: span 3; border: none; font-size: 16px; text-transform: uppercase; padding: 16px 0; margin-top: 4px; box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2); }
-.vkb-key.enter:active { transform: scale(0.98); background: #004b80; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, interactive-widget=resizes-content">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2800/2800118.png">
+  <title>App Pesagem Mobile - HL Mando</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+  <style>
+    :root {
+      --primary: #005c9e;
+      --primary-dark: #004b80;
+      --bg: #f8fafc;
+      --text: #1e293b;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      touch-action: pan-y;
+    }
+    .view-container {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 90px;
+      display: none;
+      animation: fadeIn 0.2s ease;
+      width: 100%;
+    }
+    .view-container.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Força fonte 16px para bloquear o auto-zoom do iOS/Android */
+    .mobile-input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 16px !important; 
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background-color: #f1f5f9;
+      transition: all 0.2s;
+      outline: none;
+      text-transform: uppercase;
+      font-weight: 700;
+      box-sizing: border-box;
+    }
+    .mobile-input:focus {
+      border-color: var(--primary);
+      background-color: #fff;
+      box-shadow: 0 0 0 2px rgba(0, 92, 158, 0.15);
+      font-size: 16px !important;
+    }
+    .mobile-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748b;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .btn-large {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      font-weight: 900;
+      font-size: 15px;
+      text-transform: uppercase;
+      transition: active 0.1s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-large:active {
+      transform: scale(0.97);
+    }
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+      box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2);
+    }
+    .btn-success {
+      background-color: #10b981;
+      color: white;
+    }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      display: none;
+      justify-content: space-around;
+      padding: 6px 0;
+      padding-bottom: env(safe-area-inset-bottom, 8px);
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
+      z-index: 50;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 8px;
+      border-radius: 8px;
+      flex: 1;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .nav-item.active {
+      color: var(--primary);
+    }
+    .nav-item i {
+      font-size: 18px;
+      margin-bottom: 2px;
+    }
+    .box-card {
+      background: white;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid var(--primary);
+      cursor: pointer;
+    }
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: #1e293b;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 13px;
+      z-index: 1000;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      white-space: nowrap;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+    /* ESTILOS DO TECLADO VIRTUAL */
+    .vkb-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .vkb-key {
+      background: white;
+      border-radius: 10px;
+      padding: 14px 0;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 900;
+      color: #1e293b;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid #e2e8f0;
+      transition: all 0.1s;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    .vkb-key:active { background: #cbd5e1; transform: scale(0.95); }
+    .vkb-key.action { background: #e2e8f0; color: #475569; font-size: 20px;}
+    .vkb-key.enter { background: #005c9e; color: white; grid-column: span 3; border: none; font-size: 16px; text-transform: uppercase; padding: 16px 0; margin-top: 4px; box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2); }
+    .vkb-key.enter:active { transform: scale(0.98); background: #004b80; }
+  </style>
 </head>
 <body>
-<header class="bg-[#0f172a] text-white p-3 flex justify-between items-center shrink-0 shadow-md z-10 pt-[env(safe-area-inset-top,12px)]">
+  <header class="bg-[#0f172a] text-white p-3 flex justify-between items-center shrink-0 shadow-md z-10 pt-[env(safe-area-inset-top,12px)]">
+    
+      <button id="btn-global-back" onclick="navigateBack()" class="hidden text-slate-300 hover:text-white px-2 py-1 text-lg">
+        **
+      </button>
+      
+        **
+      
 
-<button id="btn-global-back" onclick="navigateBack()" class="hidden text-slate-300 hover:text-white px-2 py-1 text-lg">
-**
-</button>
 
-**
+      
+        <h1 class="font-black text-sm leading-tight tracking-tight">HL MANDO</h1>
+        Pesagem Mobile
 
 
+      
 
 
-<h1 class="font-black text-sm leading-tight tracking-tight">HL MANDO</h1>
-Pesagem Mobile
+    
 
 
+    
+      <button onclick="logout('Deslogado com sucesso.')" id="btn-logout" class="hidden text-[10px] bg-slate-800 px-2 py-1.5 rounded text-slate-300 hover:text-white font-bold uppercase tracking-wider">
+        ** Sair
+      </button>
+      
 
 
+    
 
 
+  </header>
+  
+  <main id="view-login" class="view-container active p-4">
+    
+      
+        
+          **
+        
 
 
+        <h2 class="font-black text-2xl text-slate-800 tracking-tight">ACESSO</h2>
+        Identifique-se para iniciar a pesagem
 
-<button onclick="logout('Deslogado com sucesso.')" id="btn-logout" class="hidden text-[10px] bg-slate-800 px-2 py-1.5 rounded text-slate-300 hover:text-white font-bold uppercase tracking-wider">
-** Sair
-</button>
 
+      
 
 
+      
+        
+          <label class="mobile-label">Usuário (E-mail)</label>
+          <input type="text" id="login-email" class="mobile-input normal-case" placeholder="ex: joao (só o nome)" />
+          ** O @hlcompany.com é inserido sozinho.
 
 
+        
 
-</header>
 
-<main id="view-login" class="view-container active p-4">
+        
+          <label class="mobile-label">Senha</label>
+          <input type="password" id="login-senha" class="mobile-input normal-case" placeholder="••••••••" />
+        
 
 
+        
+          <button onclick="fazerLogin()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
+            Entrar no Sistema
+          </button>
+          <button onclick="fazerCadastro()" class="btn-large bg-slate-100 text-slate-700 hover:bg-slate-200">
+            Criar meu Cadastro
+          </button>
+          <button onclick="abrirAcessoAdmin()" class="mx-auto mt-2 block text-[11px] font-black uppercase tracking-wider text-slate-400 hover:text-blue-600">
+            ** Área do administrador
+          </button>
+        
 
-**
 
+      
 
 
-<h2 class="font-black text-2xl text-slate-800 tracking-tight">ACESSO</h2>
-Identifique-se para iniciar a pesagem
+    
 
 
+  </main>
+  
+  <main id="view-admin" class="view-container p-4">
+    
+      <h2 class="font-black text-lg text-slate-800 flex items-center gap-2 uppercase">
+        ** Liberar Acessos
+      </h2>
+      
+        
+          <label class="mobile-label">Senha de Administrador</label>
+          <input type="password" id="admin-pass" class="mobile-input normal-case" placeholder="••••••••" autocomplete="off" />
+        
 
 
+        <button onclick="entrarPainelAdmin()" class="btn-large btn-primary">
+          ** Abrir Painel
+        </button>
+      
 
 
+      
+        
+          <label class="mobile-label text-emerald-700">** Solicitações pendentes</label>
+          
 
-<label class="mobile-label">Usuário (E-mail)</label>
-<input type="text" id="login-email" class="mobile-input normal-case" placeholder="ex: joao (só o nome)" />
-** O @hlcompany.com é inserido sozinho.
 
+        
 
 
+        <button onclick="navTo('login')" class="btn-large bg-slate-100 text-slate-700">Voltar ao Login</button>
+      
 
 
+    
 
-<label class="mobile-label">Senha</label>
-<input type="password" id="login-senha" class="mobile-input normal-case" placeholder="••••••••" />
 
+  </main>
+  
+  <main id="view-mode-select" class="view-container p-4">
+    
+      
+        
+          **
+        
 
 
+        
+          Operador Logado
 
-<button onclick="fazerLogin()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
-Entrar no Sistema
-</button>
-<button onclick="fazerCadastro()" class="btn-large bg-slate-100 text-slate-700 hover:bg-slate-200">
-Criar meu Cadastro
-</button>
-<button onclick="abrirAcessoAdmin()" class="mx-auto mt-2 block text-[11px] font-black uppercase tracking-wider text-slate-400 hover:text-blue-600">
-** Área do administrador
-</button>
 
+          -
 
 
+          -
 
 
+        
 
 
+      
 
 
-</main>
+      
+        <h2 class="font-black text-lg text-slate-800 uppercase tracking-tight mb-4">Escolha o Modo</h2>
+        
+          <button onclick="iniciarFluxo('coletor')" class="btn-large btn-primary py-5 relative overflow-hidden">
+            
+              ** 
+              MODO COLETOR
+              Leitura de etiquetas (VDA)
+            
 
-<main id="view-admin" class="view-container p-4">
 
-<h2 class="font-black text-lg text-slate-800 flex items-center gap-2 uppercase">
-** Liberar Acessos
-</h2>
+            
 
 
-<label class="mobile-label">Senha de Administrador</label>
-<input type="password" id="admin-pass" class="mobile-input normal-case" placeholder="••••••••" autocomplete="off" />
+            RÁPIDO
+          </button>
+          <button onclick="iniciarFluxo('manual')" class="btn-large bg-white text-slate-700 py-5 border-2 border-slate-200 shadow-sm">
+            
+              ** 
+              MODO MANUAL
+              Digitação passo a passo
+            
 
 
+          </button>
+        
 
-<button onclick="entrarPainelAdmin()" class="btn-large btn-primary">
-** Abrir Painel
-</button>
 
+      
 
 
+    
 
 
-<label class="mobile-label text-emerald-700">** Solicitações pendentes</label>
+  </main>
+  
+  <main id="view-coletor-nf" class="view-container p-4">
+    
+      <h2 class="font-black text-lg text-slate-800 flex items-center gap-2 uppercase">
+        ** Informe a Nota Fiscal
+      </h2>
+      
+        <label class="mobile-label">Nota Fiscal (Obrigatório)</label>
+        <input type="text" readonly data-keyboard="nf" id="col-nf-input" class="mobile-input text-lg font-black cursor-pointer" placeholder="EX: 0197859" />
+        O fornecedor e outros dados serão puxados automaticamente no primeiro bip.
 
 
+      
 
 
+      <button onclick="avancarParaBipagem()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
+        Iniciar Bipagem **
+      </button>
+    
 
 
-<button onclick="navTo('login')" class="btn-large bg-slate-100 text-slate-700">Voltar ao Login</button>
+  </main>
+  
+  <main id="view-coletor-main" class="view-container p-3">
+    
+      
+        <label class="mobile-label text-blue-100 mb-2">** Bipe a Etiqueta VDA</label>
+        <input type="text" id="col-main-scan" class="mobile-input text-center font-mono font-black text-blue-900 bg-white border-none py-3" placeholder="Aponte o leitor aqui..." autocomplete="off" />
+        Caixas lidas nesta nota: 0
 
 
+      
 
 
+      
+        <h2 class="font-black text-xs text-slate-800 mb-2 flex items-center gap-1 uppercase border-b border-slate-100 pb-2">
+          ** Dados da Peça Extraídos
+        </h2>
+        
+          
+            <label class="mobile-label text-[9px]">Part Number</label>
+            <input type="text" id="col-main-pn" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
+          
 
 
-</main>
+          
+            <label class="mobile-label text-[9px]">Lote</label>
+            <input type="text" id="col-main-lote" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
+          
 
-<main id="view-mode-select" class="view-container p-4">
 
+        
 
 
-**
+        
+          
+            <label class="mobile-label text-[9px]">Qtd (Peças)</label>
+            <input type="text" id="col-main-qtd" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold" readonly placeholder="-" />
+          
 
 
+          
+            <label class="mobile-label text-[9px]">Fornecedor</label>
+            <input type="text" id="col-main-forn" class="mobile-input bg-slate-50 text-slate-600 border-none text-[10px] truncate" readonly placeholder="-" />
+          
 
 
-Operador Logado
+        
 
 
--
+      
 
 
--
+      
+        <h2 class="font-black text-sm text-slate-800 flex items-center gap-2 uppercase border-b border-slate-200 pb-2">
+          ** Inserir Pesos
+        </h2>
+        
+          <label class="mobile-label text-blue-800">1. Tara (Embalagem Vazia)</label>
+          <input type="text" readonly data-keyboard="num" id="col-main-tara" class="mobile-input bg-white border-blue-300 text-base font-black text-blue-900 cursor-pointer" placeholder="Ex: 0,5" />
+        
 
 
+        
+          
+            <label class="mobile-label text-slate-600">2. Peso Bruto NF</label>
+            <input type="text" readonly data-keyboard="num" id="col-main-pnf" class="mobile-input bg-white text-sm cursor-pointer" placeholder="0,0" />
+          
 
 
+          
+            <label class="mobile-label text-emerald-700">3. Peso Físico</label>
+            <input type="text" readonly data-keyboard="num" id="col-main-pmando" class="mobile-input bg-emerald-100 border-emerald-300 text-emerald-900 font-black text-sm cursor-pointer" placeholder="0,0" />
+          
 
 
+        
 
 
+      
 
-<h2 class="font-black text-lg text-slate-800 uppercase tracking-tight mb-4">Escolha o Modo</h2>
 
-<button onclick="iniciarFluxo('coletor')" class="btn-large btn-primary py-5 relative overflow-hidden">
+      
+        <button onclick="salvarColetorMain(true)" class="btn-large btn-success py-3">
+          ** Salvar e Bipar Próxima
+        </button>
+        <button onclick="salvarColetorMain(false)" class="btn-large bg-slate-800 text-white shadow-lg py-3 text-sm">
+          ** Salvar e Exportar
+        </button>
+      
 
-**
-MODO COLETOR
-Leitura de etiquetas (VDA)
 
+    
 
 
+  </main>
+  
+  <main id="view-manual-header" class="view-container p-4">
+    
+      <h2 class="font-black text-lg text-slate-800 mb-3 flex items-center gap-2 uppercase">
+        ** Digitação Manual
+      </h2>
+      
+        
+          <label class="mobile-label">Notas Fiscais (Separe por hífen)</label>
+          <input type="text" readonly data-keyboard="nf" id="man-nf" class="mobile-input text-sm cursor-pointer" placeholder="EX: 0197859" />
+        
 
 
+        
+          <label class="mobile-label">Fornecedor</label>
+          <input type="text" id="man-forn" list="forn-list" class="mobile-input text-sm" placeholder="EX: AÇO PEÇAS" />
+          <datalist id="forn-list"></datalist>
+        
 
-RÁPIDO
-</button>
-<button onclick="iniciarFluxo('manual')" class="btn-large bg-white text-slate-700 py-5 border-2 border-slate-200 shadow-sm">
 
-**
-MODO MANUAL
-Digitação passo a passo
+        
+          
+            <label class="mobile-label flex justify-between">Data HOJE</label>
+            <input type="text" id="man-data" class="mobile-input text-sm" placeholder="DD/MM/AAAA" />
+          
 
 
+          
+            <label class="mobile-label">Turno</label>
+            <select id="man-turno" class="mobile-input bg-white text-sm">
+              <option value="A">TURNO A</option>
+              <option value="B">TURNO B</option>
+              <option value="C">TURNO C</option>
+              <option value="D">TURNO D</option>
+              <option value="E">TURNO E</option>
+              <option value="COMERCIAL">COMERCIAL</option>
+            </select>
+          
 
-</button>
 
+        
 
 
+      
 
 
+      <button onclick="navTo('manual-items')" class="btn-large btn-primary mt-5">
+        Avançar para Caixas **
+      </button>
+    
 
 
+  </main>
+  
+  <main id="view-manual-items" class="view-container p-3 bg-slate-50">
+    
+      <h2 class="font-black text-base text-slate-800 flex items-center gap-2 uppercase">
+        ** Caixas Lidas
+      </h2>
+      0 itens
+    
 
 
-</main>
+    
 
-<main id="view-coletor-nf" class="view-container p-4">
 
-<h2 class="font-black text-lg text-slate-800 flex items-center gap-2 uppercase">
-** Informe a Nota Fiscal
-</h2>
+    
+      <button onclick="openManualAddModal()" class="btn-large btn-primary pointer-events-auto shadow-lg shadow-blue-500/30 max-w-sm">
+        ** Add Caixa Manual
+      </button>
+    
 
-<label class="mobile-label">Nota Fiscal (Obrigatório)</label>
-<input type="text" readonly data-keyboard="nf" id="col-nf-input" class="mobile-input text-lg font-black cursor-pointer" placeholder="EX: 0197859" />
-O fornecedor e outros dados serão puxados automaticamente no primeiro bip.
 
+  </main>
+  
+  
+    
+      <h2 id="modal-man-title" class="font-bold text-base">CAIXA Nº 1</h2>
+      <button onclick="closeManualAddModal()" class="text-white text-xl p-1 cursor-pointer">**</button>
+    
 
 
+    
+      
+        
+          <label class="mobile-label">Part Number / Código</label>
+          <input type="text" id="man-box-pn" list="cat-list" oninput="onManualPnInput(this.value)" class="mobile-input font-mono text-blue-800 font-bold" placeholder="EX: BC14030500" />
+          <datalist id="cat-list"></datalist>
+          
+            DIGITE O CÓDIGO DA PEÇA...
+          
 
 
-<button onclick="avancarParaBipagem()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
-Iniciar Bipagem **
-</button>
+        
 
 
+        
+          
+            <label class="mobile-label">Lote</label>
+            <input type="text" id="man-box-lote" class="mobile-input text-sm" placeholder="LOTE" />
+          
 
-</main>
 
-<main id="view-coletor-main" class="view-container p-3">
+          
+            <label class="mobile-label">Qtd</label>
+            <input type="text" readonly data-keyboard="num" id="man-box-qtd" class="mobile-input text-sm font-bold cursor-pointer" placeholder="Qtd" />
+          
 
 
-<label class="mobile-label text-blue-100 mb-2">** Bipe a Etiqueta VDA</label>
-<input type="text" id="col-main-scan" class="mobile-input text-center font-mono font-black text-blue-900 bg-white border-none py-3" placeholder="Aponte o leitor aqui..." autocomplete="off" />
-Caixas lidas nesta nota: 0
+        
 
 
+        
+          
+            <label class="mobile-label">Tara (Embalagem)</label>
+            <input type="text" readonly data-keyboard="num" id="man-box-tara" class="mobile-input text-sm cursor-pointer" placeholder="Kg" />
+          
 
 
+          
+            
+              <label class="mobile-label text-[9px]">Peso Bruto NF</label>
+              <input type="text" readonly data-keyboard="num" id="man-box-pnf" class="mobile-input bg-slate-50 text-sm cursor-pointer" placeholder="0,0" />
+            
 
 
-<h2 class="font-black text-xs text-slate-800 mb-2 flex items-center gap-1 uppercase border-b border-slate-100 pb-2">
-** Dados da Peça Extraídos
-</h2>
+            
+              <label class="mobile-label text-[9px] text-emerald-700">Peso Físico</label>
+              <input type="text" readonly data-keyboard="num" id="man-box-pmando" class="mobile-input border-emerald-300 bg-emerald-50 text-emerald-800 font-black text-sm cursor-pointer" placeholder="0,0" />
+            
 
 
-<label class="mobile-label text-[9px]">Part Number</label>
-<input type="text" id="col-main-pn" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
+          
 
 
+        
 
 
-<label class="mobile-label text-[9px]">Lote</label>
-<input type="text" id="col-main-lote" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
+      
 
 
+    
 
 
+    
+      
+        <button onclick="salvarManual(true)" class="btn-large btn-success py-3 text-sm">
+          ** Salvar e Add Outra
+        </button>
+        <button onclick="salvarManual(false)" class="btn-large btn-primary bg-slate-800 py-3 text-sm">
+          Salvar e Fechar
+        </button>
+      
 
 
+    
 
 
-<label class="mobile-label text-[9px]">Qtd (Peças)</label>
-<input type="text" id="col-main-qtd" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold" readonly placeholder="-" />
+  
 
 
+  
+  <main id="view-export" class="view-container p-4">
+    
+      
+        
+          **
+        
 
 
-<label class="mobile-label text-[9px]">Fornecedor</label>
-<input type="text" id="col-main-forn" class="mobile-input bg-slate-50 text-slate-600 border-none text-[10px] truncate" readonly placeholder="-" />
+        <h2 class="font-black text-lg text-slate-800 uppercase mb-1">Conferência Pronta</h2>
+        0 caixas registradas.
 
 
+      
 
 
+      
+        <button onclick="openEmailModal()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
+          ** Enviar por E-mail
+        </button>
+        <button onclick="gerarExcel()" class="btn-large bg-white text-emerald-700 border-2 border-emerald-600">
+          ** Apenas Salvar Excel
+        </button>
+        <button onclick="sincronizarComDesktop()" class="btn-large btn-primary shadow-lg shadow-blue-600/30">
+          ** Enviar p/ Desktop
+        </button>
+        
+          <button onclick="abrirModalLimpar()" class="btn-large bg-red-50 text-red-600 border border-red-200 text-sm">
+            ** Limpar / Iniciar Nova
+          </button>
+        
 
 
+      
 
 
+    
 
 
-<h2 class="font-black text-sm text-slate-800 flex items-center gap-2 uppercase border-b border-slate-200 pb-2">
-** Inserir Pesos
-</h2>
+  </main>
+  
+  
+    
+      
+        <h3 class="font-black text-base text-slate-800">** Enviar Planilha</h3>
+        <button onclick="closeEmailModal()" class="text-slate-400 hover:text-slate-600 text-xl p-1">**</button>
+      
 
-<label class="mobile-label text-blue-800">1. Tara (Embalagem Vazia)</label>
-<input type="text" readonly data-keyboard="num" id="col-main-tara" class="mobile-input bg-white border-blue-300 text-base font-black text-blue-900 cursor-pointer" placeholder="Ex: 0,5" />
 
+      
+        
+          <label class="mobile-label">E-mail Operador</label>
+          <input type="text" id="email-logado" class="mobile-input bg-slate-100 text-slate-500 font-bold" readonly />
+        
 
 
+        
+          <label class="mobile-label">E-mail Adicional (Opcional)</label>
+          <input type="email" id="email-extra" class="mobile-input normal-case" placeholder="ex: gestor@hlcompany.com" />
+        
 
 
-<label class="mobile-label text-slate-600">2. Peso Bruto NF</label>
-<input type="text" readonly data-keyboard="num" id="col-main-pnf" class="mobile-input bg-white text-sm cursor-pointer" placeholder="0,0" />
+        
+          **
+          
+            O sistema usará o compartilhamento nativo. Escolha seu app de E-mail (Gmail/Outlook) e o Excel já estará anexado automaticamente!
+          
 
 
+        
 
 
-<label class="mobile-label text-emerald-700">3. Peso Físico</label>
-<input type="text" readonly data-keyboard="num" id="col-main-pmando" class="mobile-input bg-emerald-100 border-emerald-300 text-emerald-900 font-black text-sm cursor-pointer" placeholder="0,0" />
+      
 
 
+      <button onclick="confirmarEnvioEmail()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
+        Abrir Compartilhamento
+      </button>
+    
 
 
+  
 
 
+  
+  
+    
+      
+        **
+      
 
 
+      <h3 class="font-black text-lg text-slate-800 mb-1">Atenção!</h3>
+      Deseja apagar todos os dados desta nota? Esta ação não pode ser desfeita.
 
 
-<button onclick="salvarColetorMain(true)" class="btn-large btn-success py-3">
-** Salvar e Bipar Próxima
-</button>
-<button onclick="salvarColetorMain(false)" class="btn-large bg-slate-800 text-white shadow-lg py-3 text-sm">
-** Salvar e Exportar
-</button>
+      
+        <button onclick="closeLimparModal()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold uppercase text-sm">Cancelar</button>
+        <button onclick="confirmarLimparTudo()" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold uppercase text-sm shadow-lg shadow-red-600/30">Sim, Apagar</button>
+      
 
 
+    
 
 
+  
 
 
-</main>
+  
+  <nav class="bottom-nav" id="main-bottom-nav">
+    
+      **
+      Modo
+    
 
-<main id="view-manual-header" class="view-container p-4">
 
-<h2 class="font-black text-lg text-slate-800 mb-3 flex items-center gap-2 uppercase">
-** Digitação Manual
-</h2>
+    
+      **
+      Caixas
+    
 
 
-<label class="mobile-label">Notas Fiscais (Separe por hífen)</label>
-<input type="text" readonly data-keyboard="nf" id="man-nf" class="mobile-input text-sm cursor-pointer" placeholder="EX: 0197859" />
+    
+      **
+      Exportar
+    
 
 
+  </nav>
+  
+  
+    
+      TECLADO
+      <button onclick="closeVKB()" class="text-slate-400 hover:text-slate-700 py-1 px-3 text-xl">**</button>
+    
 
 
-<label class="mobile-label">Fornecedor</label>
-<input type="text" id="man-forn" list="forn-list" class="mobile-input text-sm" placeholder="EX: AÇO PEÇAS" />
-<datalist id="forn-list"></datalist>
+    
+      
+    
 
 
+  
 
 
+  Mensagem...
 
-<label class="mobile-label flex justify-between">Data HOJE</label>
-<input type="text" id="man-data" class="mobile-input text-sm" placeholder="DD/MM/AAAA" />
 
-
-
-
-<label class="mobile-label">Turno</label>
-<select id="man-turno" class="mobile-input bg-white text-sm">
-<option value="A">TURNO A</option>
-<option value="B">TURNO B</option>
-<option value="C">TURNO C</option>
-<option value="D">TURNO D</option>
-<option value="E">TURNO E</option>
-<option value="COMERCIAL">COMERCIAL</option>
-</select>
-
-
-
-
-
-
-
-
-
-<button onclick="navTo('manual-items')" class="btn-large btn-primary mt-5">
-Avançar para Caixas **
-</button>
-
-
-
-</main>
-
-<main id="view-manual-items" class="view-container p-3 bg-slate-50">
-
-<h2 class="font-black text-base text-slate-800 flex items-center gap-2 uppercase">
-** Caixas Lidas
-</h2>
-0 itens
-
-
-
-
-
-
-
-<button onclick="openManualAddModal()" class="btn-large btn-primary pointer-events-auto shadow-lg shadow-blue-500/30 max-w-sm">
-** Add Caixa Manual
-</button>
-
-
-
-</main>
-
-
-
-<h2 id="modal-man-title" class="font-bold text-base">CAIXA Nº 1</h2>
-<button onclick="closeManualAddModal()" class="text-white text-xl p-1 cursor-pointer">**</button>
-
-
-
-
-
-
-<label class="mobile-label">Part Number / Código</label>
-<input type="text" id="man-box-pn" list="cat-list" oninput="onManualPnInput(this.value)" class="mobile-input font-mono text-blue-800 font-bold" placeholder="EX: BC14030500" />
-<datalist id="cat-list"></datalist>
-
-DIGITE O CÓDIGO DA PEÇA...
-
-
-
-
-
-
-
-
-<label class="mobile-label">Lote</label>
-<input type="text" id="man-box-lote" class="mobile-input text-sm" placeholder="LOTE" />
-
-
-
-
-<label class="mobile-label">Qtd</label>
-<input type="text" readonly data-keyboard="num" id="man-box-qtd" class="mobile-input text-sm font-bold cursor-pointer" placeholder="Qtd" />
-
-
-
-
-
-
-
-
-<label class="mobile-label">Tara (Embalagem)</label>
-<input type="text" readonly data-keyboard="num" id="man-box-tara" class="mobile-input text-sm cursor-pointer" placeholder="Kg" />
-
-
-
-
-
-<label class="mobile-label text-[9px]">Peso Bruto NF</label>
-<input type="text" readonly data-keyboard="num" id="man-box-pnf" class="mobile-input bg-slate-50 text-sm cursor-pointer" placeholder="0,0" />
-
-
-
-
-<label class="mobile-label text-[9px] text-emerald-700">Peso Físico</label>
-<input type="text" readonly data-keyboard="num" id="man-box-pmando" class="mobile-input border-emerald-300 bg-emerald-50 text-emerald-800 font-black text-sm cursor-pointer" placeholder="0,0" />
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<button onclick="salvarManual(true)" class="btn-large btn-success py-3 text-sm">
-** Salvar e Add Outra
-</button>
-<button onclick="salvarManual(false)" class="btn-large btn-primary bg-slate-800 py-3 text-sm">
-Salvar e Fechar
-</button>
-
-
-
-
-
-
-
-
-
-
-<main id="view-export" class="view-container p-4">
-
-
-
-**
-
-
-
-<h2 class="font-black text-lg text-slate-800 uppercase mb-1">Conferência Pronta</h2>
-0 caixas registradas.
-
-
-
-
-
-
-<button onclick="openEmailModal()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
-** Enviar por E-mail
-</button>
-<button onclick="gerarExcel()" class="btn-large bg-white text-emerald-700 border-2 border-emerald-600">
-** Apenas Salvar Excel
-</button>
-<button onclick="sincronizarComDesktop()" class="btn-large btn-primary shadow-lg shadow-blue-600/30">
-** Enviar p/ Desktop
-</button>
-
-<button onclick="abrirModalLimpar()" class="btn-large bg-red-50 text-red-600 border border-red-200 text-sm">
-** Limpar / Iniciar Nova
-</button>
-
-
-
-
-
-
-
-
-
-</main>
-
-
-
-
-<h3 class="font-black text-base text-slate-800">** Enviar Planilha</h3>
-<button onclick="closeEmailModal()" class="text-slate-400 hover:text-slate-600 text-xl p-1">**</button>
-
-
-
-
-
-<label class="mobile-label">E-mail Operador</label>
-<input type="text" id="email-logado" class="mobile-input bg-slate-100 text-slate-500 font-bold" readonly />
-
-
-
-
-<label class="mobile-label">E-mail Adicional (Opcional)</label>
-<input type="email" id="email-extra" class="mobile-input normal-case" placeholder="ex: gestor@hlcompany.com" />
-
-
-
-
-**
-
-O sistema usará o compartilhamento nativo. Escolha seu app de E-mail (Gmail/Outlook) e o Excel já estará anexado automaticamente!
-
-
-
-
-
-
-
-
-
-<button onclick="confirmarEnvioEmail()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
-Abrir Compartilhamento
-</button>
-
-
-
-
-
-
-
-
-
-
-**
-
-
-
-<h3 class="font-black text-lg text-slate-800 mb-1">Atenção!</h3>
-Deseja apagar todos os dados desta nota? Esta ação não pode ser desfeita.
-
-
-
-<button onclick="closeLimparModal()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold uppercase text-sm">Cancelar</button>
-<button onclick="confirmarLimparTudo()" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold uppercase text-sm shadow-lg shadow-red-600/30">Sim, Apagar</button>
-
-
-
-
-
-
-
-
-
-
-<nav class="bottom-nav" id="main-bottom-nav">
-
-**
-Modo
-
-
-
-
-**
-Caixas
-
-
-
-
-**
-Exportar
-
-
-
-</nav>
-
-
-
-TECLADO
-<button onclick="closeVKB()" class="text-slate-400 hover:text-slate-700 py-1 px-3 text-xl">**</button>
-
-
-
-
-
-
-
-
-
-
-
-Mensagem...
-
-
-<script>
-let appState = {
-modo: null,
-cabecalho: { fornecedor: "", nota_fiscal_principal: "", data_conferencia: "", operador: "", turno: "A" },
-caixas: []
-};
-const mapaFornecedores = {
-'1065': 'CARIBOR', '3131': 'DETWYLLER', '0824': 'AÇO PEÇAS', '0172': 'DASOL',
-'1107': 'MAXDELL', '1189': 'WHB', '1296': 'KROMAFLEX', '0945': 'TEC PACK',
-'2953': 'HYDRO', '1354': 'SULAMERICANA', '0838': 'CATION', '1336': 'LIPOS',
-'1719': 'METALAC', '1998': 'SADA', '1823': 'MICROJUNTAS', '1683': 'METALSIDER',
-'3030': 'PAPERGREEN', '1824': 'TEKFOR', '3124': 'EMBAS', '0683': 'KAYABA',
-'1467': 'FIAT BETIM', '000031': 'FIAT PERNAMBUCO', '1356': 'LOOPSMOL', '0957': 'LABEL',
-'2989': 'MAIL EBS', '1870': 'CONTINENTAL', '1963': 'SANGSIN MÉXICO', '0001': 'MANDO HEADQUARTER',
-'1836': 'BOULEVARD MANDO MÉXICO', '1892': 'TAMAS KOREA', '1382': 'JTT',
-'1905': 'SENSATA', '3795': 'HL KLEMOVE'
-};
-// ========================================================
-// CATÁLOGO INTERNO OCULTO (HARDCODED)
-// ========================================================
-const CATALOGO_INTERNO = {
-"BC380A2200": { desc: "CARCACA DIRECAO", peso: 2.15, fornecedor: "MANDO HEADQUARTER" },
-"BC14030500": { desc: "PINHAO", peso: 0.8, fornecedor: "AÇO PEÇAS" },
-// COLE SEU CATÁLOGO DE MILHARES DE LINHAS AQUI DENTRO DO SEU ARQUIVO FÍSICO
-};
-let editIndex = -1;
-let db = null;
-let auth = null;
-let desktopLoteNotas = [];
-let appCatalog = {};
-let currentView = 'login';
-let scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
-// ==========================================
-// TECLADO VIRTUAL E FOCOS
-// ==========================================
-let currentVKBInput = null;
-function initVKB() {
-const inputs = document.querySelectorAll('[data-keyboard]');
-inputs.forEach(inp => {
-inp.addEventListener('focus', function(e) {
-e.preventDefault();
-openVKB(this, this.getAttribute('data-keyboard'));
-});
-inp.addEventListener('click', function(e) {
-e.preventDefault();
-openVKB(this, this.getAttribute('data-keyboard'));
-});
-});
-document.addEventListener('click', function(e) {
-const vkb = document.getElementById('virtual-kb');
-if (vkb && currentVKBInput && !vkb.contains(e.target) && e.target !== currentVKBInput && !e.target.hasAttribute('data-keyboard')) {
-closeVKB();
-}
-});
-}
-function openVKB(inputEl, type) {
-currentVKBInput = inputEl;
-document.querySelectorAll('[data-keyboard]').forEach(el => el.style.borderColor = '#cbd5e1');
-inputEl.style.borderColor = '#005c9e';
-const vkb = document.getElementById('virtual-kb');
-const keysContainer = document.getElementById('vkb-keys');
-const title = document.getElementById('vkb-title');
-let keysHtml = '';
-const numKeys = ['1','2','3','4','5','6','7','8','9'];
-numKeys.forEach(k => {
-keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '${k}')">${k}</button>`;
-});
-if (type === 'nf') {
-title.innerHTML = '** TECLADO NF';
-keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, '-')">-</button>`;
-} else {
-title.innerHTML = '** TECLADO PESAGEM';
-keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, ',')">,</button>`;
-}
-keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '0')">0</button>`;
-keysHtml += `<button type="button" class="vkb-key action" onclick="vkbBackspace(event)">**</button>`;
-keysHtml += `<button type="button" class="vkb-key enter" onclick="vkbEnter(event)">AVANÇAR / OK **</button>`;
-keysContainer.innerHTML = keysHtml;
-vkb.classList.remove('translate-y-full');
-setTimeout(() => {
-if(currentVKBInput) currentVKBInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}, 300);
-}
-function closeVKB() {
-const vkb = document.getElementById('virtual-kb');
-if(vkb) vkb.classList.add('translate-y-full');
-if(currentVKBInput) {
-currentVKBInput.style.borderColor = '#cbd5e1';
-currentVKBInput.blur();
-}
-currentVKBInput = null;
-}
-function vkbType(e, char) {
-if(e) e.stopPropagation();
-if(currentVKBInput) {
-currentVKBInput.value += char;
-currentVKBInput.dispatchEvent(new Event('input', { bubbles: true }));
-}
-}
-function vkbBackspace(e) {
-if(e) e.stopPropagation();
-if(currentVKBInput) {
-currentVKBInput.value = currentVKBInput.value.slice(0, -1);
-currentVKBInput.dispatchEvent(new Event('input', { bubbles: true }));
-}
-}
-function advanceTo(nextId) {
-const nextEl = document.getElementById(nextId);
-if(nextEl) {
-if(currentVKBInput) currentVKBInput.style.borderColor = '#cbd5e1';
-openVKB(nextEl, nextEl.getAttribute('data-keyboard'));
-nextEl.focus();
-} else {
-closeVKB();
-}
-}
-function vkbEnter(e) {
-if(e) e.stopPropagation();
-if(!currentVKBInput) return;
-const id = currentVKBInput.id;
-if (id === 'col-main-tara') advanceTo('col-main-pnf');
-else if (id === 'col-main-pnf') advanceTo('col-main-pmando');
-else if (id === 'col-main-pmando') closeVKB();
-else if (id === 'man-box-qtd') advanceTo('man-box-tara');
-else if (id === 'man-box-tara') advanceTo('man-box-pnf');
-else if (id === 'man-box-pnf') advanceTo('man-box-pmando');
-else if (id === 'man-box-pmando') closeVKB();
-else if (id === 'col-nf-input') { closeVKB(); avancarParaBipagem(); }
-else if (id === 'man-nf') { closeVKB(); document.getElementById('man-forn').focus(); }
-else closeVKB();
-}
-let inactivityTimer;
-const INACTIVITY_TIME_MS = 10 * 60 * 1000; // 10 MINUTOS
-function resetTimer() {
-clearTimeout(inactivityTimer);
-if (firebase && firebase.auth().currentUser) {
-inactivityTimer = setTimeout(() => { logout("Sessão expirada por inatividade (10 min)."); }, INACTIVITY_TIME_MS);
-}
-}
-document.addEventListener("visibilitychange", () => {
-if (document.visibilityState === "hidden") {
-if (firebase && firebase.auth().currentUser) {
-logout("Sessão encerrada por segurança (App em 2º plano).");
-}
-}
-});
-function showToast(msg) {
-const toast = document.getElementById('toast');
-toast.innerText = msg;
-toast.classList.add('show');
-setTimeout(() => toast.classList.remove('show'), 3000);
-}
-function setToday() {
-const hoje = new Date();
-const formatado = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
-document.getElementById('man-data').value = formatado;
-}
-function formatarEmail(valor) {
-let v = valor.trim().toLowerCase();
-if (v && !v.includes('@')) v += '@hlcompany.com';
-return v;
-}
-function navTo(viewId) {
-document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
-const target = document.getElementById(`view-${viewId}`);
-if(target) target.classList.add('active');
-currentView = viewId;
-const nav = document.getElementById('main-bottom-nav');
-const backBtn = document.getElementById('btn-global-back');
-if (viewId === 'login' || viewId === 'mode-select' || viewId === 'admin') {
-backBtn.classList.add('hidden');
-} else {
-backBtn.classList.remove('hidden');
-}
-if (['login', 'mode-select', 'admin', 'coletor-nf', 'coletor-main'].includes(viewId)) {
-if(nav) nav.style.display = 'none';
-} else {
-if(nav) nav.style.display = 'flex';
-document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-const btn = document.getElementById(`nav-btn-${viewId === 'lookItems' ? 'items' : viewId}`);
-if(btn) btn.classList.add('active');
-}
-if (viewId === 'manual-items') renderManualItemsList();
-if (viewId === 'coletor-main') {
-document.getElementById('col-main-count').innerText = appState.caixas.length;
-setTimeout(() => { const inp = document.getElementById('col-main-scan'); if(inp) { inp.value = ''; inp.focus(); } }, 100);
-}
-closeVKB();
-}
-function navigateBack() {
-if (currentView === 'coletor-nf') navTo('mode-select');
-else if (currentView === 'coletor-main') navTo('coletor-nf');
-else if (currentView === 'manual-header') navTo('mode-select');
-else if (currentView === 'manual-items') navTo('manual-header');
-else if (currentView === 'export') navTo('mode-select');
-else if (currentView === 'admin') navTo('login');
-}
-function fazerLogin() {
-const emailRaw = document.getElementById('login-email').value;
-const senha = document.getElementById('login-senha').value;
-if (!emailRaw || !senha) { showToast("Preencha usuário e senha."); return; }
-const email = formatarEmail(emailRaw);
-auth.signInWithEmailAndPassword(email, senha)
-.then(() => { showToast("Login com sucesso!"); })
-.catch(error => {
-if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
-showToast("❌ Conta não existe ou senha errada. Tente 'Criar meu Cadastro'.");
-} else {
-showToast("Erro: " + error.message);
-}
-});
-}
-// ===== CRIAÇÃO DE ACESSO — AGORA EXIGE LIBERAÇÃO PRÉVIA =====
-function fazerCadastro() {
-const emailRaw = document.getElementById('login-email').value;
-const senha = document.getElementById('login-senha').value;
-if (!emailRaw || !senha) { showToast("Preencha usuário e senha."); return; }
-const email = formatarEmail(emailRaw);
-const nomeOp = emailRaw.split('@')[0].toUpperCase();
-if (senha.length < 6) { showToast("A senha deve ter 6 caracteres no mínimo."); return; }
-db.ref('cadastros/operadores').once('value').then(snap => {
-const arr = Array.isArray(snap.val()) ? snap.val() : Object.values(snap.val() || {});
-if (arr.some(o => o && o.email && o.email.toLowerCase() === email.toLowerCase())) {
-showToast("❌ Esse usuário já existe! Clique em 'Entrar'."); return;
-}
-return db.ref('cadastros/pendencias').once('value').then(snap2 => {
-const pArr = Array.isArray(snap2.val()) ? snap2.val() : Object.values(snap2.val() || {});
-if (pArr.some(p => p && p.email && p.email.toLowerCase() === email.toLowerCase())) {
-showToast("Acesso já solicitado. Aguarde a liberação do admin."); return;
-}
-db.ref('cadastros/pendencias').push({ nome: nomeOp, email: email, senha: senha, solicitadoEm: Date.now() });
-document.getElementById('login-email').value = '';
-document.getElementById('login-senha').value = '';
-showToast("Solicitação enviada! Aguarde a liberação do admin.");
-});
-});
-}
-// ===== PAINEL DO ADMINISTRADOR (LIBERAÇÃO) =====
-const ADMIN_PASS_HASH = hashSimples('S1Mando@2026'); // ← TROQUE pela sua senha master
-function hashSimples(str) {
-let h = 0x811c9dc5;
-for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
-return (h >>> 0).toString(16);
-}
-function abrirAcessoAdmin() {
-document.getElementById('admin-pass').value = '';
-document.getElementById('admin-lock').classList.remove('hidden');
-document.getElementById('admin-panel').classList.add('hidden');
-navTo('admin');
-}
-function entrarPainelAdmin() {
-const pass = document.getElementById('admin-pass').value;
-if (hashSimples(pass) !== ADMIN_PASS_HASH) { showToast("Senha de administrador inválida."); return; }
-document.getElementById('admin-lock').classList.add('hidden');
-document.getElementById('admin-panel').classList.remove('hidden');
-renderSolicitacoes();
-}
-function renderSolicitacoes() {
-const box = document.getElementById('admin-pendentes');
-box.innerHTML = 'Carregando...
+  <script>
+    let appState = {
+      modo: null, 
+      cabecalho: { fornecedor: "", nota_fiscal_principal: "", data_conferencia: "", operador: "", turno: "A" },
+      caixas: []
+    };
+    const mapaFornecedores = {
+      '1065': 'CARIBOR', '3131': 'DETWYLLER', '0824': 'AÇO PEÇAS', '0172': 'DASOL',
+      '1107': 'MAXDELL', '1189': 'WHB', '1296': 'KROMAFLEX', '0945': 'TEC PACK',
+      '2953': 'HYDRO', '1354': 'SULAMERICANA', '0838': 'CATION', '1336': 'LIPOS',
+      '1719': 'METALAC', '1998': 'SADA', '1823': 'MICROJUNTAS', '1683': 'METALSIDER',
+      '3030': 'PAPERGREEN', '1824': 'TEKFOR', '3124': 'EMBAS', '0683': 'KAYABA',
+      '1467': 'FIAT BETIM', '000031': 'FIAT PERNAMBUCO', '1356': 'LOOPSMOL', '0957': 'LABEL',
+      '2989': 'MAIL EBS', '1870': 'CONTINENTAL', '1963': 'SANGSIN MÉXICO', '0001': 'MANDO HEADQUARTER',
+      '1836': 'BOULEVARD MANDO MÉXICO', '1892': 'TAMAS KOREA', '1382': 'JTT',
+      '1905': 'SENSATA', '3795': 'HL KLEMOVE'
+    };
+    // ========================================================
+    // CATÁLOGO INTERNO OCULTO (HARDCODED)
+    // ========================================================
+    const CATALOGO_INTERNO = {
+      "BC380A2200": { desc: "CARCACA DIRECAO", peso: 2.15, fornecedor: "MANDO HEADQUARTER" },
+      "BC14030500": { desc: "PINHAO", peso: 0.8, fornecedor: "AÇO PEÇAS" },
+      // COLE SEU CATÁLOGO DE MILHARES DE LINHAS AQUI DENTRO DO SEU ARQUIVO FÍSICO
+    };
+    let editIndex = -1;
+    let db = null;
+    let auth = null;
+    let desktopLoteNotas = [];
+    let appCatalog = {};
+    let currentView = 'login';
+    let scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
+    // ==========================================
+    // TECLADO VIRTUAL E FOCOS
+    // ==========================================
+    let currentVKBInput = null;
+    function initVKB() {
+      const inputs = document.querySelectorAll('[data-keyboard]');
+      inputs.forEach(inp => {
+        inp.addEventListener('focus', function(e) {
+          e.preventDefault();
+          openVKB(this, this.getAttribute('data-keyboard'));
+        });
+        inp.addEventListener('click', function(e) {
+          e.preventDefault();
+          openVKB(this, this.getAttribute('data-keyboard'));
+        });
+      });
+      document.addEventListener('click', function(e) {
+        const vkb = document.getElementById('virtual-kb');
+        if (vkb && currentVKBInput && !vkb.contains(e.target) && e.target !== currentVKBInput && !e.target.hasAttribute('data-keyboard')) {
+            closeVKB();
+        }
+      });
+    }
+    function openVKB(inputEl, type) {
+      currentVKBInput = inputEl;
+      document.querySelectorAll('[data-keyboard]').forEach(el => el.style.borderColor = '#cbd5e1');
+      inputEl.style.borderColor = '#005c9e';
+      const vkb = document.getElementById('virtual-kb');
+      const keysContainer = document.getElementById('vkb-keys');
+      const title = document.getElementById('vkb-title');
+      let keysHtml = '';
+      const numKeys = ['1','2','3','4','5','6','7','8','9'];
+      numKeys.forEach(k => {
+        keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '${k}')">${k}</button>`;
+      });
+      if (type === 'nf') {
+        title.innerHTML = '** TECLADO NF';
+        keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, '-')">-</button>`;
+      } else {
+        title.innerHTML = '** TECLADO PESAGEM';
+        keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, ',')">,</button>`;
+      }
+      keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '0')">0</button>`;
+      keysHtml += `<button type="button" class="vkb-key action" onclick="vkbBackspace(event)">**</button>`;
+      keysHtml += `<button type="button" class="vkb-key enter" onclick="vkbEnter(event)">AVANÇAR / OK **</button>`;
+      keysContainer.innerHTML = keysHtml;
+      vkb.classList.remove('translate-y-full');
+      setTimeout(() => {
+        if(currentVKBInput) currentVKBInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    }
+    function closeVKB() {
+      const vkb = document.getElementById('virtual-kb');
+      if(vkb) vkb.classList.add('translate-y-full');
+      if(currentVKBInput) {
+        currentVKBInput.style.borderColor = '#cbd5e1'; 
+        currentVKBInput.blur();
+      }
+      currentVKBInput = null;
+    }
+    function vkbType(e, char) {
+      if(e) e.stopPropagation();
+      if(currentVKBInput) {
+        currentVKBInput.value += char;
+        currentVKBInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+    function vkbBackspace(e) {
+      if(e) e.stopPropagation();
+      if(currentVKBInput) {
+        currentVKBInput.value = currentVKBInput.value.slice(0, -1);
+        currentVKBInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+    function advanceTo(nextId) {
+        const nextEl = document.getElementById(nextId);
+        if(nextEl) {
+            if(currentVKBInput) currentVKBInput.style.borderColor = '#cbd5e1';
+            openVKB(nextEl, nextEl.getAttribute('data-keyboard'));
+            nextEl.focus(); 
+        } else {
+            closeVKB();
+        }
+    }
+    function vkbEnter(e) {
+        if(e) e.stopPropagation();
+        if(!currentVKBInput) return;
+        const id = currentVKBInput.id;
+        if (id === 'col-main-tara') advanceTo('col-main-pnf');
+        else if (id === 'col-main-pnf') advanceTo('col-main-pmando');
+        else if (id === 'col-main-pmando') closeVKB();
+        else if (id === 'man-box-qtd') advanceTo('man-box-tara');
+        else if (id === 'man-box-tara') advanceTo('man-box-pnf');
+        else if (id === 'man-box-pnf') advanceTo('man-box-pmando');
+        else if (id === 'man-box-pmando') closeVKB();
+        else if (id === 'col-nf-input') { closeVKB(); avancarParaBipagem(); }
+        else if (id === 'man-nf') { closeVKB(); document.getElementById('man-forn').focus(); }
+        else closeVKB();
+    }
+    let inactivityTimer;
+    const INACTIVITY_TIME_MS = 10 * 60 * 1000; // 10 MINUTOS
+    function resetTimer() {
+      clearTimeout(inactivityTimer);
+      if (firebase && firebase.auth().currentUser) { 
+        inactivityTimer = setTimeout(() => { logout("Sessão expirada por inatividade (10 min)."); }, INACTIVITY_TIME_MS); 
+      }
+    }
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        if (firebase && firebase.auth().currentUser) {
+           logout("Sessão encerrada por segurança (App em 2º plano).");
+        }
+      }
+    });
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+    function setToday() {
+      const hoje = new Date();
+      const formatado = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
+      document.getElementById('man-data').value = formatado;
+    }
+    function formatarEmail(valor) {
+      let v = valor.trim().toLowerCase();
+      if (v && !v.includes('@')) v += '@hlcompany.com';
+      return v;
+    }
+    function navTo(viewId) {
+      document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById(`view-${viewId}`);
+      if(target) target.classList.add('active');
+      currentView = viewId;
+      const nav = document.getElementById('main-bottom-nav');
+      const backBtn = document.getElementById('btn-global-back');
+      if (viewId === 'login' || viewId === 'mode-select' || viewId === 'admin') {
+          backBtn.classList.add('hidden');
+      } else {
+          backBtn.classList.remove('hidden');
+      }
+      if (['login', 'mode-select', 'admin', 'coletor-nf', 'coletor-main'].includes(viewId)) {
+        if(nav) nav.style.display = 'none';
+      } else {
+        if(nav) nav.style.display = 'flex';
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        const btn = document.getElementById(`nav-btn-${viewId === 'lookItems' ? 'items' : viewId}`);
+        if(btn) btn.classList.add('active');
+      }
+      if (viewId === 'manual-items') renderManualItemsList();
+      if (viewId === 'coletor-main') {
+        document.getElementById('col-main-count').innerText = appState.caixas.length;
+        setTimeout(() => { const inp = document.getElementById('col-main-scan'); if(inp) { inp.value = ''; inp.focus(); } }, 100);
+      }
+      closeVKB();
+    }
+    function navigateBack() {
+        if (currentView === 'coletor-nf') navTo('mode-select');
+        else if (currentView === 'coletor-main') navTo('coletor-nf');
+        else if (currentView === 'manual-header') navTo('mode-select');
+        else if (currentView === 'manual-items') navTo('manual-header');
+        else if (currentView === 'export') navTo('mode-select');
+        else if (currentView === 'admin') navTo('login');
+    }
+    function fazerLogin() {
+      const emailRaw = document.getElementById('login-email').value;
+      const senha = document.getElementById('login-senha').value;
+      if (!emailRaw || !senha) { showToast("Preencha usuário e senha."); return; }
+      const email = formatarEmail(emailRaw);
+      auth.signInWithEmailAndPassword(email, senha)
+        .then(() => { showToast("Login com sucesso!"); })
+        .catch(error => {
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
+                showToast("❌ Conta não existe ou senha errada. Tente 'Criar meu Cadastro'.");
+            } else {
+                showToast("Erro: " + error.message);
+            }
+        });
+    }
+    // ===== CRIAÇÃO DE ACESSO — AGORA EXIGE LIBERAÇÃO PRÉVIA =====
+    function fazerCadastro() {
+      const emailRaw = document.getElementById('login-email').value;
+      const senha = document.getElementById('login-senha').value;
+      if (!emailRaw || !senha) { showToast("Preencha usuário e senha."); return; }
+      const email = formatarEmail(emailRaw);
+      const nomeOp = emailRaw.split('@')[0].toUpperCase();
+      if (senha.length < 6) { showToast("A senha deve ter 6 caracteres no mínimo."); return; }
+      db.ref('cadastros/operadores').once('value').then(snap => {
+        const arr = Array.isArray(snap.val()) ? snap.val() : Object.values(snap.val() || {});
+        if (arr.some(o => o && o.email && o.email.toLowerCase() === email.toLowerCase())) {
+          showToast("❌ Esse usuário já existe! Clique em 'Entrar'."); return;
+        }
+        return db.ref('cadastros/pendencias').once('value').then(snap2 => {
+          const pArr = Array.isArray(snap2.val()) ? snap2.val() : Object.values(snap2.val() || {});
+          if (pArr.some(p => p && p.email && p.email.toLowerCase() === email.toLowerCase())) {
+            showToast("Acesso já solicitado. Aguarde a liberação do admin."); return;
+          }
+          db.ref('cadastros/pendencias').push({ nome: nomeOp, email: email, senha: senha, solicitadoEm: Date.now() });
+          document.getElementById('login-email').value = '';
+          document.getElementById('login-senha').value = '';
+          showToast("Solicitação enviada! Aguarde a liberação do admin.");
+        });
+      });
+    }
+    // ===== PAINEL DO ADMINISTRADOR (LIBERAÇÃO) =====
+    const ADMIN_PASS_HASH = hashSimples('S1Mando@2026'); // ← TROQUE pela sua senha master
+    function hashSimples(str) {
+      let h = 0x811c9dc5;
+      for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+      return (h >>> 0).toString(16);
+    }
+    function abrirAcessoAdmin() {
+      document.getElementById('admin-pass').value = '';
+      document.getElementById('admin-lock').classList.remove('hidden');
+      document.getElementById('admin-panel').classList.add('hidden');
+      navTo('admin');
+    }
+    function entrarPainelAdmin() {
+      const pass = document.getElementById('admin-pass').value;
+      if (hashSimples(pass) !== ADMIN_PASS_HASH) { showToast("Senha de administrador inválida."); return; }
+      document.getElementById('admin-lock').classList.add('hidden');
+      document.getElementById('admin-panel').classList.remove('hidden');
+      renderSolicitacoes();
+    }
+    function renderSolicitacoes() {
+      const box = document.getElementById('admin-pendentes');
+      box.innerHTML = 'Carregando...
 
 ';
-db.ref('cadastros/pendencias').on('value', snap => {
-if (!snap.exists()) {
-box.innerHTML = 'Nenhuma solicitação pendente.
+      db.ref('cadastros/pendencias').on('value', snap => {
+        if (!snap.exists()) {
+          box.innerHTML = 'Nenhuma solicitação pendente.
 
 ';
-return;
-}
-box.innerHTML = '';
-snap.forEach(child => {
-const p = child.val();
-const key = child.key;
-const d = document.createElement('div');
-d.className = 'flex items-center justify-between gap-2 bg-slate-50 border border-slate-200 rounded-lg p-2.5';
-d.innerHTML = `
-${p.nome || ''}
+          return;
+        }
+        box.innerHTML = '';
+        snap.forEach(child => {
+          const p = child.val();
+          const key = child.key;
+          const d = document.createElement('div');
+          d.className = 'flex items-center justify-between gap-2 bg-slate-50 border border-slate-200 rounded-lg p-2.5';
+          d.innerHTML = `
+              ${p.nome || ''}
 
 
-${p.email || ''}
+              ${p.email || ''}
 
 
+            
 
 
-
-
-<button onclick="aprovarAcesso('${key}')" class="bg-emerald-600 text-white rounded px-2.5 py-1.5 text-[10px] font-black uppercase">Liberar</button>
-<button onclick="recusarAcesso('${key}')" class="bg-rose-100 text-rose-700 rounded px-2.5 py-1.5 text-[10px] font-black uppercase">Recusar</button>
-
-
-`;
-box.appendChild(d);
-});
-});
-}
-async function aprovarAcesso(key) {
-const ref = db.ref('cadastros/pendencias/' + key);
-const req = (await ref.once('value')).val();
-if (!req) { showToast("Solicitação não encontrada."); return; }
-try {
-await auth.createUserWithEmailAndPassword(req.email, req.senha);
-await db.ref('cadastros/operadores').push({ nome: req.nome, email: req.email, turno: "A" });
-await ref.remove();
-showToast("Acesso liberado com sucesso!");
-} catch (e) {
-showToast("Falha ao liberar: " + e.message);
-}
-}
-function recusarAcesso(key) {
-db.ref('cadastros/pendencias/' + key).remove();
-showToast("Solicitação recusada.");
-}
-function buscarInfoPeca(rawInput) {
-let cleanInput = rawInput.replace(/[^A-Z0-9]/g, '');
-let bestMatch = { pn: rawInput, desc: "", peso: null, fornecedor: "" };
-let maxLen = 0;
-const allCatalogs = { ...CATALOGO_INTERNO, ...appCatalog };
-for (const [k, val] of Object.entries(allCatalogs)) {
-let cleanK = k.replace(/[^A-Z0-9]/g, '');
-if (cleanK && cleanInput.includes(cleanK)) {
-if (cleanK.length > maxLen) {
-maxLen = cleanK.length;
-best = {
-pn: k,
-desc: val.desc || val.descricao || "",
-peso: val.peso || val.custoUnitario || null,
-fornecedor: val.fornecedor || val.forn || ""
-};
-}
-}
-}
-return best;
-}
-function iniciarFluxo(modo) {
-appState.modo = modo;
-if (modo === 'coletor') {
-document.getElementById('col-nf-input').value = appState.cabecalho.nota_fiscal_principal;
-navTo('coletor-nf');
-} else {
-setToday();
-document.getElementById('man-nf').value = appState.cabecalho.nota_fiscal_principal;
-document.getElementById('man-forn').value = appState.cabecalho.fornecedor;
-document.getElementById('man-turno').value = appState.cabecalho.turno || "A";
-navTo('manual-header');
-}
-}
-function avancarParaBipagem() {
-const nf = document.getElementById('col-nf-input').value.trim();
-if(!nf) { showToast("Digite a Nota Fiscal!"); return; }
-appState.cabecalho.nota_fiscal_principal = nf.toUpperCase();
-const hoje = new Date();
-appState.cabecalho.data_conferencia = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
-navTo('coletor-main');
-}
-let scanTimeout;
-const scanInput = document.getElementById('col-main-scan');
-scanInput.addEventListener('keydown', function(event) {
-if (event.key === 'Enter' || event.keyCode === 13) {
-event.preventDefault();
-clearTimeout(scanTimeout);
-const val = this.value;
-this.value = '';
-if (val) processarColetorMain(val);
-}
-});
-scanInput.addEventListener('input', function(event) {
-clearTimeout(scanTimeout);
-scanTimeout = setTimeout(() => {
-const val = this.value;
-if (val.trim().length > 5) {
-this.value = '';
-processarColetorMain(val);
-}
-}, 400);
-});
-function processarColetorMain(codigoBruto) {
-const upper = String(codigoBruto).toUpperCase().trim().replace(/[\x00-\x1F\x7F-\x9F]/g, "");
-if(!upper) return;
-scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
-let novoFormatoMatch = upper.match(/^([A-Z0-9.-]+)\s+(\d+)([A-Z0-9]{4})(\d{4})/);
-if (novoFormatoMatch) {
-let extraidoPN = novoFormatoMatch[1];
-let possivelQtd = parseInt(novoFormatoMatch[2], 10);
-scanAtualTemp.lote = novoFormatoMatch[3];
-let codF = novoFormatoMatch[4];
-scanAtualTemp.forn = mapaFornecedores[codF] || codF;
-if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
-if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
-let infoPeca = buscarInfoPeca(extraidoPN);
-if (infoPeca.desc) {
-scanAtualTemp.pn = infoPeca.pn;
-scanAtualTemp.desc = infoPeca.desc;
-scanAtualTemp.peso = infoPeca.peso;
-if (infoPeca.fornecedor && (!scanAtualTemp.forn || scanAtualTemp.forn === codF || scanAtualTemp.forn.length < 3)) {
-scanAtualTemp.forn = infoPeca.fornecedor;
-}
-} else {
-scanAtualTemp.pn = extraidoPN;
-}
-}
-else if (upper.startsWith('P') && upper.length >= 35) {
-const codF = upper.substring(3, 7);
-scanAtualTemp.forn = mapaFornecedores[codF] || codF;
-if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
-const tail = upper.substring(upper.length - 10);
-scanAtualTemp.lote = tail.substring(0, 4);
-const possivelQtd = parseInt(tail.substring(4), 10);
-if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
-let infoPeca = buscarInfoPeca(upper);
-if (infoPeca.desc) {
-scanAtualTemp.pn = infoPeca.pn;
-scanAtualTemp.desc = infoPeca.desc;
-scanAtualTemp.peso = infoPeca.peso;
-if (infoPeca.fornecedor && (!scanAtualTemp.forn || scanAtualTemp.forn === codF || scanAtualTemp.forn.length < 3)) {
-scanAtualTemp.forn = infoPeca.fornecedor;
-}
-} else {
-let miolo = upper.substring(15, upper.length - 10);
-let quebra = miolo.match(/^(.+?)(0{4,})$/);
-if (quebra) scanAtualTemp.pn = quebra[1];
-else scanAtualTemp.pn = miolo.replace(/0+$/, '');
-}
-}
-else {
-let infoPeca = buscarInfoPeca(upper);
-if (infoPeca.desc) {
-scanAtualTemp.pn = infoPeca.pn;
-scanAtualTemp.desc = infoPeca.desc;
-scanAtualTemp.peso = infoPeca.peso;
-if (infoPeca.fornecedor) scanAtualTemp.forn = infoPeca.fornecedor;
-} else {
-const pnMatch = upper.match(/(3BC[A-Z0-9]+|B[CEGHM][A-Z0-9]+|K[0-9]+)/);
-if (pnMatch) scanAtualTemp.pn = pnMatch[1].replace(/0+$/, '');
-else scanAtualTemp.pn = upper;
-}
-}
-document.getElementById('col-main-pn').value = scanAtualTemp.pn || '-';
-document.getElementById('col-main-forn').value = scanAtualTemp.forn || appState.cabecalho.fornecedor || '-';
-document.getElementById('col-main-lote').value = scanAtualTemp.lote || '-';
-document.getElementById('col-main-qtd').value = scanAtualTemp.qtd || '-';
-showToast("Etiqueta lida! Insira os pesos.");
-setTimeout(() => advanceTo('col-main-tara'), 300);
-}
-function salvarColetorMain(addAnother) {
-const pn = document.getElementById('col-main-pn').value;
-const tara = document.getElementById('col-main-tara').value;
-const pnf = document.getElementById('col-main-pnf').value;
-const pmando = document.getElementById('col-main-pmando').value;
-if (!pn || pn === '-') { showToast("Bipe uma etiqueta primeiro."); return; }
-if (!tara && !pmando) { showToast("Preencha ao menos a Tara ou o Peso Mando."); return; }
-const itemData = {
-caixa_no: appState.caixas.length + 1,
-observacao: scanAtualTemp.pn,
-descricao: scanAtualTemp.desc,
-lote: scanAtualTemp.lote,
-peso_unitario: scanAtualTemp.peso,
-quantidade_mencionada: scanAtualTemp.qtd,
-peso_embalagem: tara,
-peso_bruto_nf: pnf,
-peso_bruto_mando: pmando,
-id: 'mob_' + Date.now()
-};
-appState.caixas.push(itemData);
-showToast("Caixa salva!");
-if(addAnother) {
-document.getElementById('col-main-pn').value = '';
-document.getElementById('col-main-forn').value = '';
-document.getElementById('col-main-lote').value = '';
-document.getElementById('col-main-qtd').value = '';
-document.getElementById('col-main-tara').value = '';
-document.getElementById('col-main-pnf').value = '';
-document.getElementById('col-main-pmando').value = '';
-navTo('coletor-main');
-} else {
-navTo('export');
-}
-}
-function onManualPnInput(val) {
-const raw = String(val).trim().toUpperCase();
-const feedback = document.getElementById('man-desc-feedback');
-const pnInput = document.getElementById('man-box-pn');
-const fornHeader = document.getElementById('man-forn');
-let info = buscarInfoPeca(raw);
-if(info && info.desc) {
-feedback.innerHTML = `**${info.desc}**`;
-feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-center';
-if (raw.length > 5 && info.pn !== raw && info.pn.replace(/[^A-Z0-9]/g, '') === raw) {
-pnInput.value = info.pn;
-}
-if (info.fornecedor && (!fornHeader.value || fornHeader.value.trim() === '')) {
-fornHeader.value = info.fornecedor.toUpperCase();
-appState.cabecalho.fornecedor = info.fornecedor.toUpperCase();
-}
-} else if (raw.length > 3) {
-feedback.innerText = '⚠️ PN NÃO ENCONTRADO';
-feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-rose-50 border border-rose-200 text-rose-700 text-center';
-}
-}
-function renderManualItemsList() {
-const list = document.getElementById('man-items-list');
-document.getElementById('man-items-counter').innerText = `${appState.caixas.length} CAIXAS`;
-if (appState.caixas.length === 0) {
-list.innerHTML = `** Nenhuma caixa.
+            
+              <button onclick="aprovarAcesso('${key}')" class="bg-emerald-600 text-white rounded px-2.5 py-1.5 text-[10px] font-black uppercase">Liberar</button>
+              <button onclick="recusarAcesso('${key}')" class="bg-rose-100 text-rose-700 rounded px-2.5 py-1.5 text-[10px] font-black uppercase">Recusar</button>
+            
 
 `;
-return;
-}
-list.innerHTML = '';
-appState.caixas.forEach((c, idx) => {
-list.innerHTML += `
-
-
-CX ${c.caixa_no}
-
-
-${c.observacao || 'S/ CÓDIGO'}
-
-
-
-
-
-
-QTD: ${c.quantidade_mencionada || '-'} LOTE: ${c.lote || '-'} TARA: ${c.peso_embalagem || '-'} kg
-
-
-
-
-NF: ${c.peso_bruto_nf || '-'} Mando: **${c.peso_bruto_mando || '-'}**
-
-
-
-
-
+          box.appendChild(d);
+        });
+      });
+    }
+    async function aprovarAcesso(key) {
+      const ref = db.ref('cadastros/pendencias/' + key);
+      const req = (await ref.once('value')).val();
+      if (!req) { showToast("Solicitação não encontrada."); return; }
+      try {
+        await auth.createUserWithEmailAndPassword(req.email, req.senha);
+        await db.ref('cadastros/operadores').push({ nome: req.nome, email: req.email, turno: "A" });
+        await ref.remove();
+        showToast("Acesso liberado com sucesso!");
+      } catch (e) {
+        showToast("Falha ao liberar: " + e.message);
+      }
+    }
+    function recusarAcesso(key) {
+      db.ref('cadastros/pendencias/' + key).remove();
+      showToast("Solicitação recusada.");
+    }
+    function buscarInfoPeca(rawInput) {
+        let cleanInput = rawInput.replace(/[^A-Z0-9]/g, '');
+        let bestMatch = { pn: rawInput, desc: "", peso: null, fornecedor: "" };
+        let maxLen = 0;
+        const allCatalogs = { ...CATALOGO_INTERNO, ...appCatalog };
+        for (const [k, val] of Object.entries(allCatalogs)) {
+            let cleanK = k.replace(/[^A-Z0-9]/g, '');
+            if (cleanK && cleanInput.includes(cleanK)) {
+                if (cleanK.length > maxLen) {
+                    maxLen = cleanK.length;
+                    best = { 
+                        pn: k, 
+                        desc: val.desc || val.descricao || "", 
+                         peso: val.peso || val.custoUnitario || null,
+                        fornecedor: val.fornecedor || val.forn || ""
+                    };
+                }
+            }
+        }
+        return best;
+    }
+    function iniciarFluxo(modo) {
+      appState.modo = modo;
+      if (modo === 'coletor') {
+        document.getElementById('col-nf-input').value = appState.cabecalho.nota_fiscal_principal;
+        navTo('coletor-nf');
+      } else {
+        setToday();
+        document.getElementById('man-nf').value = appState.cabecalho.nota_fiscal_principal;
+        document.getElementById('man-forn').value = appState.cabecalho.fornecedor;
+        document.getElementById('man-turno').value = appState.cabecalho.turno || "A";
+        navTo('manual-header');
+      }
+    }
+    function avancarParaBipagem() {
+      const nf = document.getElementById('col-nf-input').value.trim();
+      if(!nf) { showToast("Digite a Nota Fiscal!"); return; }
+      appState.cabecalho.nota_fiscal_principal = nf.toUpperCase();
+      const hoje = new Date();
+      appState.cabecalho.data_conferencia = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
+      navTo('coletor-main');
+    }
+    let scanTimeout;
+    const scanInput = document.getElementById('col-main-scan');
+    scanInput.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' || event.keyCode === 13) { 
+        event.preventDefault(); 
+        clearTimeout(scanTimeout);
+        const val = this.value; 
+        this.value = ''; 
+        if (val) processarColetorMain(val); 
+      }
+    });
+    scanInput.addEventListener('input', function(event) {
+      clearTimeout(scanTimeout);
+      scanTimeout = setTimeout(() => {
+        const val = this.value;
+        if (val.trim().length > 5) {
+          this.value = '';
+          processarColetorMain(val);
+        }
+      }, 400); 
+    });
+    function processarColetorMain(codigoBruto) {
+      const upper = String(codigoBruto).toUpperCase().trim().replace(/[\x00-\x1F\x7F-\x9F]/g, "");
+      if(!upper) return;
+      scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
+      let novoFormatoMatch = upper.match(/^([A-Z0-9.-]+)\s+(\d+)([A-Z0-9]{4})(\d{4})/);
+      if (novoFormatoMatch) {
+          let extraidoPN = novoFormatoMatch[1];
+          let possivelQtd = parseInt(novoFormatoMatch[2], 10);
+          scanAtualTemp.lote = novoFormatoMatch[3];
+          let codF = novoFormatoMatch[4];
+          scanAtualTemp.forn = mapaFornecedores[codF] || codF;
+          if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
+          if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
+          let infoPeca = buscarInfoPeca(extraidoPN);
+          if (infoPeca.desc) {
+              scanAtualTemp.pn = infoPeca.pn;
+              scanAtualTemp.desc = infoPeca.desc;
+              scanAtualTemp.peso = infoPeca.peso;
+              if (infoPeca.fornecedor && (!scanAtualTemp.forn || scanAtualTemp.forn === codF || scanAtualTemp.forn.length < 3)) {
+                  scanAtualTemp.forn = infoPeca.fornecedor;
+              }
+          } else {
+              scanAtualTemp.pn = extraidoPN;
+          }
+      } 
+      else if (upper.startsWith('P') && upper.length >= 35) {
+          const codF = upper.substring(3, 7);
+          scanAtualTemp.forn = mapaFornecedores[codF] || codF;
+          if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
+          const tail = upper.substring(upper.length - 10);
+          scanAtualTemp.lote = tail.substring(0, 4);
+          const possivelQtd = parseInt(tail.substring(4), 10);
+          if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
+          let infoPeca = buscarInfoPeca(upper);
+          if (infoPeca.desc) {
+              scanAtualTemp.pn = infoPeca.pn;
+              scanAtualTemp.desc = infoPeca.desc;
+              scanAtualTemp.peso = infoPeca.peso;
+              if (infoPeca.fornecedor && (!scanAtualTemp.forn || scanAtualTemp.forn === codF || scanAtualTemp.forn.length < 3)) {
+                  scanAtualTemp.forn = infoPeca.fornecedor;
+              }
+          } else {
+              let miolo = upper.substring(15, upper.length - 10);
+              let quebra = miolo.match(/^(.+?)(0{4,})$/); 
+              if (quebra) scanAtualTemp.pn = quebra[1];
+              else scanAtualTemp.pn = miolo.replace(/0+$/, ''); 
+          }
+      } 
+      else {
+          let infoPeca = buscarInfoPeca(upper);
+          if (infoPeca.desc) {
+              scanAtualTemp.pn = infoPeca.pn;
+              scanAtualTemp.desc = infoPeca.desc;
+              scanAtualTemp.peso = infoPeca.peso;
+              if (infoPeca.fornecedor) scanAtualTemp.forn = infoPeca.fornecedor;
+          } else {
+              const pnMatch = upper.match(/(3BC[A-Z0-9]+|B[CEGHM][A-Z0-9]+|K[0-9]+)/);
+              if (pnMatch) scanAtualTemp.pn = pnMatch[1].replace(/0+$/, '');
+              else scanAtualTemp.pn = upper;
+          }
+      }
+      document.getElementById('col-main-pn').value = scanAtualTemp.pn || '-';
+      document.getElementById('col-main-forn').value = scanAtualTemp.forn || appState.cabecalho.fornecedor || '-';
+      document.getElementById('col-main-lote').value = scanAtualTemp.lote || '-';
+      document.getElementById('col-main-qtd').value = scanAtualTemp.qtd || '-';
+      showToast("Etiqueta lida! Insira os pesos.");
+      setTimeout(() => advanceTo('col-main-tara'), 300);
+    }
+    function salvarColetorMain(addAnother) {
+      const pn = document.getElementById('col-main-pn').value;
+      const tara = document.getElementById('col-main-tara').value;
+      const pnf = document.getElementById('col-main-pnf').value;
+      const pmando = document.getElementById('col-main-pmando').value;
+      if (!pn || pn === '-') { showToast("Bipe uma etiqueta primeiro."); return; }
+      if (!tara && !pmando) { showToast("Preencha ao menos a Tara ou o Peso Mando."); return; }
+      const itemData = {
+        caixa_no: appState.caixas.length + 1,
+        observacao: scanAtualTemp.pn,
+        descricao: scanAtualTemp.desc,
+        lote: scanAtualTemp.lote,
+        peso_unitario: scanAtualTemp.peso,
+        quantidade_mencionada: scanAtualTemp.qtd,
+        peso_embalagem: tara,
+        peso_bruto_nf: pnf,
+        peso_bruto_mando: pmando,
+        id: 'mob_' + Date.now()
+      };
+      appState.caixas.push(itemData);
+      showToast("Caixa salva!");
+      if(addAnother) {
+        document.getElementById('col-main-pn').value = '';
+        document.getElementById('col-main-forn').value = '';
+        document.getElementById('col-main-lote').value = '';
+        document.getElementById('col-main-qtd').value = '';
+        document.getElementById('col-main-tara').value = '';
+        document.getElementById('col-main-pnf').value = '';
+        document.getElementById('col-main-pmando').value = '';
+        navTo('coletor-main'); 
+      } else {
+        navTo('export');
+      }
+    }
+    function onManualPnInput(val) {
+      const raw = String(val).trim().toUpperCase();
+      const feedback = document.getElementById('man-desc-feedback');
+      const pnInput = document.getElementById('man-box-pn');
+      const fornHeader = document.getElementById('man-forn');
+      let info = buscarInfoPeca(raw);
+      if(info && info.desc) {
+          feedback.innerHTML = `**${info.desc}**`;
+          feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-center';
+          if (raw.length > 5 && info.pn !== raw && info.pn.replace(/[^A-Z0-9]/g, '') === raw) {
+              pnInput.value = info.pn;
+          }
+          if (info.fornecedor && (!fornHeader.value || fornHeader.value.trim() === '')) {
+              fornHeader.value = info.fornecedor.toUpperCase();
+              appState.cabecalho.fornecedor = info.fornecedor.toUpperCase();
+          }
+      } else if (raw.length > 3) {
+          feedback.innerText = '⚠️ PN NÃO ENCONTRADO';
+          feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-rose-50 border border-rose-200 text-rose-700 text-center';
+      }
+    }
+    function renderManualItemsList() {
+      const list = document.getElementById('man-items-list');
+      document.getElementById('man-items-counter').innerText = `${appState.caixas.length} CAIXAS`;
+      if (appState.caixas.length === 0) {
+        list.innerHTML = `** Nenhuma caixa.
 
 `;
-});
-}
-function openManualAddModal() {
-editIndex = -1;
-document.getElementById('modal-man-title').innerText = `CAIXA Nº ${appState.caixas.length + 1}`;
-['pn', 'lote', 'qtd', 'tara', 'pnf', 'pmando'].forEach(id => document.getElementById(`man-box-${id}`).value = '');
-document.getElementById('man-desc-feedback').innerText = 'DIGITE O CÓDIGO...';
-document.getElementById('man-desc-feedback').className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-white border border-slate-200 text-slate-500 text-center';
-const modal = document.getElementById('modal-add-manual');
-modal.classList.remove('hidden');
-setTimeout(() => { modal.classList.remove('translate-y-full'); document.getElementById('man-box-pn').focus(); }, 10);
-}
-function openManualEditModal(idx) {
-editIndex = idx;
-const c = appState.caixas[idx];
-document.getElementById('modal-man-title').innerText = `EDITAR CX Nº ${c.caixa_no}`;
-document.getElementById('man-box-pn').value = c.observacao || '';
-document.getElementById('man-box-lote').value = c.lote || '';
-document.getElementById('man-box-qtd').value = c.quantidade_mencionada || '';
-document.getElementById('man-box-tara').value = c.peso_embalagem || '';
-document.getElementById('man-box-pnf').value = c.peso_bruto_nf || '';
-document.getElementById('man-box-pmando').value = c.peso_bruto_mando || '';
-onManualPnInput(c.observacao || '');
-const modal = document.getElementById('modal-add-manual');
-modal.classList.remove('hidden');
-setTimeout(() => modal.classList.remove('translate-y-full'), 10);
-}
-function closeManualAddModal() {
-const modal = document.getElementById('modal-add-manual');
-modal.classList.add('translate-y-full');
-setTimeout(() => modal.classList.add('hidden'), 300);
-closeVKB();
-}
-function salvarManual(addAnother) {
-const pn = document.getElementById('man-box-pn').value.trim().toUpperCase();
-const lote = document.getElementById('man-box-lote').value;
-const qtd = document.getElementById('man-box-qtd').value;
-const tara = document.getElementById('man-box-tara').value;
-const pnf = document.getElementById('man-box-pnf').value;
-const pmando = document.getElementById('man-box-pmando').value;
-if (!pn && !pmando) { showToast("Preencha PN ou Peso."); return; }
-let info = buscarInfoPeca(pn);
-let desc = info.desc || "";
-let pesoUnit = info.peso || null;
-appState.cabecalho.nota_fiscal_principal = document.getElementById('man-nf').value.toUpperCase();
-appState.cabecalho.fornecedor = document.getElementById('man-forn').value.toUpperCase();
-appState.cabecalho.turno = document.getElementById('man-turno').value;
-const itemData = {
-caixa_no: editIndex > -1 ? appState.caixas[editIndex].caixa_no : (appState.caixas.length + 1),
-observacao: info.pn || pn,
-descricao: desc, lote: lote, peso_unitario: pesoUnit,
-quantidade_mencionada: qtd, peso_embalagem: tara, peso_bruto_nf: pnf, peso_bruto_mando: pmando
-};
-if (editIndex > -1) appState.caixas[editIndex] = itemData;
-else appState.caixas.push(itemData);
-showToast("Caixa salva!");
-renderManualItemsList();
-if(addToMost && editIndex === -1) {
-document.getElementById('man-box-pn').value = '';
-document.getElementById('man-box-pmando').value = '';
-document.getElementById('man-box-pn').focus();
-} else {
-closeManualAddModal();
-}
-}
-function openEmailModal() {
-const modal = document.getElementById('modal-email');
-const box = document.getElementById('email-box');
-let userEmail = appState.cabecalho.operador ? `${appState.cabecalho.operador.toLowerCase()}@hlcompany.com` : 'operador@hlcompany.com';
-try { const user = firebase.auth().currentUser; if (user && user.email) userEmail = user.email; } catch (e) {}
-document.getElementById('email-logado').value = userEmail;
-document.getElementById('email-extra').value = '';
-modal.classList.remove('hidden');
-modal.classList.add('flex');
-setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
-}
-function closeEmailModal() {
-const modal = document.getElementById('modal-email');
-const box = document.getElementById('email-box');
-modal.classList.add('opacity-0');
-box.classList.add('scale-95');
-setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
-}
-function criarWorkbookBase() {
-const wb = XLSX.utils.book_new();
-const wsData = [
-["CONFERÊNCIA / PESAGEM", "", "", "", "", "", ""],
-["NOTA FISCAL", "ITEM", "TOTAL DE PEÇA", "FORNECEDOR", "DATA CONFERÊNCIA", "OPERADOR", ""],
-[ appState.cabecalho.nota_fiscal_principal, "", "", appState.cabecalho.fornecedor, appState.cabecalho.data_conferencia, appState.cabecalho.operador, "" ],
-["", "", "", "", "", "", ""],
-["CAIXA Nº", "QTD MENCIONADA", "PESO EMBALAGEM", "PESO BRUTO/NF", "PESO BRUTO MANDO", "LOTE", "PART NUMBER"]
-];
-const totalLinhas = Math.max(40, appState.caixas.length);
-for (let i = 1; i <= totalLinhas; i++) {
-const c = appState.caixas.find(item => Number(item.caixa_no) === i);
-if (c) wsData.push([ i, c.quantidade_mencionada || "", c.peso_embalagem || "", c.peso_bruto_nf || "", c.peso_bruto_mando || "", c.lote || "", c.observacao || "" ]);
-else wsData.push([i, "", "", "", "", "", ""]);
-}
-const ws = XLSX.utils.aoa_to_sheet(wsData);
-const borda = { style: "thin", color: { rgb: "000000" } };
-ws['!merges'] = [ { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } } ];
-for (let R = 0; R < wsData.length; ++R) {
-for (let C = 0; C < 7; ++C) {
-const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-if (!ws[cellRef]) ws[cellRef] = { v: "", t: "s" };
-let s = { font: { name: "Arial", sz: 10 }, alignment: { horizontal: "center", vertical: "center" } };
-if (R === 0 || R === 1 || R === 4) { s.font.bold = true; s.border = {top: borda, bottom: borda, left: borda, right: borda}; s.fill = { fgColor: { rgb: "EAEAEA" } }; }
-else if (R > 4) { s.border = {top: borda, bottom: borda, left: borda, right: borda}; }
-ws[cellRef].s = s;
-}
-}
-ws['!cols'] = [ { wch: 10 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 15 }, { wch: 25 } ];
-XLSX.utils.book_append_sheet(wb, ws, "Pesagem");
-return wb;
-}
-async function confirmarEnvioEmail() {
-const emailLogado = document.getElementById('email-logado').value.trim();
-const emailExtra = document.getElementById('email-extra').value.trim();
-let dest = emailLogado;
-if (emailExtra) dest += `,${emailExtra}`;
-const nf = appState.cabecalho.nota_fiscal_principal || 'S/N';
-const fileName = `Conferencia_NF_${nf}.xlsx`;
-const subject = `Planilha de Pesagem - NF ${nf}`;
-const textBody = `Olá,\n\nSegue em anexo a planilha de pesagem referente à NF ${nf}.\n\nPara: ${dest}\n\nEnviado via App Mobile HL Mando.`;
-if (typeof XLSX === 'undefined') { showToast("Excel indisponível."); return; }
-const wb = criarWorkbookBase();
-const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-const file = new File([blob], fileName, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-let shareSuccess = false;
-if (navigator.canShare && navigator.canShare({ files: [file] })) {
-try {
-await navigator.share({
-files: [file],
-title: subject,
-text: textBody
-});
-showToast("Aberto no app de e-mail!");
-shareSuccess = true;
-closeEmailModal();
-} catch (error) {
-console.log("Compartilhamento nativo bloqueado. Acionando plano B...", error);
-}
-}
-if (!shareSuccess) {
-XLSX.writeFile(wb, fileName);
-const encodedSubject = encodeURIComponent(subject);
-const encodedBody = encodeURIComponent(textBody + "\n\n⚠️ ATENÇÃO: O ARQUIVO FOI BAIXADO. CLIQUE NO CLIPE DE PAPEL (ANEXO) PARA INCLUIR A PLANILHA QUE ACABOU DE BAIXAR.");
-window.location.href = `mailto:${dest}?subject=${encodedSubject}&body=${encodedBody}`;
-closeEmailModal();
-}
-}
-function gerarExcel() {
-if (typeof XLSX === 'undefined') { showToast("Excel indisponível."); return; }
-const wb = criarWorkbookBase();
-XLSX.writeFile(wb, `Conferencia_Pesagem.xlsx`);
-showToast("Excel Gerado e Baixado!");
-}
-function sincronizarComDesktop() {
-if (!db || appState.caixas.length === 0) { showToast("Nada para enviar."); return; }
-const novaNota = { modo: appState.modo, title: "Lançamento Mobile", cabecalho: appState.cabecalho, caixas: appState.caixas };
-db.ref('loteNotas').set([...desktopLoteNotas, novaNota]).then(() => showToast("Enviado para o Desktop!"));
-}
-function abrirModalLimpar() {
-const modal = document.getElementById('modal-limpar');
-const box = document.getElementById('limpar-box');
-modal.classList.remove('hidden');
-modal.classList.add('flex');
-setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
-}
-function closeLimparModal() {
-const modal = document.getElementById('modal-limpar');
-const box = document.getElementById('limpar-box');
-modal.classList.add('opacity-0');
-box.classList.add('scale-95');
-setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
-}
-function confirmarLimparTudo() {
-appState.caixas = [];
-appState.cabecalho.nota_fiscal_principal = "";
-navTo('mode-select');
-showToast("Dados zerados.");
-closeLimparModal();
-}
-function initFirebaseApp() {
-try {
-const firebaseConfig = {
-apiKey: "AIzaSyBQ7_k7huhS8oAyKp0OsbEajXFmrNxcrlo",
-authDomain: "kyro-7cb7a.firebaseapp.com",
-databaseURL: "https://kyro-7cb7a-default-rtdb.firebaseio.com",
-projectId: "kyro-7cb7a",
-storageBucket: "kyro-7cb7a.firebasestorage.app",
-messagingSenderId: "368737182812",
-appId: "1:368737182812:web:7be81b22a1a1fec5c97299"
-};
-firebase.initializeApp(firebaseConfig);
-db = firebase.database();
-auth = firebase.auth();
-auth.onAuthStateChanged((user) => {
-if (user) {
-resetTimer();
-db.ref('cadastros/operadores').once('value').then(snap => {
-let ops = snap.val();
-let arr = Array.isArray(ops) ? ops : Object.values(ops || {});
-let opProfile = arr.find(o => o && o.email && o.email.toLowerCase() === user.email.toLowerCase());
-if (opProfile) {
-appState.cabecalho.operador = opProfile.nome;
-appState.cabecalho.turno = opProfile.turno;
-document.getElementById('lbl-operador-logado').innerText = opProfile.nome;
-document.getElementById('lbl-operador-turno').innerText = "TURNO " + opProfile.turno;
-} else {
-const userName = user.email.split('@')[0].toUpperCase();
-appState.cabecalho.operador = userName;
-appState.cabecalho.turno = "A";
-document.getElementById('lbl-operador-logado').innerText = userName;
-document.getElementById('lbl-operador-turno').innerText = "TURNO A";
-}
-document.getElementById('btn-logout').classList.remove('hidden');
-if (currentView === 'login') navTo('mode-select');
-});
-} else {
-clearTimeout(inactivityTimer);
-navTo('login');
-}
-});
-db.ref('loteNotas').on('value', snap => { desktopLoteNotas = snap.val() || []; document.getElementById('sync-status').classList.replace('bg-slate-500', 'bg-emerald-400'); });
-db.ref('cadastros/fornecedores').on('value', snap => {
-const dl = document.getElementById('forn-list'); dl.innerHTML = '';
-const arr = Array.isArray(snap.val()) ? snap.val().filter(x => x) : Object.values(snap.val() || {});
-arr.forEach(f => dl.innerHTML += `<option value="${(f || '').toUpperCase()}">`);
-});
-db.ref('cadastros/produtos_mestre').on('value', snap => {
-const val = snap.val();
-if (val) {
-const arr = Array.isArray(val) ? val.filter(x => x) : Object.values(val || {});
-arr.forEach(p => {
-if (p && p.partNumber) {
-appCatalog[p.partNumber.toUpperCase()] = {
-desc: p.descricao,
-peso: p.custoUnitario || p.peso,
-fornecedor: p.fornecedor
-};
-}
-});
-}
-});
-db.ref('dynamicCatalog').on('value', snap => {
-const val = snap.val();
-if (val) {
-const dl = document.getElementById('cat-list'); dl.innerHTML = '';
-for (let k in val) {
-let originalKey = k.replace(/_DOT_/g, '.').replace(/_HASH_/g, '#').replace(/_DOL_/g, '$').replace(/_SLASH_/g, '/').replace(/_OB_/g, '[').replace(/_CB_/g, ']');
-appCatalog[originalKey.toUpperCase()] = {
-desc: (val[k].desc || val[k].descricao || '').toUpperCase(),
-peso: val[k].peso !== undefined ? Number(val[k].peso) : null,
-fornecedor: val[k].forn || val[k].fornecedor || ''
-};
-dl.innerHTML += `<option value="${originalKey}">${originalKey} - ${val[k].desc || ''}</option>`;
-}
-}
-});
-} catch(e) { console.error("Firebase init error:", e); }
-}
-window.onload = function() {
-initFirebaseApp();
-initVKB();
-const loginEmail = document.getElementById('login-email');
-if(loginEmail) loginEmail.addEventListener('blur', function() { this.value = formatarEmail(this.value); });
-['touchstart', 'mousemove', 'mousedown', 'keypress', 'scroll'].forEach(evt => {
-document.addEventListener(evt, resetTimer, true);
-});
-};
-</script>
+        return;
+      }
+      list.innerHTML = '';
+      appState.caixas.forEach((c, idx) => {
+        list.innerHTML += `
+          
+            
+              CX ${c.caixa_no}
+
+
+              ${c.observacao || 'S/ CÓDIGO'}
+
+
+            
+
+
+            
+              QTD: ${c.quantidade_mencionada || '-'} LOTE: ${c.lote || '-'} TARA: ${c.peso_embalagem || '-'} kg
+            
+
+
+            
+              NF: ${c.peso_bruto_nf || '-'} Mando: **${c.peso_bruto_mando || '-'}**
+            
+
+
+          
+
+
+        `;
+      });
+    }
+    function openManualAddModal() {
+      editIndex = -1;
+      document.getElementById('modal-man-title').innerText = `CAIXA Nº ${appState.caixas.length + 1}`;
+      ['pn', 'lote', 'qtd', 'tara', 'pnf', 'pmando'].forEach(id => document.getElementById(`man-box-${id}`).value = '');
+      document.getElementById('man-desc-feedback').innerText = 'DIGITE O CÓDIGO...';
+      document.getElementById('man-desc-feedback').className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-white border border-slate-200 text-slate-500 text-center';
+      const modal = document.getElementById('modal-add-manual');
+      modal.classList.remove('hidden');
+      setTimeout(() => { modal.classList.remove('translate-y-full'); document.getElementById('man-box-pn').focus(); }, 10);
+    }
+    function openManualEditModal(idx) {
+      editIndex = idx;
+      const c = appState.caixas[idx];
+      document.getElementById('modal-man-title').innerText = `EDITAR CX Nº ${c.caixa_no}`;
+      document.getElementById('man-box-pn').value = c.observacao || '';
+      document.getElementById('man-box-lote').value = c.lote || '';
+      document.getElementById('man-box-qtd').value = c.quantidade_mencionada || '';
+      document.getElementById('man-box-tara').value = c.peso_embalagem || '';
+      document.getElementById('man-box-pnf').value = c.peso_bruto_nf || '';
+      document.getElementById('man-box-pmando').value = c.peso_bruto_mando || '';
+      onManualPnInput(c.observacao || '');
+      const modal = document.getElementById('modal-add-manual');
+      modal.classList.remove('hidden');
+      setTimeout(() => modal.classList.remove('translate-y-full'), 10);
+    }
+    function closeManualAddModal() {
+      const modal = document.getElementById('modal-add-manual');
+      modal.classList.add('translate-y-full');
+      setTimeout(() => modal.classList.add('hidden'), 300);
+      closeVKB();
+    }
+    function salvarManual(addAnother) {
+      const pn = document.getElementById('man-box-pn').value.trim().toUpperCase();
+      const lote = document.getElementById('man-box-lote').value;
+      const qtd = document.getElementById('man-box-qtd').value;
+      const tara = document.getElementById('man-box-tara').value;
+      const pnf = document.getElementById('man-box-pnf').value;
+      const pmando = document.getElementById('man-box-pmando').value;
+      if (!pn && !pmando) { showToast("Preencha PN ou Peso."); return; }
+      let info = buscarInfoPeca(pn);
+      let desc = info.desc || ""; 
+      let pesoUnit = info.peso || null;
+      appState.cabecalho.nota_fiscal_principal = document.getElementById('man-nf').value.toUpperCase();
+      appState.cabecalho.fornecedor = document.getElementById('man-forn').value.toUpperCase();
+      appState.cabecalho.turno = document.getElementById('man-turno').value; 
+      const itemData = {
+        caixa_no: editIndex > -1 ? appState.caixas[editIndex].caixa_no : (appState.caixas.length + 1),
+        observacao: info.pn || pn,
+        descricao: desc, lote: lote, peso_unitario: pesoUnit,
+        quantidade_mencionada: qtd, peso_embalagem: tara, peso_bruto_nf: pnf, peso_bruto_mando: pmando
+      };
+      if (editIndex > -1) appState.caixas[editIndex] = itemData;
+      else appState.caixas.push(itemData);
+      showToast("Caixa salva!");
+      renderManualItemsList();
+      if(addToMost && editIndex === -1) {
+        document.getElementById('man-box-pn').value = '';
+        document.getElementById('man-box-pmando').value = '';
+        document.getElementById('man-box-pn').focus();
+      } else {
+        closeManualAddModal();
+      }
+    }
+    function openEmailModal() {
+      const modal = document.getElementById('modal-email');
+      const box = document.getElementById('email-box');
+      let userEmail = appState.cabecalho.operador ? `${appState.cabecalho.operador.toLowerCase()}@hlcompany.com` : 'operador@hlcompany.com';
+      try { const user = firebase.auth().currentUser; if (user && user.email) userEmail = user.email; } catch (e) {}
+      document.getElementById('email-logado').value = userEmail;
+      document.getElementById('email-extra').value = '';
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+    }
+    function closeEmailModal() {
+      const modal = document.getElementById('modal-email');
+      const box = document.getElementById('email-box');
+      modal.classList.add('opacity-0');
+      box.classList.add('scale-95');
+      setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
+    }
+    function criarWorkbookBase() {
+      const wb = XLSX.utils.book_new();
+      const wsData = [
+        ["CONFERÊNCIA / PESAGEM", "", "", "", "", "", ""],
+        ["NOTA FISCAL", "ITEM", "TOTAL DE PEÇA", "FORNECEDOR", "DATA CONFERÊNCIA", "OPERADOR", ""],
+        [ appState.cabecalho.nota_fiscal_principal, "", "", appState.cabecalho.fornecedor, appState.cabecalho.data_conferencia, appState.cabecalho.operador, "" ],
+        ["", "", "", "", "", "", ""],
+        ["CAIXA Nº", "QTD MENCIONADA", "PESO EMBALAGEM", "PESO BRUTO/NF", "PESO BRUTO MANDO", "LOTE", "PART NUMBER"]
+      ];
+      const totalLinhas = Math.max(40, appState.caixas.length);
+      for (let i = 1; i <= totalLinhas; i++) {
+        const c = appState.caixas.find(item => Number(item.caixa_no) === i);
+        if (c) wsData.push([ i, c.quantidade_mencionada || "", c.peso_embalagem || "", c.peso_bruto_nf || "", c.peso_bruto_mando || "", c.lote || "", c.observacao || "" ]);
+        else wsData.push([i, "", "", "", "", "", ""]);
+      }
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      const borda = { style: "thin", color: { rgb: "000000" } };
+      ws['!merges'] = [ { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } } ];
+      for (let R = 0; R < wsData.length; ++R) {
+        for (let C = 0; C < 7; ++C) {
+          const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!ws[cellRef]) ws[cellRef] = { v: "", t: "s" };
+          let s = { font: { name: "Arial", sz: 10 }, alignment: { horizontal: "center", vertical: "center" } };
+          if (R === 0 || R === 1 || R === 4) { s.font.bold = true; s.border = {top: borda, bottom: borda, left: borda, right: borda}; s.fill = { fgColor: { rgb: "EAEAEA" } }; }
+          else if (R > 4) { s.border = {top: borda, bottom: borda, left: borda, right: borda}; }
+          ws[cellRef].s = s;
+        }
+      }
+      ws['!cols'] = [ { wch: 10 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 15 }, { wch: 25 } ];
+      XLSX.utils.book_append_sheet(wb, ws, "Pesagem");
+      return wb;
+    }
+    async function confirmarEnvioEmail() {
+      const emailLogado = document.getElementById('email-logado').value.trim();
+      const emailExtra = document.getElementById('email-extra').value.trim();
+      let dest = emailLogado;
+      if (emailExtra) dest += `,${emailExtra}`;
+      const nf = appState.cabecalho.nota_fiscal_principal || 'S/N';
+      const fileName = `Conferencia_NF_${nf}.xlsx`;
+      const subject = `Planilha de Pesagem - NF ${nf}`;
+      const textBody = `Olá,\n\nSegue em anexo a planilha de pesagem referente à NF ${nf}.\n\nPara: ${dest}\n\nEnviado via App Mobile HL Mando.`;
+      if (typeof XLSX === 'undefined') { showToast("Excel indisponível."); return; }
+      const wb = criarWorkbookBase();
+      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const file = new File([blob], fileName, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      let shareSuccess = false;
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: subject,
+            text: textBody
+          });
+          showToast("Aberto no app de e-mail!");
+          shareSuccess = true;
+          closeEmailModal();
+        } catch (error) {
+          console.log("Compartilhamento nativo bloqueado. Acionando plano B...", error);
+        }
+      } 
+      if (!shareSuccess) {
+        XLSX.writeFile(wb, fileName); 
+        const encodedSubject = encodeURIComponent(subject);
+        const encodedBody = encodeURIComponent(textBody + "\n\n⚠️ ATENÇÃO: O ARQUIVO FOI BAIXADO. CLIQUE NO CLIPE DE PAPEL (ANEXO) PARA INCLUIR A PLANILHA QUE ACABOU DE BAIXAR.");
+        window.location.href = `mailto:${dest}?subject=${encodedSubject}&body=${encodedBody}`;
+        closeEmailModal();
+      }
+    }
+    function gerarExcel() {
+      if (typeof XLSX === 'undefined') { showToast("Excel indisponível."); return; }
+      const wb = criarWorkbookBase();
+      XLSX.writeFile(wb, `Conferencia_Pesagem.xlsx`);
+      showToast("Excel Gerado e Baixado!");
+    }
+    function sincronizarComDesktop() {
+      if (!db || appState.caixas.length === 0) { showToast("Nada para enviar."); return; }
+      const novaNota = { modo: appState.modo, title: "Lançamento Mobile", cabecalho: appState.cabecalho, caixas: appState.caixas };
+      db.ref('loteNotas').set([...desktopLoteNotas, novaNota]).then(() => showToast("Enviado para o Desktop!"));
+    }
+    function abrirModalLimpar() {
+        const modal = document.getElementById('modal-limpar');
+        const box = document.getElementById('limpar-box');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+    }
+    function closeLimparModal() {
+        const modal = document.getElementById('modal-limpar');
+        const box = document.getElementById('limpar-box');
+        modal.classList.add('opacity-0');
+        box.classList.add('scale-95');
+        setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
+    }
+    function confirmarLimparTudo() {
+        appState.caixas = [];
+        appState.cabecalho.nota_fiscal_principal = "";
+        navTo('mode-select');
+        showToast("Dados zerados.");
+        closeLimparModal();
+    }
+    function initFirebaseApp() {
+      try {
+        const firebaseConfig = {
+          apiKey: "AIzaSyBQ7_k7huhS8oAyKp0OsbEajXFmrNxcrlo",
+          authDomain: "kyro-7cb7a.firebaseapp.com",
+          databaseURL: "https://kyro-7cb7a-default-rtdb.firebaseio.com",
+          projectId: "kyro-7cb7a",
+          storageBucket: "kyro-7cb7a.firebasestorage.app",
+          messagingSenderId: "368737182812",
+          appId: "1:368737182812:web:7be81b22a1a1fec5c97299"
+        };
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        auth = firebase.auth();
+        auth.onAuthStateChanged((user) => {
+          if (user) {
+            resetTimer();
+            db.ref('cadastros/operadores').once('value').then(snap => {
+               let ops = snap.val();
+               let arr = Array.isArray(ops) ? ops : Object.values(ops || {});
+               let opProfile = arr.find(o => o && o.email && o.email.toLowerCase() === user.email.toLowerCase());
+               if (opProfile) {
+                   appState.cabecalho.operador = opProfile.nome;
+                   appState.cabecalho.turno = opProfile.turno;
+                   document.getElementById('lbl-operador-logado').innerText = opProfile.nome;
+                   document.getElementById('lbl-operador-turno').innerText = "TURNO " + opProfile.turno;
+               } else {
+                   const userName = user.email.split('@')[0].toUpperCase();
+                   appState.cabecalho.operador = userName;
+                   appState.cabecalho.turno = "A";
+                   document.getElementById('lbl-operador-logado').innerText = userName;
+                   document.getElementById('lbl-operador-turno').innerText = "TURNO A";
+               }
+               document.getElementById('btn-logout').classList.remove('hidden');
+               if (currentView === 'login') navTo('mode-select');
+            });
+          } else {
+            clearTimeout(inactivityTimer);
+            navTo('login');
+          }
+        });
+        db.ref('loteNotas').on('value', snap => { desktopLoteNotas = snap.val() || []; document.getElementById('sync-status').classList.replace('bg-slate-500', 'bg-emerald-400'); });
+        db.ref('cadastros/fornecedores').on('value', snap => {
+          const dl = document.getElementById('forn-list'); dl.innerHTML = '';
+          const arr = Array.isArray(snap.val()) ? snap.val().filter(x => x) : Object.values(snap.val() || {});
+          arr.forEach(f => dl.innerHTML += `<option value="${(f || '').toUpperCase()}">`);
+        });
+        db.ref('cadastros/produtos_mestre').on('value', snap => {
+          const val = snap.val();
+          if (val) {
+            const arr = Array.isArray(val) ? val.filter(x => x) : Object.values(val || {});
+            arr.forEach(p => {
+               if (p && p.partNumber) {
+                   appCatalog[p.partNumber.toUpperCase()] = { 
+                       desc: p.descricao, 
+                       peso: p.custoUnitario || p.peso,
+                       fornecedor: p.fornecedor
+                   };
+               }
+            });
+          }
+        });
+        db.ref('dynamicCatalog').on('value', snap => {
+          const val = snap.val();
+          if (val) {
+            const dl = document.getElementById('cat-list'); dl.innerHTML = '';
+            for (let k in val) {
+              let originalKey = k.replace(/_DOT_/g, '.').replace(/_HASH_/g, '#').replace(/_DOL_/g, '$').replace(/_SLASH_/g, '/').replace(/_OB_/g, '[').replace(/_CB_/g, ']');
+              appCatalog[originalKey.toUpperCase()] = { 
+                  desc: (val[k].desc || val[k].descricao || '').toUpperCase(), 
+                  peso: val[k].peso !== undefined ? Number(val[k].peso) : null,
+                  fornecedor: val[k].forn || val[k].fornecedor || '' 
+              };
+              dl.innerHTML += `<option value="${originalKey}">${originalKey} - ${val[k].desc || ''}</option>`;
+            }
+          }
+        });
+      } catch(e) { console.error("Firebase init error:", e); }
+    }
+    window.onload = function() {
+      initFirebaseApp();
+      initVKB();
+      const loginEmail = document.getElementById('login-email');
+      if(loginEmail) loginEmail.addEventListener('blur', function() { this.value = formatarEmail(this.value); });
+      ['touchstart', 'mousemove', 'mousedown', 'keypress', 'scroll'].forEach(evt => {
+        document.addEventListener(evt, resetTimer, true);
+      });
+    };
+  </script>
 </body>
 </html>
 
