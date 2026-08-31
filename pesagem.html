@@ -116,7 +116,7 @@
       background: #1e293b; color: white;
       padding: 12px 20px; border-radius: 20px;
       font-weight: bold; font-size: 13px;
-      z-index: 1000;
+      z-index: 9999;
       transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       white-space: nowrap;
@@ -160,6 +160,20 @@
       box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2);
     }
     .vkb-key.enter:active { transform: scale(0.98); background: #004b80; }
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      display: none;
+      align-items: center; justify-content: center;
+      z-index: 200; padding: 16px;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .modal-overlay.show { display: flex !important; opacity: 1; }
+    .modal-overlay > * {
+      transform: scale(0.95);
+      transition: transform 0.2s;
+    }
+    .modal-overlay.show > * { transform: scale(1); }
   </style>
 </head>
 <body>
@@ -196,7 +210,6 @@
 
   </header>
 
-  
   <main id="view-login" class="view-container active p-4">
     
       
@@ -254,7 +267,6 @@
   </main>
 
   
-  
     
       
         <h3 class="font-black text-base text-slate-800">** Validar Acesso</h3>
@@ -289,7 +301,6 @@
 
 
 
-  
   <main id="view-mode-select" class="view-container p-4">
     
       
@@ -350,7 +361,6 @@
 
   </main>
 
-  
   <main id="view-coletor-nf" class="view-container p-4">
     
       <h2 class="font-black text-lg text-slate-800 flex items-center gap-2 uppercase">
@@ -371,7 +381,6 @@
 
   </main>
 
-  
   <main id="view-coletor-main" class="view-container p-3">
     
       
@@ -462,7 +471,6 @@
 
   </main>
 
-  
   <main id="view-manual-header" class="view-container p-4">
     
       <h2 class="font-black text-lg text-slate-800 mb-3 flex items-center gap-2 uppercase">
@@ -514,7 +522,6 @@
 
   </main>
 
-  
   <main id="view-manual-items" class="view-container p-3 bg-slate-50">
     
       <h2 class="font-black text-base text-slate-800 flex items-center gap-2 uppercase">
@@ -535,88 +542,90 @@
   </main>
 
   
+    
+      
+        <h2 id="modal-man-title" class="font-bold text-base">CAIXA Nº 1</h2>
+        <button onclick="closeManualAddModal()" class="text-white text-xl p-1 cursor-pointer">**</button>
+      
+
+
+      
+        
+          
+            <label class="mobile-label">Part Number / Código</label>
+            <input type="text" id="man-box-pn" list="cat-list" oninput="onManualPnInput(this.value)" class="mobile-input font-mono text-blue-800 font-bold" placeholder="EX: BC14030500" />
+            <datalist id="cat-list"></datalist>
+            DIGITE O CÓDIGO DA PEÇA...
+
+
+          
+
+
+          
+            
+              <label class="mobile-label">Lote</label>
+              <input type="text" id="man-box-lote" class="mobile-input text-sm" placeholder="LOTE" />
+            
+
+
+            
+              <label class="mobile-label">Qtd</label>
+              <input type="text" readonly data-keyboard="num" id="man-box-qtd" class="mobile-input text-sm font-bold cursor-pointer" placeholder="Qtd" />
+            
+
+
+          
+
+
+          
+            
+              <label class="mobile-label">Tara (Embalagem)</label>
+              <input type="text" readonly data-keyboard="num" id="man-box-tara" class="mobile-input text-sm cursor-pointer" placeholder="Kg" />
+            
+
+
+            
+              
+                <label class="mobile-label text-[9px]">Peso Bruto NF</label>
+                <input type="text" readonly data-keyboard="num" id="man-box-pnf" class="mobile-input bg-slate-50 text-sm cursor-pointer" placeholder="0,0" />
+              
+
+
+              
+                <label class="mobile-label text-[9px] text-emerald-700">Peso Físico</label>
+                <input type="text" readonly data-keyboard="num" id="man-box-pmando" class="mobile-input border-emerald-300 bg-emerald-50 text-emerald-800 font-black text-sm cursor-pointer" placeholder="0,0" />
+              
+
+
+            
+
+
+          
+
+
+        
+
+
+      
+
+
+      
+        
+          <button onclick="salvarManual(true)" class="btn-large btn-success py-3 text-sm">** Salvar e Add Outra</button>
+          <button onclick="salvarManual(false)" class="btn-large btn-primary bg-slate-800 py-3 text-sm">Salvar e Fechar</button>
+        
+
+
+      
+
+
+    
+
+
   
-    
-      <h2 id="modal-man-title" class="font-bold text-base">CAIXA Nº 1</h2>
-      <button onclick="closeManualAddModal()" class="text-white text-xl p-1 cursor-pointer">**</button>
-    
-
-
-    
-      
-        
-          <label class="mobile-label">Part Number / Código</label>
-          <input type="text" id="man-box-pn" list="cat-list" oninput="onManualPnInput(this.value)" class="mobile-input font-mono text-blue-800 font-bold" placeholder="EX: BC14030500" />
-          <datalist id="cat-list"></datalist>
-          DIGITE O CÓDIGO DA PEÇA...
-
-
-        
-
-
-        
-          
-            <label class="mobile-label">Lote</label>
-            <input type="text" id="man-box-lote" class="mobile-input text-sm" placeholder="LOTE" />
-          
-
-
-          
-            <label class="mobile-label">Qtd</label>
-            <input type="text" readonly data-keyboard="num" id="man-box-qtd" class="mobile-input text-sm font-bold cursor-pointer" placeholder="Qtd" />
-          
-
-
-        
-
-
-        
-          
-            <label class="mobile-label">Tara (Embalagem)</label>
-            <input type="text" readonly data-keyboard="num" id="man-box-tara" class="mobile-input text-sm cursor-pointer" placeholder="Kg" />
-          
-
-
-          
-            
-              <label class="mobile-label text-[9px]">Peso Bruto NF</label>
-              <input type="text" readonly data-keyboard="num" id="man-box-pnf" class="mobile-input bg-slate-50 text-sm cursor-pointer" placeholder="0,0" />
-            
-
-
-            
-              <label class="mobile-label text-[9px] text-emerald-700">Peso Físico</label>
-              <input type="text" readonly data-keyboard="num" id="man-box-pmando" class="mobile-input border-emerald-300 bg-emerald-50 text-emerald-800 font-black text-sm cursor-pointer" placeholder="0,0" />
-            
-
-
-          
-
-
-        
-
-
-      
-
-
-    
-
-
-    
-      
-        <button onclick="salvarManual(true)" class="btn-large btn-success py-3 text-sm">** Salvar e Add Outra</button>
-        <button onclick="salvarManual(false)" class="btn-large btn-primary bg-slate-800 py-3 text-sm">Salvar e Fechar</button>
-      
-
-
-    
-
-
-  
 
 
 
-  
   <main id="view-export" class="view-container p-4">
     
       
@@ -649,7 +658,6 @@
 
   </main>
 
-  
   
     
       
@@ -691,7 +699,6 @@
 
 
   
-  
     
       
         **
@@ -715,7 +722,6 @@
 
 
 
-  
   <nav class="bottom-nav" id="main-bottom-nav">
     ** Modo
 
@@ -728,7 +734,6 @@
 
   </nav>
 
-  
   
     
       TECLADO
@@ -829,6 +834,13 @@
       showToast('Sem conexão. Dados salvos localmente.');
     });
 
+    function fecharTodosModais() {
+      ['modal-cadastro', 'modal-email', 'modal-limpar', 'modal-add-manual'].forEach(function(id) {
+        const m = document.getElementById(id);
+        if (m) m.classList.remove('show');
+      });
+    }
+
     function setLoginType(type) {
       loginMode = type;
       const btnUser = document.getElementById('btn-login-user');
@@ -876,21 +888,13 @@
     }
 
     function abrirModalCadastro() {
+      fecharTodosModais();
       document.getElementById('cad-usuario').value = '';
       document.getElementById('cad-senha').value = '';
-      const modal = document.getElementById('modal-cadastro');
-      const box = document.getElementById('cadastro-box');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-      setTimeout(function() { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+      setTimeout(function() { document.getElementById('modal-cadastro').classList.add('show'); }, 10);
     }
-
     function fecharModalCadastro() {
-      const modal = document.getElementById('modal-cadastro');
-      const box = document.getElementById('cadastro-box');
-      modal.classList.add('opacity-0');
-      box.classList.add('scale-95');
-      setTimeout(function() { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
+      document.getElementById('modal-cadastro').classList.remove('show');
     }
 
     function executarCadastro() {
@@ -1034,6 +1038,7 @@
       document.getElementById('man-data').value = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
     }
     function navTo(viewId) {
+      fecharTodosModais();
       document.querySelectorAll('.view-container').forEach(function(el) { el.classList.remove('active'); });
       const target = document.getElementById('view-' + viewId);
       if (target) target.classList.add('active');
@@ -1190,7 +1195,7 @@
         if (raw.length > 5 && info.pn !== raw && info.pn.replace(/[^A-Z0-9]/g, '') === raw) pnInput.value = info.pn;
         if (info.fornecedor && (!fornHeader.value || fornHeader.value.trim() === '')) { fornHeader.value = info.fornecedor.toUpperCase(); appState.cabecalho.fornecedor = info.fornecedor.toUpperCase(); }
       } else if (raw.length > 3) {
-        feedback.innerText = '⚠️ PN NÃO ENCONTRADO';
+        feedback.innerText = 'PN NÃO ENCONTRADO';
         feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-rose-50 border border-rose-200 text-rose-700 text-center';
       }
     }
@@ -1220,16 +1225,16 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
     }
 
     function openManualAddModal() {
+      fecharTodosModais();
       editIndex = -1;
       document.getElementById('modal-man-title').innerText = 'CAIXA Nº ' + (appState.caixas.length + 1);
       ['pn','lote','qtd','tara','pnf','pmando'].forEach(function(id) { document.getElementById('man-box-' + id).value = ''; });
       document.getElementById('man-desc-feedback').innerText = 'DIGITE O CÓDIGO...';
       document.getElementById('man-desc-feedback').className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-white border border-slate-200 text-slate-500 text-center';
-      const modal = document.getElementById('modal-add-manual');
-      modal.classList.remove('hidden');
-      setTimeout(function() { modal.classList.remove('translate-y-full'); document.getElementById('man-box-pn').focus(); }, 10);
+      setTimeout(function() { document.getElementById('modal-add-manual').classList.add('show'); document.getElementById('man-box-pn').focus(); }, 10);
     }
     function openManualEditModal(idx) {
+      fecharTodosModais();
       editIndex = idx;
       const c = appState.caixas[idx];
       document.getElementById('modal-man-title').innerText = 'EDITAR CX Nº ' + c.caixa_no;
@@ -1240,14 +1245,10 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
       document.getElementById('man-box-pnf').value = c.peso_bruto_nf || '';
       document.getElementById('man-box-pmando').value = c.peso_bruto_mando || '';
       onManualPnInput(c.observacao || '');
-      const modal = document.getElementById('modal-add-manual');
-      modal.classList.remove('hidden');
-      setTimeout(function() { modal.classList.remove('translate-y-full'); }, 10);
+      setTimeout(function() { document.getElementById('modal-add-manual').classList.add('show'); }, 10);
     }
     function closeManualAddModal() {
-      const modal = document.getElementById('modal-add-manual');
-      modal.classList.add('translate-y-full');
-      setTimeout(function() { modal.classList.add('hidden'); }, 300);
+      document.getElementById('modal-add-manual').classList.remove('show');
       closeVKB();
     }
     function salvarManual(addAnother) {
@@ -1276,21 +1277,14 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
     }
 
     function openEmailModal() {
-      const modal = document.getElementById('modal-email');
-      const box = document.getElementById('email-box');
+      fecharTodosModais();
       let userEmail = operadorLogado.email || 'operador@hlcompany.com';
       document.getElementById('email-logado').value = userEmail;
       document.getElementById('email-extra').value = '';
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-      setTimeout(function() { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+      setTimeout(function() { document.getElementById('modal-email').classList.add('show'); }, 10);
     }
     function closeEmailModal() {
-      const modal = document.getElementById('modal-email');
-      const box = document.getElementById('email-box');
-      modal.classList.add('opacity-0');
-      box.classList.add('scale-95');
-      setTimeout(function() { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
+      document.getElementById('modal-email').classList.remove('show');
     }
     function criarWorkbookBase() {
       const wb = XLSX.utils.book_new();
@@ -1380,18 +1374,11 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
     }
 
     function abrirModalLimpar() {
-      const modal = document.getElementById('modal-limpar');
-      const box = document.getElementById('limpar-box');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-      setTimeout(function() { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+      fecharTodosModais();
+      setTimeout(function() { document.getElementById('modal-limpar').classList.add('show'); }, 10);
     }
     function closeLimparModal() {
-      const modal = document.getElementById('modal-limpar');
-      const box = document.getElementById('limpar-box');
-      modal.classList.add('opacity-0');
-      box.classList.add('scale-95');
-      setTimeout(function() { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
+      document.getElementById('modal-limpar').classList.remove('show');
     }
     function confirmarLimparTudo() {
       appState.caixas = [];
