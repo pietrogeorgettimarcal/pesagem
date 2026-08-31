@@ -22,31 +22,26 @@
       --bg: #f8fafc;
       --text: #1e293b;
     }
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg);
       color: var(--text);
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      height: 100dvh;
-      display: flex;
-      flex-direction: column;
+      margin: 0; padding: 0;
+      height: 100vh; height: 100dvh;
+      display: flex; flex-direction: column;
       overflow: hidden;
       touch-action: pan-y;
     }
     .view-container {
       flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
+      overflow-y: auto; overflow-x: hidden;
       padding-bottom: 90px;
       display: none;
       animation: fadeIn 0.2s ease;
       width: 100%;
     }
-    .view-container.active {
-      display: block;
-    }
+    .view-container.active { display: block; }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(5px); }
       to { opacity: 1; transform: translateY(0); }
@@ -79,70 +74,36 @@
       text-transform: uppercase;
     }
     .btn-large {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      padding: 14px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 14px;
       border-radius: 10px;
-      font-weight: 900;
-      font-size: 15px;
+      font-weight: 900; font-size: 15px;
       text-transform: uppercase;
       transition: active 0.1s;
-      border: none;
-      cursor: pointer;
+      border: none; cursor: pointer;
     }
-    .btn-large:active {
-      transform: scale(0.97);
-    }
-    .btn-primary {
-      background-color: var(--primary);
-      color: white;
-      box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2);
-    }
-    .btn-success {
-      background-color: #10b981;
-      color: white;
-    }
+    .btn-large:active { transform: scale(0.97); }
+    .btn-primary { background-color: var(--primary); color: white; box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2); }
+    .btn-success { background-color: #10b981; color: white; }
     .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: white;
-      border-top: 1px solid #e2e8f0;
-      display: none;
-      justify-content: space-around;
+      position: fixed; bottom: 0; left: 0; width: 100%;
+      background: white; border-top: 1px solid #e2e8f0;
+      display: none; justify-content: space-around;
       padding: 6px 0;
       padding-bottom: env(safe-area-inset-bottom, 8px);
       box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
       z-index: 50;
     }
     .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: #94a3b8;
-      font-size: 10px;
-      font-weight: 800;
-      padding: 8px;
-      border-radius: 8px;
-      flex: 1;
-      text-transform: uppercase;
-      cursor: pointer;
+      display: flex; flex-direction: column; align-items: center;
+      color: #94a3b8; font-size: 10px; font-weight: 800;
+      padding: 8px; border-radius: 8px; flex: 1;
+      text-transform: uppercase; cursor: pointer;
     }
-    .nav-item.active {
-      color: var(--primary);
-    }
-    .nav-item i {
-      font-size: 18px;
-      margin-bottom: 2px;
-    }
+    .nav-item.active { color: var(--primary); }
+    .nav-item i { font-size: 18px; margin-bottom: 2px; }
     .box-card {
-      background: white;
-      border-radius: 10px;
-      padding: 14px;
+      background: white; border-radius: 10px; padding: 14px;
       margin-bottom: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.04);
       border: 1px solid #e2e8f0;
@@ -150,72 +111,54 @@
       cursor: pointer;
     }
     .toast {
-      position: fixed;
-      top: 20px;
-      left: 50%;
+      position: fixed; top: 20px; left: 50%;
       transform: translateX(-50%) translateY(-100px);
-      background: #1e293b;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 20px;
-      font-weight: bold;
-      font-size: 13px;
+      background: #1e293b; color: white;
+      padding: 12px 20px; border-radius: 20px;
+      font-weight: bold; font-size: 13px;
       z-index: 1000;
       transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       white-space: nowrap;
     }
-    .toast.show {
-      transform: translateX(-50%) translateY(0);
-    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
     .seg {
-      display: flex;
-      background: #e2e8f0;
-      border-radius: 8px;
-      padding: 3px;
-      gap: 2px;
+      display: flex; background: #e2e8f0;
+      border-radius: 8px; padding: 3px; gap: 2px;
     }
     .seg button {
-      flex: 1;
-      padding: 8px 0;
+      flex: 1; padding: 8px 0;
       border-radius: 6px;
-      font-size: 10px;
-      font-weight: 900;
+      font-size: 10px; font-weight: 900;
       text-transform: uppercase;
-      border: none;
-      background: transparent;
-      color: #64748b;
-      cursor: pointer;
+      border: none; background: transparent;
+      color: #64748b; cursor: pointer;
       transition: all 0.15s;
     }
     .seg button.on {
-      background: var(--primary);
-      color: white;
+      background: var(--primary); color: white;
       box-shadow: 0 2px 4px rgba(0,92,158,0.2);
     }
-    .vkb-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
+    .vkb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .vkb-key {
-      background: white;
-      border-radius: 10px;
-      padding: 14px 0;
-      text-align: center;
-      font-size: 24px;
-      font-weight: 900;
-      color: #1e293b;
+      background: white; border-radius: 10px;
+      padding: 14px 0; text-align: center;
+      font-size: 24px; font-weight: 900; color: #1e293b;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       border: 1px solid #e2e8f0;
       transition: all 0.1s;
-      user-select: none;
-      -webkit-user-select: none;
+      user-select: none; -webkit-user-select: none;
       touch-action: manipulation;
     }
     .vkb-key:active { background: #cbd5e1; transform: scale(0.95); }
-    .vkb-key.action { background: #e2e8f0; color: #475569; font-size: 20px;}
-    .vkb-key.enter { background: #005c9e; color: white; grid-column: span 3; border: none; font-size: 16px; text-transform: uppercase; padding: 16px 0; margin-top: 4px; box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2); }
+    .vkb-key.action { background: #e2e8f0; color: #475569; font-size: 20px; }
+    .vkb-key.enter {
+      background: #005c9e; color: white;
+      grid-column: span 3; border: none;
+      font-size: 16px; text-transform: uppercase;
+      padding: 16px 0; margin-top: 4px;
+      box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2);
+    }
     .vkb-key.enter:active { transform: scale(0.98); background: #004b80; }
   </style>
 </head>
@@ -279,7 +222,7 @@
         
           <label class="mobile-label" id="label-login-input">Nome de usuário</label>
           <input type="text" id="login-email" class="mobile-input normal-case" placeholder="ex: joao.silva" />
-          ** Você pode usar seu nome de usuário ou apelido cadastrado.
+          Você pode usar seu nome de usuário ou apelido cadastrado.
 
 
         
@@ -292,9 +235,7 @@
 
 
         
-          <button onclick="fazerLogin()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
-            Entrar no Sistema
-          </button>
+          <button onclick="fazerLogin()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">Entrar no Sistema</button>
           <button onclick="abrirModalCadastro()" class="btn-large bg-slate-100 text-slate-700 hover:bg-slate-200">
             ** Criar meu Cadastro
           </button>
@@ -340,9 +281,7 @@
       
 
 
-      <button onclick="executarCadastro()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
-        Validar e Criar
-      </button>
+      <button onclick="executarCadastro()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">Validar e Criar</button>
     
 
 
@@ -426,9 +365,7 @@
       
 
 
-      <button onclick="avancarParaBipagem()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
-        Iniciar Bipagem **
-      </button>
+      <button onclick="avancarParaBipagem()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">Iniciar Bipagem **</button>
     
 
 
@@ -515,12 +452,8 @@
 
 
       
-        <button onclick="salvarColetorMain(true)" class="btn-large btn-success py-3">
-          ** Salvar e Bipar Próxima
-        </button>
-        <button onclick="salvarColetorMain(false)" class="btn-large bg-slate-800 text-white shadow-lg py-3 text-sm">
-          ** Salvar e Exportar
-        </button>
+        <button onclick="salvarColetorMain(true)" class="btn-large btn-success py-3">** Salvar e Bipar Próxima</button>
+        <button onclick="salvarColetorMain(false)" class="btn-large bg-slate-800 text-white shadow-lg py-3 text-sm">** Salvar e Exportar</button>
       
 
 
@@ -575,9 +508,7 @@
       
 
 
-      <button onclick="navTo('manual-items')" class="btn-large btn-primary mt-5">
-        Avançar para Caixas **
-      </button>
+      <button onclick="navTo('manual-items')" class="btn-large btn-primary mt-5">Avançar para Caixas **</button>
     
 
 
@@ -597,9 +528,7 @@
 
 
     
-      <button onclick="openManualAddModal()" class="btn-large btn-primary pointer-events-auto shadow-lg shadow-blue-500/30 max-w-sm">
-        ** Add Caixa Manual
-      </button>
+      <button onclick="openManualAddModal()" class="btn-large btn-primary pointer-events-auto shadow-lg shadow-blue-500/30 max-w-sm">** Add Caixa Manual</button>
     
 
 
@@ -619,9 +548,7 @@
           <label class="mobile-label">Part Number / Código</label>
           <input type="text" id="man-box-pn" list="cat-list" oninput="onManualPnInput(this.value)" class="mobile-input font-mono text-blue-800 font-bold" placeholder="EX: BC14030500" />
           <datalist id="cat-list"></datalist>
-          
-            DIGITE O CÓDIGO DA PEÇA...
-          
+          DIGITE O CÓDIGO DA PEÇA...
 
 
         
@@ -677,12 +604,8 @@
 
     
       
-        <button onclick="salvarManual(true)" class="btn-large btn-success py-3 text-sm">
-          ** Salvar e Add Outra
-        </button>
-        <button onclick="salvarManual(false)" class="btn-large btn-primary bg-slate-800 py-3 text-sm">
-          Salvar e Fechar
-        </button>
+        <button onclick="salvarManual(true)" class="btn-large btn-success py-3 text-sm">** Salvar e Add Outra</button>
+        <button onclick="salvarManual(false)" class="btn-large btn-primary bg-slate-800 py-3 text-sm">Salvar e Fechar</button>
       
 
 
@@ -710,19 +633,11 @@
 
 
       
-        <button onclick="openEmailModal()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
-          ** Enviar por E-mail
-        </button>
-        <button onclick="gerarExcel()" class="btn-large bg-white text-emerald-700 border-2 border-emerald-600">
-          ** Apenas Salvar Excel
-        </button>
-        <button onclick="sincronizarComDesktop()" class="btn-large btn-primary shadow-lg shadow-blue-600/30">
-          ** Enviar p/ Desktop
-        </button>
+        <button onclick="openEmailModal()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">** Enviar por E-mail</button>
+        <button onclick="gerarExcel()" class="btn-large bg-white text-emerald-700 border-2 border-emerald-600">** Apenas Salvar Excel</button>
+        <button onclick="sincronizarComDesktop()" class="btn-large btn-primary shadow-lg shadow-blue-600/30">** Enviar p/ Desktop</button>
         
-          <button onclick="abrirModalLimpar()" class="btn-large bg-red-50 text-red-600 border border-red-200 text-sm">
-            ** Limpar / Iniciar Nova
-          </button>
+          <button onclick="abrirModalLimpar()" class="btn-large bg-red-50 text-red-600 border border-red-200 text-sm">** Limpar / Iniciar Nova</button>
         
 
 
@@ -758,9 +673,7 @@
 
         
           **
-          
-            O sistema usará o compartilhamento nativo. Escolha seu app de E-mail (Gmail/Outlook) e o Excel já estará anexado automaticamente!
-          
+          O sistema usará o compartilhamento nativo. Escolha seu app de E-mail (Gmail/Outlook) e o Excel já estará anexado automaticamente!
 
 
         
@@ -769,9 +682,7 @@
       
 
 
-      <button onclick="confirmarEnvioEmail()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
-        Abrir Compartilhamento
-      </button>
+      <button onclick="confirmarEnvioEmail()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">Abrir Compartilhamento</button>
     
 
 
@@ -806,19 +717,13 @@
 
   
   <nav class="bottom-nav" id="main-bottom-nav">
-    
-      ** Modo
-    
+    ** Modo
 
 
-    
-      ** Caixas
-    
+    ** Caixas
 
 
-    
-      ** Exportar
-    
+    ** Exportar
 
 
   </nav>
@@ -843,9 +748,6 @@
 
 
   <script>
-    // ========================================================
-    // ESTADO GLOBAL
-    // ========================================================
     let appState = {
       modo: null,
       cabecalho: { fornecedor: "", nota_fiscal_principal: "", data_conferencia: "", operador: "", turno: "A" },
@@ -877,12 +779,9 @@
 
     const CATALOGO_INTERNO = {
       "BC380A2200": { desc: "CARCACA DIRECAO", peso: 2.15, fornecedor: "MANDO HEADQUARTER" },
-      "BC14030500": { desc: "PINHAO", peso: 0.8, fornecedor: "AÇO PEÇAS" },
+      "BC14030500": { desc: "PINHAO", peso: 0.8, fornecedor: "AÇO PEÇAS" }
     };
 
-    // ========================================================
-    // CACHE OFFLINE
-    // ========================================================
     const LS_KEYS = {
       CATALOG: 'hl_pesagem_catalog_cache',
       FORNECEDORES: 'hl_pesagem_forn_cache',
@@ -893,7 +792,6 @@
     function saveCacheLS(key, data) {
       try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) {}
     }
-
     function loadCacheLS(key) {
       try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; }
     }
@@ -903,21 +801,19 @@
       const fila = loadCacheLS(LS_KEYS.PENDING_SYNC) || [];
       if (fila.length === 0) return;
       let restantes = [];
-      let promessas = fila.map(item => {
-        return db.ref('loteNotas').once('value').then(snap => {
+      Promise.all(fila.map(function(item) {
+        return db.ref('loteNotas').once('value').then(function(snap) {
           let arr = snap.val() || [];
           arr.push(item);
           return db.ref('loteNotas').set(arr);
-        }).then(() => { showToast('Dados sincronizados!'); })
-          .catch(() => { restantes.push(item); });
-      });
-      Promise.all(promessas).then(() => {
+        }).then(function() {}).catch(function() { restantes.push(item); });
+      })).then(function() {
         saveCacheLS(LS_KEYS.PENDING_SYNC, restantes);
         pendingSync = restantes;
       });
     }
 
-    window.addEventListener('online', () => {
+    window.addEventListener('online', function() {
       isOnline = true;
       const dot = document.getElementById('sync-status');
       if (dot) { dot.classList.remove('bg-amber-400'); dot.classList.add('bg-emerald-400'); }
@@ -926,16 +822,13 @@
       initFirebaseListeners();
     });
 
-    window.addEventListener('offline', () => {
+    window.addEventListener('offline', function() {
       isOnline = false;
       const dot = document.getElementById('sync-status');
       if (dot) { dot.classList.remove('bg-emerald-400'); dot.classList.add('bg-amber-400'); }
       showToast('Sem conexão. Dados salvos localmente.');
     });
 
-    // ========================================================
-    // LOGIN (SINCRONIZADO COM APP DE CONTROLE)
-    // ========================================================
     function setLoginType(type) {
       loginMode = type;
       const btnUser = document.getElementById('btn-login-user');
@@ -949,13 +842,13 @@
         btnEmail.classList.remove('on');
         if (label) label.innerText = 'Nome de usuário';
         if (input) input.placeholder = 'ex: joao.silva';
-        if (hint) hint.innerHTML = '** Você pode usar seu nome de usuário ou apelido cadastrado.';
+        if (hint) hint.innerText = 'Você pode usar seu nome de usuário ou apelido cadastrado.';
       } else {
         btnUser.classList.remove('on');
         btnEmail.classList.add('on');
         if (label) label.innerText = 'E-mail';
         if (input) input.placeholder = 'ex: joao@hlcompany.com';
-        if (hint) hint.innerHTML = '** Digite seu endereço de e-mail cadastrado.';
+        if (hint) hint.innerText = 'Digite seu endereço de e-mail cadastrado.';
       }
     }
 
@@ -974,9 +867,9 @@
       const senha = document.getElementById('login-senha').value;
       if (!userRaw || !senha) { showToast('Preencha usuário/e-mail e senha.'); return; }
       const emailFinal = formatarEmail(userRaw);
-      auth.signInWithEmailAndPassword(emailFinal, senha).then(() => {
+      auth.signInWithEmailAndPassword(emailFinal, senha).then(function() {
         showToast('Login efetuado com sucesso!');
-      }).catch(error => {
+      }).catch(function(error) {
         let msg = error.code === 'auth/invalid-credential' ? 'Usuário/e-mail ou senha incorretos.' : 'Erro: ' + error.message;
         showToast(msg);
       });
@@ -989,7 +882,7 @@
       const box = document.getElementById('cadastro-box');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
-      setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+      setTimeout(function() { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
     }
 
     function fecharModalCadastro() {
@@ -997,7 +890,7 @@
       const box = document.getElementById('cadastro-box');
       modal.classList.add('opacity-0');
       box.classList.add('scale-95');
-      setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
+      setTimeout(function() { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
     }
 
     function executarCadastro() {
@@ -1009,37 +902,34 @@
       if (!emailFinal.includes('@')) {
         emailFinal = emailFinal.replace(/[^a-z0-9._-]/g, '') + '@hlcompany.com';
       }
-      db.ref('cadastros/operadores').once('value').then(snap => {
+      db.ref('cadastros/operadores').once('value').then(function(snap) {
         let ops = snap.val();
         let arr = Array.isArray(ops) ? ops.filter(Boolean) : Object.values(ops || {}).filter(Boolean);
         let targetU = userRaw.includes('@') ? userRaw.split('@')[0] : userRaw;
         let targetE = userRaw.includes('@') ? userRaw : '';
-        let operadorAutorizado = arr.find(o => {
+        let autorizado = arr.find(function(o) {
           if (!o) return false;
           let u = (typeof o === 'object' && o.usuario) ? String(o.usuario).trim().toLowerCase() : '';
           let e = (typeof o === 'object' && o.email) ? String(o.email).trim().toLowerCase() : '';
           return (u && u === targetU) || (e && e === targetE) || (e && e === targetU);
         });
-        if (!operadorAutorizado) {
-          showToast('Usuário não cadastrado. Fale com o admin.');
-          return;
-        }
-        auth.createUserWithEmailAndPassword(emailFinal, senha).then(() => {
+        if (!autorizado) { showToast('Usuário não cadastrado. Fale com o admin.'); return; }
+        auth.createUserWithEmailAndPassword(emailFinal, senha).then(function() {
           fecharModalCadastro();
           showToast('Acesso validado e vinculado com sucesso!');
-        }).catch(error => {
+        }).catch(function(error) {
           let msg = 'Erro ao cadastrar: ' + error.message;
           if (error.code === 'auth/email-already-in-use') msg = 'Esta credencial já existe! Tente fazer Login.';
           if (error.code === 'auth/weak-password') msg = 'A senha deve ter pelo menos 6 caracteres.';
           showToast(msg);
         });
-      }).catch(() => { showToast('Erro ao verificar autorização.'); });
+      }).catch(function() { showToast('Erro ao verificar autorização.'); });
     }
 
     function logout(mensagemToast) {
       if (mensagemToast === undefined) mensagemToast = 'Deslogado com sucesso.';
       if (auth) {
-        auth.signOut().then(() => {
+        auth.signOut().then(function() {
           appState.caixas = [];
           document.getElementById('btn-logout').classList.add('hidden');
           document.getElementById('login-email').value = '';
@@ -1052,9 +942,6 @@
       }
     }
 
-    // ========================================================
-    // SESSÃO: 10 MIN INATIVIDADE
-    // ========================================================
     let inactivityTimer;
     const INACTIVITY_TIME_MS = 10 * 60 * 1000;
     function resetTimer() {
@@ -1069,9 +956,6 @@
       }
     });
 
-    // ========================================================
-    // TECLADO VIRTUAL
-    // ========================================================
     let currentVKBInput = null;
     function initVKB() {
       document.querySelectorAll('[data-keyboard]').forEach(function(inp) {
@@ -1098,7 +982,7 @@
       });
       if (type === 'nf') {
         title.innerHTML = '** TECLADO NF';
-        keysHtml += '<button type="button" class="vkb-key action" onclick="vkbType(event, \'-\')">-</button>';
+        keysHtml += '<button type="button" class="vkb-key action" onclick="vkbType(event, \'-\')>-</button>';
       } else {
         title.innerHTML = '** TECLADO PESAGEM';
         keysHtml += '<button type="button" class="vkb-key action" onclick="vkbType(event, \',\')">,</button>';
@@ -1139,9 +1023,6 @@
       else closeVKB();
     }
 
-    // ========================================================
-    // UTILS
-    // ========================================================
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.innerText = msg;
@@ -1184,9 +1065,6 @@
       else if (currentView === 'export') navTo('mode-select');
     }
 
-    // ========================================================
-    // CATÁLOGO E BUSCA DE PEÇAS
-    // ========================================================
     function buscarInfoPeca(rawInput) {
       let cleanInput = rawInput.replace(/[^A-Z0-9]/g, '');
       let bestMatch = { pn: rawInput, desc: "", peso: null, fornecedor: "" };
@@ -1204,9 +1082,6 @@
       return bestMatch;
     }
 
-    // ========================================================
-    // FLUXO DE PESAGEM
-    // ========================================================
     function iniciarFluxo(modo) {
       appState.modo = modo;
       if (modo === 'coletor') {
@@ -1234,7 +1109,7 @@
     scanInput.addEventListener('keydown', function(event) {
       if (event.key === 'Enter' || event.keyCode === 13) { event.preventDefault(); clearTimeout(scanTimeout); const val = this.value; this.value = ''; if (val) processarColetorMain(val); }
     });
-    scanInput.addEventListener('input', function(event) {
+    scanInput.addEventListener('input', function() {
       clearTimeout(scanTimeout);
       scanTimeout = setTimeout(function() { const val = scanInput.value; if (val.trim().length > 5) { scanInput.value = ''; processarColetorMain(val); } }, 400);
     });
@@ -1400,9 +1275,6 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
       else { closeManualAddModal(); }
     }
 
-    // ========================================================
-    // E-MAIL E EXCEL
-    // ========================================================
     function openEmailModal() {
       const modal = document.getElementById('modal-email');
       const box = document.getElementById('email-box');
@@ -1469,12 +1341,12 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
       let shareSuccess = false;
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try { await navigator.share({ files: [file], title: subject, text: textBody }); showToast('Aberto no app de e-mail!'); shareSuccess = true; closeEmailModal(); }
-        catch (error) { console.log('Compartilhamento nativo bloqueado.', error); }
+        catch (error) {}
       }
       if (!shareSuccess) {
         XLSX.writeFile(wb, fileName);
         const encodedSubject = encodeURIComponent(subject);
-        const encodedBody = encodeURIComponent(textBody + '\n\n⚠️ ATENÇÃO: O ARQUIVO FOI BAIXADO. CLIQUE NO CLIPE DE PAPEL (ANEXO) PARA INCLUIR A PLANILHA QUE ACABOU DE BAIXAR.');
+        const encodedBody = encodeURIComponent(textBody + '\n\nATENÇÃO: O ARQUIVO FOI BAIXADO. CLIQUE NO CLIPE DE PAPEL (ANEXO) PARA INCLUIR A PLANILHA QUE ACABOU DE BAIXAR.');
         window.location.href = 'mailto:' + dest + '?subject=' + encodedSubject + '&body=' + encodedBody;
         closeEmailModal();
       }
@@ -1486,9 +1358,6 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
       showToast('Excel Gerado e Baixado!');
     }
 
-    // ========================================================
-    // SINCRONIZAÇÃO COM DESKTOP (FILA OFFLINE)
-    // ========================================================
     function sincronizarComDesktop() {
       if (appState.caixas.length === 0) { showToast('Nada para enviar.'); return; }
       const novaNota = { modo: appState.modo, title: 'Lançamento Mobile', cabecalho: appState.cabecalho, caixas: appState.caixas };
@@ -1510,9 +1379,6 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
         });
     }
 
-    // ========================================================
-    // MODAL LIMPAR
-    // ========================================================
     function abrirModalLimpar() {
       const modal = document.getElementById('modal-limpar');
       const box = document.getElementById('limpar-box');
@@ -1535,9 +1401,6 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
       closeLimparModal();
     }
 
-    // ========================================================
-    // FIREBASE INIT (COM CACHE OFFLINE)
-    // ========================================================
     function initFirebaseListeners() {
       if (!db) return;
       db.ref('cadastros/fornecedores').on('value', function(snap) {
@@ -1672,7 +1535,7 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
 
         if (isOnline) initFirebaseListeners();
         tentarSyncPendente();
-      } catch(e) { console.error('Firebase init error:', e); }
+      } catch(e) {}
     }
 
     window.onload = function() {
