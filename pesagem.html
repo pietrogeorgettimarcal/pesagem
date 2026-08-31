@@ -9,12 +9,14 @@
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2800/2800118.png">
   <title>App Pesagem Mobile - HL Mando</title>
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+  
   <style>
     :root { --primary: #005c9e; --primary-dark: #004b80; --bg: #f8fafc; --text: #1e293b; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; touch-action: pan-y; }
@@ -44,484 +46,305 @@
   </style>
 </head>
 <body>
+  
+  <!-- TOAST (Notificações) -->
+  <div id="toast" class="toast"></div>
+
   <header class="bg-[#0f172a] text-white p-3 flex justify-between items-center shrink-0 shadow-md z-10 pt-[env(safe-area-inset-top,12px)]">
-    
+    <div class="flex items-center gap-3">
       <button id="btn-global-back" onclick="navigateBack()" class="hidden text-slate-300 hover:text-white px-2 py-1 text-lg">
-        **
+        <i class="fas fa-arrow-left"></i>
       </button>
-      
-        **
-      
-
-
-      
+      <div id="sync-status" class="w-2 h-2 rounded-full bg-slate-500"></div>
+      <div>
         <h1 class="font-black text-sm leading-tight tracking-tight">HL MANDO</h1>
-        Pesagem Mobile
-
-
-      
-
-
-    
-
-
-    
-      <button onclick="logout('Deslogado com sucesso.')" id="btn-logout" class="hidden text-[10px] bg-slate-800 px-2 py-1.5 rounded text-slate-300 hover:text-white font-bold uppercase tracking-wider">
-        ** Sair
-      </button>
-      
-
-
-    
-
-
+        <div class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Pesagem Mobile</div>
+      </div>
+    </div>
+    <button onclick="logout('Deslogado com sucesso.')" id="btn-logout" class="hidden text-[10px] bg-slate-800 px-2 py-1.5 rounded text-slate-300 hover:text-white font-bold uppercase tracking-wider">
+      <i class="fas fa-sign-out-alt"></i> Sair
+    </button>
   </header>
 
-  
+  <!-- VIEW LOGIN -->
   <main id="view-login" class="view-container active p-4">
+    <div class="mb-8 mt-4 text-center">
+      <div class="inline-block bg-blue-100 text-blue-700 p-4 rounded-full mb-3">
+        <i class="fas fa-user-lock text-3xl"></i>
+      </div>
+      <h2 class="font-black text-2xl text-slate-800 tracking-tight">ACESSO</h2>
+      <p class="text-slate-500 text-sm font-semibold">Identifique-se para iniciar a pesagem</p>
+    </div>
     
+    <div class="space-y-4">
+      <div>
+        <label class="mobile-label">Usuário (E-mail)</label>
+        <input type="text" id="login-email" class="mobile-input normal-case" placeholder="ex: joao (só o nome)" />
+        <p class="text-[10px] text-slate-400 mt-1"><i class="fas fa-info-circle"></i> O @hlcompany.com é inserido sozinho.</p>
+      </div>
+      <div>
+        <label class="mobile-label">Senha</label>
+        <input type="password" id="login-senha" class="mobile-input normal-case" placeholder="••••••••" />
+      </div>
       
-        
-          **
-        
-
-
-        <h2 class="font-black text-2xl text-slate-800 tracking-tight">ACESSO</h2>
-        Identifique-se para iniciar a pesagem
-
-
-      
-
-
-      
-        
-          <label class="mobile-label">Usuário (E-mail)</label>
-          <input type="text" id="login-email" class="mobile-input normal-case" placeholder="ex: joao (só o nome)" />
-          ** O @hlcompany.com é inserido sozinho.
-
-
-        
-
-
-        
-          <label class="mobile-label">Senha</label>
-          <input type="password" id="login-senha" class="mobile-input normal-case" placeholder="••••••••" />
-        
-
-
-        
-          <button onclick="fazerLogin()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
-            ** Entrar no Sistema
-          </button>
-          <button onclick="fazerCadastro()" class="btn-large bg-slate-100 text-slate-700 hover:bg-slate-200">
-            ** Criar meu Cadastro
-          </button>
-          <button onclick="abrirAcessoAdmin()" class="mx-auto mt-2 block text-[11px] font-black uppercase tracking-wider text-slate-400 hover:text-blue-600">
-            ** Área do administrador
-          </button>
-        
-
-
-      
-
-
-    
-
-
-  </main>
-
-  
-  <main id="view-admin" class="view-container p-4">
-    
-      <h2 class="font-black text-lg text-slate-800 flex items-center gap-2 uppercase">
-        ** Liberar Acessos
-      </h2>
-      
-        
-          <label class="mobile-label">Senha de Administrador</label>
-          <input type="password" id="admin-pass" class="mobile-input normal-case" placeholder="••••••••" autocomplete="off" />
-        
-
-
-        <button onclick="entrarPainelAdmin()" class="btn-large btn-primary">
-          ** Abrir Painel
+      <div class="pt-4 space-y-3">
+        <button onclick="fazerLogin()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
+          <i class="fas fa-sign-in-alt"></i> Entrar no Sistema
         </button>
-      
-
-
-      
-        
-          <label class="mobile-label text-emerald-700">** Solicitações pendentes</label>
-          
-
-
-        
-
-
-        <button onclick="navTo('login')" class="btn-large bg-slate-100 text-slate-700">Voltar ao Login</button>
-      
-
-
-    
-
-
+        <button onclick="fazerCadastro()" class="btn-large bg-slate-100 text-slate-700 hover:bg-slate-200">
+          <i class="fas fa-user-plus"></i> Criar meu Cadastro
+        </button>
+        <button onclick="abrirAcessoAdmin()" class="mx-auto mt-2 block text-[11px] font-black uppercase tracking-wider text-slate-400 hover:text-blue-600">
+          <i class="fas fa-cog"></i> Área do administrador
+        </button>
+      </div>
+    </div>
   </main>
 
-  
+  <!-- VIEW ADMIN -->
+  <main id="view-admin" class="view-container p-4">
+    <h2 class="font-black text-lg text-slate-800 flex items-center gap-2 uppercase mb-4">
+      <i class="fas fa-unlock-alt"></i> Liberar Acessos
+    </h2>
+    
+    <div id="admin-lock">
+      <label class="mobile-label">Senha de Administrador</label>
+      <input type="password" id="admin-pass" class="mobile-input normal-case mb-3" placeholder="••••••••" autocomplete="off" />
+      <button onclick="entrarPainelAdmin()" class="btn-large btn-primary">
+        <i class="fas fa-key"></i> Abrir Painel
+      </button>
+    </div>
+
+    <div id="admin-panel" class="hidden mt-4">
+      <label class="mobile-label text-emerald-700"><i class="fas fa-users-cog"></i> Solicitações pendentes</label>
+      <div id="admin-pendentes" class="flex flex-col gap-2 mb-4"></div>
+      <button onclick="navTo('login')" class="btn-large bg-slate-100 text-slate-700"><i class="fas fa-arrow-left"></i> Voltar ao Login</button>
+    </div>
+  </main>
+
+  <!-- VIEW MODO -->
   <main id="view-mode-select" class="view-container p-4">
-    
-      
-        **
+    <div class="mb-4 bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+      <div>
+        <div class="text-[10px] text-slate-500 font-bold uppercase">Operador Logado</div>
+        <div id="lbl-operador-logado" class="font-black text-blue-900">-</div>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] text-slate-500 font-bold uppercase">Turno</div>
+        <div id="lbl-operador-turno" class="font-bold text-slate-700">-</div>
+      </div>
+    </div>
 
-
-        
-        Operador Logado
-
-
-          -
-
-
-          -
-
-
-        
-
-
-      
-
-
-      
-        <h2 class="font-black text-lg text-slate-800 uppercase tracking-tight mb-4">Escolha o Modo</h2>
-        
-          <button onclick="iniciarFluxo('coletor')" class="btn-large btn-primary py-5">
-            **MODO COLETORLeitura de etiquetas (VDA)
-
-
-          </button>
-          <button onclick="iniciarFluxo('manual')" class="btn-large bg-white text-slate-700 py-5 border-2 border-slate-200 shadow-sm">
-            **MODO MANUALDigitação passo a passo
-
-
-          </button>
-        
-
-
-      
-
-
-    
-
-
+    <div class="mt-6 space-y-4">
+      <h2 class="font-black text-lg text-slate-800 uppercase tracking-tight mb-4">Escolha o Modo</h2>
+      <button onclick="iniciarFluxo('coletor')" class="btn-large btn-primary py-5 flex-col gap-1">
+        <div class="text-lg"><i class="fas fa-barcode"></i> MODO COLETOR</div>
+        <div class="text-[10px] font-bold text-blue-200">Leitura de etiquetas (VDA)</div>
+      </button>
+      <button onclick="iniciarFluxo('manual')" class="btn-large bg-white text-slate-700 py-5 border-2 border-slate-200 shadow-sm flex-col gap-1">
+        <div class="text-lg"><i class="fas fa-keyboard"></i> MODO MANUAL</div>
+        <div class="text-[10px] font-bold text-slate-400">Digitação passo a passo</div>
+      </button>
+    </div>
   </main>
 
-  
+  <!-- VIEW COLETOR NF -->
   <main id="view-coletor-nf" class="view-container p-4">
-    
-      <h2 class="font-black text-lg text-slate-800 flex items-center gap-2 uppercase">** Informe a Nota Fiscal</h2>
-      
-        <label class="mobile-label">Nota Fiscal (Obrigatório)</label>
-        <input type="text" readonly data-keyboard="nf" id="col-nf-input" class="mobile-input text-lg font-black cursor-pointer" placeholder="EX: 0197859" />
-        O fornecedor e outros dados serão puxados automaticamente no primeiro bip.
-
-
-      
-
-
-      <button onclick="avancarParaBipagem()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">Iniciar Bipagem **</button>
-    
-
-
+    <h2 class="font-black text-lg text-slate-800 flex items-center gap-2 uppercase mb-4">
+      <i class="fas fa-file-invoice"></i> Informe a Nota Fiscal
+    </h2>
+    <div class="mb-6">
+      <label class="mobile-label">Nota Fiscal (Obrigatório)</label>
+      <input type="text" readonly data-keyboard="nf" id="col-nf-input" class="mobile-input text-lg font-black cursor-pointer" placeholder="EX: 0197859" />
+      <p class="text-[10px] text-slate-500 font-semibold mt-2"><i class="fas fa-magic"></i> O fornecedor e outros dados serão puxados automaticamente no primeiro bip.</p>
+    </div>
+    <button onclick="avancarParaBipagem()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
+      Iniciar Bipagem <i class="fas fa-arrow-right"></i>
+    </button>
   </main>
 
-  
+  <!-- VIEW COLETOR MAIN -->
   <main id="view-coletor-main" class="view-container p-3">
-    
-      
-        <label class="mobile-label text-blue-100 mb-2">** Bipe a Etiqueta VDA</label>
-        <input type="text" id="col-main-scan" class="mobile-input text-center font-mono font-black text-blue-900 bg-white border-none py-3" placeholder="Aponte o leitor aqui..." autocomplete="off" />
-        Caixas lidas nesta nota: 0
+    <div class="bg-blue-600 rounded-xl p-3 mb-4 shadow-lg shadow-blue-500/20 text-center">
+      <label class="mobile-label text-blue-100 mb-2"><i class="fas fa-barcode"></i> Bipe a Etiqueta VDA</label>
+      <input type="text" id="col-main-scan" class="mobile-input text-center font-mono font-black text-blue-900 bg-white border-none py-3" placeholder="Aponte o leitor aqui..." autocomplete="off" />
+      <div class="text-[10px] text-blue-200 font-bold mt-2 uppercase">Caixas lidas nesta nota: <span id="col-main-count" class="text-white text-sm">0</span></div>
+    </div>
 
+    <div class="bg-white rounded-xl p-3 border border-slate-200 shadow-sm mb-4">
+      <h2 class="font-black text-xs text-slate-800 mb-2 flex items-center gap-1 uppercase border-b border-slate-100 pb-2">
+        <i class="fas fa-box-open"></i> Dados da Peça Extraídos
+      </h2>
+      <div class="grid grid-cols-2 gap-2 mb-2">
+        <div><label class="mobile-label text-[9px]">Part Number</label><input type="text" id="col-main-pn" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" /></div>
+        <div><label class="mobile-label text-[9px]">Lote</label><input type="text" id="col-main-lote" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" /></div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="mobile-label text-[9px]">Qtd (Peças)</label><input type="text" id="col-main-qtd" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold" readonly placeholder="-" /></div>
+        <div><label class="mobile-label text-[9px]">Fornecedor</label><input type="text" id="col-main-forn" class="mobile-input bg-slate-50 text-slate-600 border-none text-[10px] truncate" readonly placeholder="-" /></div>
+      </div>
+    </div>
 
-      
+    <div class="bg-white rounded-xl p-3 border border-slate-200 shadow-sm mb-4">
+      <h2 class="font-black text-sm text-slate-800 flex items-center gap-2 uppercase border-b border-slate-200 pb-2 mb-3">
+        <i class="fas fa-balance-scale"></i> Inserir Pesos
+      </h2>
+      <div class="mb-3">
+        <label class="mobile-label text-blue-800">1. Tara (Embalagem Vazia)</label>
+        <input type="text" readonly data-keyboard="num" id="col-main-tara" class="mobile-input bg-white border-blue-300 text-base font-black text-blue-900 cursor-pointer" placeholder="Ex: 0,5" />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="mobile-label text-slate-600">2. Peso Bruto NF</label>
+          <input type="text" readonly data-keyboard="num" id="col-main-pnf" class="mobile-input bg-white text-sm cursor-pointer" placeholder="0,0" />
+        </div>
+        <div>
+          <label class="mobile-label text-emerald-700">3. Peso Físico</label>
+          <input type="text" readonly data-keyboard="num" id="col-main-pmando" class="mobile-input bg-emerald-100 border-emerald-300 text-emerald-900 font-black text-sm cursor-pointer" placeholder="0,0" />
+        </div>
+      </div>
+    </div>
 
-
-      
-        <h2 class="font-black text-xs text-slate-800 mb-2 flex items-center gap-1 uppercase border-b border-slate-100 pb-2">** Dados da Peça Extraídos</h2>
-        
-          <label class="mobile-label text-[9px]">Part Number</label><input type="text" id="col-main-pn" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
-
-
-          <label class="mobile-label text-[9px]">Lote</label><input type="text" id="col-main-lote" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
-
-
-        
-
-
-        
-          <label class="mobile-label text-[9px]">Qtd (Peças)</label><input type="text" id="col-main-qtd" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold" readonly placeholder="-" />
-
-
-          <label class="mobile-label text-[9px]">Fornecedor</label><input type="text" id="col-main-forn" class="mobile-input bg-slate-50 text-slate-600 border-none text-[10px] truncate" readonly placeholder="-" />
-
-
-        
-
-
-      
-
-
-      
-        <h2 class="font-black text-sm text-slate-800 flex items-center gap-2 uppercase border-b border-slate-200 pb-2">** Inserir Pesos</h2>
-        <label class="mobile-label text-blue-800">1. Tara (Embalagem Vazia)</label><input type="text" readonly data-keyboard="num" id="col-main-tara" class="mobile-input bg-white border-blue-300 text-base font-black text-blue-900 cursor-pointer" placeholder="Ex: 0,5" />
-
-
-        
-          <label class="mobile-label text-slate-600">2. Peso Bruto NF</label><input type="text" readonly data-keyboard="num" id="col-main-pnf" class="mobile-input bg-white text-sm cursor-pointer" placeholder="0,0" />
-
-
-          <label class="mobile-label text-emerald-700">3. Peso Físico</label><input type="text" readonly data-keyboard="num" id="col-main-pmando" class="mobile-input bg-emerald-100 border-emerald-300 text-emerald-900 font-black text-sm cursor-pointer" placeholder="0,0" />
-
-
-        
-
-
-      
-
-
-      
-        <button onclick="salvarColetorMain(true)" class="btn-large btn-success py-3">** Salvar e Bipar Próxima</button>
-        <button onclick="salvarColetorMain(false)" class="btn-large bg-slate-800 text-white shadow-lg py-3 text-sm">** Salvar e Exportar</button>
-      
-
-
-    
-
-
+    <div class="flex gap-2">
+      <button onclick="salvarColetorMain(true)" class="btn-large btn-success py-3 flex-1"><i class="fas fa-check"></i> Salvar e Próxima</button>
+      <button onclick="salvarColetorMain(false)" class="btn-large bg-slate-800 text-white shadow-lg py-3 text-sm flex-1"><i class="fas fa-save"></i> Salvar e Exportar</button>
+    </div>
   </main>
 
-  
+  <!-- VIEW MANUAL HEADER -->
   <main id="view-manual-header" class="view-container p-4">
-    
-      <h2 class="font-black text-lg text-slate-800 mb-3 flex items-center gap-2 uppercase">** Digitação Manual</h2>
-      
-        <label class="mobile-label">Notas Fiscais (Separe por hífen)</label><input type="text" readonly data-keyboard="nf" id="man-nf" class="mobile-input text-sm cursor-pointer" placeholder="EX: 0197859" />
-
-
-        <label class="mobile-label">Fornecedor</label><input type="text" id="man-forn" list="forn-list" class="mobile-input text-sm" placeholder="EX: AÇO PEÇAS" /><datalist id="forn-list"></datalist>
-
-
-        
-          <label class="mobile-label flex justify-between">Data HOJE</label><input type="text" id="man-data" class="mobile-input text-sm" placeholder="DD/MM/AAAA" />
-
-
-          <label class="mobile-label">Turno</label><select id="man-turno" class="mobile-input bg-white text-sm"><option value="A">TURNO A</option><option value="B">TURNO B</option><option value="C">TURNO C</option><option value="D">TURNO D</option><option value="E">TURNO E</option><option value="COMERCIAL">COMERCIAL</option></select>
-
-
-        
-
-
-      
-
-
-      <button onclick="navTo('manual-items')" class="btn-large btn-primary mt-5">Avançar para Caixas **</button>
-    
-
-
+    <h2 class="font-black text-lg text-slate-800 mb-3 flex items-center gap-2 uppercase">
+      <i class="fas fa-keyboard"></i> Digitação Manual
+    </h2>
+    <div class="space-y-3">
+      <div><label class="mobile-label">Notas Fiscais (Separe por hífen)</label><input type="text" readonly data-keyboard="nf" id="man-nf" class="mobile-input text-sm cursor-pointer" placeholder="EX: 0197859" /></div>
+      <div><label class="mobile-label">Fornecedor</label><input type="text" id="man-forn" list="forn-list" class="mobile-input text-sm" placeholder="EX: AÇO PEÇAS" /><datalist id="forn-list"></datalist></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="mobile-label flex justify-between">Data HOJE</label><input type="text" id="man-data" class="mobile-input text-sm" placeholder="DD/MM/AAAA" /></div>
+        <div>
+          <label class="mobile-label">Turno</label>
+          <select id="man-turno" class="mobile-input bg-white text-sm"><option value="A">TURNO A</option><option value="B">TURNO B</option><option value="C">TURNO C</option><option value="D">TURNO D</option><option value="E">TURNO E</option><option value="COMERCIAL">COMERCIAL</option></select>
+        </div>
+      </div>
+    </div>
+    <button onclick="navTo('manual-items')" class="btn-large btn-primary mt-5">
+      Avançar para Caixas <i class="fas fa-arrow-right"></i>
+    </button>
   </main>
 
-  
+  <!-- VIEW MANUAL ITEMS -->
   <main id="view-manual-items" class="view-container p-3 bg-slate-50">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="font-black text-base text-slate-800 flex items-center gap-2 uppercase"><i class="fas fa-boxes"></i> Caixas Lidas</h2>
+      <div class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded" id="man-items-counter">0 itens</div>
+    </div>
     
-      <h2 class="font-black text-base text-slate-800 flex items-center gap-2 uppercase">** Caixas Lidas</h2>
-      0 itens
-    
+    <div id="man-items-list" class="mb-20"></div>
 
-
-    
-
-
-    
-      <button onclick="openManualAddModal()" class="btn-large btn-primary pointer-events-auto shadow-lg shadow-blue-500/30 max-w-sm">** Add Caixa Manual</button>
-    
-
-
+    <div class="fixed bottom-[70px] left-0 w-full p-4 pointer-events-none flex justify-center z-40">
+      <button onclick="openManualAddModal()" class="btn-large btn-primary pointer-events-auto shadow-lg shadow-blue-500/30 max-w-sm">
+        <i class="fas fa-plus"></i> Add Caixa Manual
+      </button>
+    </div>
   </main>
 
-  
-  
-    
-      <h2 id="modal-man-title" class="font-bold text-base">CAIXA Nº 1</h2>
-      <button onclick="closeManualAddModal()" class="text-white text-xl p-1 cursor-pointer">**</button>
-    
+  <!-- MODAL ADD MANUAL -->
+  <div id="modal-add-manual" class="fixed inset-0 z-50 hidden flex-col justify-end bg-black/50 transition-all duration-300">
+    <div class="bg-white w-full rounded-t-2xl p-4 transform translate-y-full transition-transform duration-300 flex flex-col max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
+        <h2 id="modal-man-title" class="font-bold text-base"><i class="fas fa-box"></i> CAIXA Nº 1</h2>
+        <button onclick="closeManualAddModal()" class="text-slate-400 hover:text-slate-600 text-xl p-1 cursor-pointer"><i class="fas fa-times"></i></button>
+      </div>
 
+      <div class="space-y-3 mb-4">
+        <div>
+          <label class="mobile-label">Part Number / Código</label>
+          <input type="text" id="man-box-pn" list="cat-list" oninput="onManualPnInput(this.value)" class="mobile-input font-mono text-blue-800 font-bold" placeholder="EX: BC14030500" />
+          <datalist id="cat-list"></datalist>
+          <div id="man-desc-feedback" class="text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-white border border-slate-200 text-slate-500 text-center">DIGITE O CÓDIGO DA PEÇA...</div>
+        </div>
 
-    
-      
-        <label class="mobile-label">Part Number / Código</label><input type="text" id="man-box-pn" list="cat-list" oninput="onManualPnInput(this.value)" class="mobile-input font-mono text-blue-800 font-bold" placeholder="EX: BC14030500" /><datalist id="cat-list"></datalist>DIGITE O CÓDIGO DA PEÇA...
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="mobile-label">Lote</label><input type="text" id="man-box-lote" class="mobile-input text-sm" placeholder="LOTE" /></div>
+          <div><label class="mobile-label">Qtd</label><input type="text" readonly data-keyboard="num" id="man-box-qtd" class="mobile-input text-sm font-bold cursor-pointer" placeholder="Qtd" /></div>
+        </div>
 
+        <div class="grid grid-cols-3 gap-2">
+          <div><label class="mobile-label">Tara</label><input type="text" readonly data-keyboard="num" id="man-box-tara" class="mobile-input text-sm cursor-pointer" placeholder="Kg" /></div>
+          <div><label class="mobile-label text-[9px]">Bruto NF</label><input type="text" readonly data-keyboard="num" id="man-box-pnf" class="mobile-input bg-slate-50 text-sm cursor-pointer" placeholder="0,0" /></div>
+          <div><label class="mobile-label text-[9px] text-emerald-700">Físico</label><input type="text" readonly data-keyboard="num" id="man-box-pmando" class="mobile-input border-emerald-300 bg-emerald-50 text-emerald-800 font-black text-sm cursor-pointer" placeholder="0,0" /></div>
+        </div>
+      </div>
 
+      <div class="flex gap-2">
+        <button onclick="salvarManual(true)" class="btn-large btn-success py-3 text-sm flex-1"><i class="fas fa-check"></i> Salvar e Add Outra</button>
+        <button onclick="salvarManual(false)" class="btn-large btn-primary bg-slate-800 py-3 text-sm flex-1"><i class="fas fa-save"></i> Salvar e Fechar</button>
+      </div>
+    </div>
+  </div>
 
-
-        
-          <label class="mobile-label">Lote</label><input type="text" id="man-box-lote" class="mobile-input text-sm" placeholder="LOTE" />
-
-
-          <label class="mobile-label">Qtd</label><input type="text" readonly data-keyboard="num" id="man-box-qtd" class="mobile-input text-sm font-bold cursor-pointer" placeholder="Qtd" />
-
-
-        
-
-
-        
-          <label class="mobile-label">Tara (Embalagem)</label><input type="text" readonly data-keyboard="num" id="man-box-tara" class="mobile-input text-sm cursor-pointer" placeholder="Kg" />
-
-
-          
-            <label class="mobile-label text-[9px]">Peso Bruto NF</label><input type="text" readonly data-keyboard="num" id="man-box-pnf" class="mobile-input bg-slate-50 text-sm cursor-pointer" placeholder="0,0" />
-
-
-            <label class="mobile-label text-[9px] text-emerald-700">Peso Físico</label><input type="text" readonly data-keyboard="num" id="man-box-pmando" class="mobile-input border-emerald-300 bg-emerald-50 text-emerald-800 font-black text-sm cursor-pointer" placeholder="0,0" />
-
-
-          
-
-
-        
-
-
-      
-
-
-    
-
-
-    
-      
-        <button onclick="salvarManual(true)" class="btn-large btn-success py-3 text-sm">** Salvar e Add Outra</button>
-        <button onclick="salvarManual(false)" class="btn-large btn-primary bg-slate-800 py-3 text-sm">Salvar e Fechar</button>
-      
-
-
-    
-
-
-  
-
-
-
-  
+  <!-- VIEW EXPORT -->
   <main id="view-export" class="view-container p-4">
-    
-      
-        **
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm text-center mb-6">
+      <i class="fas fa-check-circle text-emerald-500 text-5xl mb-2"></i>
+      <h2 class="font-black text-lg text-slate-800 uppercase mb-1">Conferência Pronta</h2>
+      <p class="text-slate-500 text-sm"><span id="exp-count" class="font-bold text-blue-600">0</span> caixas registradas.</p>
+    </div>
 
-
-        <h2 class="font-black text-lg text-slate-800 uppercase mb-1">Conferência Pronta</h2>
-        0 caixas registradas.
-
-
-      
-
-
-      
-        <button onclick="openEmailModal()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">** Enviar por E-mail</button>
-        <button onclick="gerarExcel()" class="btn-large bg-white text-emerald-700 border-2 border-emerald-600">** Apenas Salvar Excel</button>
-        <button onclick="sincronizarComDesktop()" class="btn-large btn-primary shadow-lg shadow-blue-600/30">** Enviar p/ Desktop</button>
-        
-          <button onclick="abrirModalLimpar()" class="btn-large bg-red-50 text-red-600 border border-red-200 text-sm">** Limpar / Iniciar Nova</button>
-        
-
-
-      
-
-
-    
-
-
+    <div class="space-y-3">
+      <button onclick="openEmailModal()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30"><i class="fas fa-envelope"></i> Enviar por E-mail</button>
+      <button onclick="gerarExcel()" class="btn-large bg-white text-emerald-700 border-2 border-emerald-600"><i class="fas fa-file-excel"></i> Apenas Salvar Excel</button>
+      <button onclick="sincronizarComDesktop()" class="btn-large btn-primary shadow-lg shadow-blue-600/30"><i class="fas fa-desktop"></i> Enviar p/ Desktop</button>
+      <div class="pt-4 mt-4 border-t border-slate-200">
+        <button onclick="abrirModalLimpar()" class="btn-large bg-red-50 text-red-600 border border-red-200 text-sm"><i class="fas fa-trash"></i> Limpar / Iniciar Nova</button>
+      </div>
+    </div>
   </main>
 
-  
-  
-    
-      <h3 class="font-black text-base text-slate-800">** Enviar Planilha</h3><button onclick="closeEmailModal()" class="text-slate-400 hover:text-slate-600 text-xl p-1">**</button>
+  <!-- MODAL EMAIL -->
+  <div id="modal-email" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 opacity-0 transition-opacity duration-200">
+    <div id="email-box" class="bg-white w-11/12 max-w-sm rounded-2xl p-5 transform scale-95 transition-transform duration-200">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-black text-base text-slate-800"><i class="fas fa-paper-plane"></i> Enviar Planilha</h3>
+        <button onclick="closeEmailModal()" class="text-slate-400 hover:text-slate-600 text-xl p-1"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="space-y-3 mb-5">
+        <div><label class="mobile-label">E-mail Operador</label><input type="text" id="email-logado" class="mobile-input bg-slate-100 text-slate-500 font-bold" readonly /></div>
+        <div><label class="mobile-label">E-mail Adicional (Opcional)</label><input type="email" id="email-extra" class="mobile-input normal-case" placeholder="ex: gestor@hlcompany.com" /></div>
+        <p class="text-[10px] text-slate-500"><i class="fas fa-info-circle"></i> O sistema usará o compartilhamento nativo. Escolha seu app de E-mail (Gmail/Outlook) e o Excel já estará anexado automaticamente!</p>
+      </div>
+      <button onclick="confirmarEnvioEmail()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30"><i class="fas fa-share-alt"></i> Abrir Compartilhamento</button>
+    </div>
+  </div>
 
-
-      
-        <label class="mobile-label">E-mail Operador</label><input type="text" id="email-logado" class="mobile-input bg-slate-100 text-slate-500 font-bold" readonly />
-
-
-        <label class="mobile-label">E-mail Adicional (Opcional)</label><input type="email" id="email-extra" class="mobile-input normal-case" placeholder="ex: gestor@hlcompany.com" />
-
-
-        **O sistema usará o compartilhamento nativo. Escolha seu app de E-mail (Gmail/Outlook) e o Excel já estará anexado automaticamente!
-
-
-
-
-      
-
-
-      <button onclick="confirmarEnvioEmail()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">Abrir Compartilhamento</button>
-    
-
-
-  
-
-
-
-  
-  
-    
-      **
-
-
+  <!-- MODAL LIMPAR -->
+  <div id="modal-limpar" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 opacity-0 transition-opacity duration-200">
+    <div id="limpar-box" class="bg-white w-11/12 max-w-sm rounded-2xl p-5 transform scale-95 transition-transform duration-200 text-center">
+      <div class="text-red-500 text-4xl mb-2"><i class="fas fa-exclamation-triangle"></i></div>
       <h3 class="font-black text-lg text-slate-800 mb-1">Atenção!</h3>
-      Deseja apagar todos os dados desta nota? Esta ação não pode ser desfeita.
-
-
-      
+      <p class="text-slate-500 text-sm mb-5">Deseja apagar todos os dados desta nota? Esta ação não pode ser desfeita.</p>
+      <div class="flex gap-3">
         <button onclick="closeLimparModal()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold uppercase text-sm">Cancelar</button>
         <button onclick="confirmarLimparTudo()" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold uppercase text-sm shadow-lg shadow-red-600/30">Sim, Apagar</button>
-      
+      </div>
+    </div>
+  </div>
 
-
-    
-
-
-  
-
-
-
-  
+  <!-- BOTTOM NAV -->
   <nav class="bottom-nav" id="main-bottom-nav">
-    **Modo
-
-
-    **Caixas
-
-
-    **Exportar
-
-
+    <div class="nav-item" id="nav-btn-mode-select" onclick="navTo('mode-select')"><i class="fas fa-exchange-alt"></i>Modo</div>
+    <div class="nav-item" id="nav-btn-manual-items" onclick="navTo('manual-items')"><i class="fas fa-boxes"></i>Caixas</div>
+    <div class="nav-item" id="nav-btn-export" onclick="navTo('export')"><i class="fas fa-file-export"></i>Exportar</div>
   </nav>
 
-  
-  
-    
-      TECLADO
-      <button onclick="closeVKB()" class="text-slate-400 hover:text-slate-700 py-1 px-3 text-xl">**</button>
-    
-
-
-    
-
-
-  
-
-
-  Mensagem...
-
-
+  <!-- TECLADO VIRTUAL -->
+  <div id="virtual-kb" class="fixed bottom-0 left-0 w-full bg-slate-100 border-t border-slate-300 p-2 transform translate-y-full transition-transform duration-300 z-50 rounded-t-2xl shadow-[0_-5px_15px_rgba(0,0,0,0.1)]">
+    <div class="flex justify-between items-center mb-2 px-1">
+      <h4 id="vkb-title" class="font-black text-sm text-slate-600"><i class="fas fa-keyboard"></i> TECLADO</h4>
+      <button onclick="closeVKB()" class="text-slate-400 hover:text-slate-700 py-1 px-3 text-xl"><i class="fas fa-chevron-down"></i></button>
+    </div>
+    <div id="vkb-keys" class="vkb-grid"></div>
+  </div>
 
   <script>
     let appState = { modo: null, cabecalho: { fornecedor: "", nota_fiscal_principal: "", data_conferencia: "", operador: "", turno: "A" }, caixas: [] };
@@ -543,6 +366,19 @@
     let scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
     let currentVKBInput = null;
 
+    // --- FUNÇÃO DE LOGOUT ---
+    function logout(mensagem = "Deslogado com sucesso.") {
+      if (auth) {
+        auth.signOut().then(() => {
+          showToast(mensagem);
+          navTo('login');
+          document.getElementById('btn-logout').classList.add('hidden');
+        }).catch(error => {
+          showToast("Erro ao sair: " + error.message);
+        });
+      }
+    }
+
     function initVKB() {
       document.querySelectorAll('[data-keyboard]').forEach(inp => {
         inp.addEventListener('focus', e => { e.preventDefault(); openVKB(inp, inp.getAttribute('data-keyboard')); });
@@ -553,6 +389,7 @@
         if (vkb && currentVKBInput && !vkb.contains(e.target) && e.target !== currentVKBInput && !e.target.hasAttribute('data-keyboard')) closeVKB();
       });
     }
+    
     function openVKB(inputEl, type) {
       currentVKBInput = inputEl;
       document.querySelectorAll('[data-keyboard]').forEach(el => el.style.borderColor = '#cbd5e1');
@@ -563,19 +400,20 @@
       let keysHtml = '';
       ['1','2','3','4','5','6','7','8','9'].forEach(k => { keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '${k}')">${k}</button>`; });
       if (type === 'nf') {
-        title.innerHTML = '** TECLADO NF';
+        title.innerHTML = '<i class="fas fa-keyboard"></i> TECLADO NF';
         keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, '-')">-</button>`;
       } else {
-        title.innerHTML = '** TECLADO PESAGEM';
+        title.innerHTML = '<i class="fas fa-keyboard"></i> TECLADO PESAGEM';
         keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, ',')">,</button>`;
       }
       keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '0')">0</button>`;
-      keysHtml += `<button type="button" class="vkb-key action" onclick="vkbBackspace(event)">**</button>`;
-      keysHtml += `<button type="button" class="vkb-key enter" onclick="vkbEnter(event)">AVANÇAR / OK **</button>`;
+      keysHtml += `<button type="button" class="vkb-key action" onclick="vkbBackspace(event)"><i class="fas fa-backspace"></i></button>`;
+      keysHtml += `<button type="button" class="vkb-key enter" onclick="vkbEnter(event)">AVANÇAR / OK <i class="fas fa-check"></i></button>`;
       keysContainer.innerHTML = keysHtml;
       vkb.classList.remove('translate-y-full');
       setTimeout(() => { if (currentVKBInput) currentVKBInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
     }
+    
     function closeVKB() { const vkb = document.getElementById('virtual-kb'); if (vkb) vkb.classList.add('translate-y-full'); if (currentVKBInput) { currentVKBInput.style.borderColor = '#cbd5e1'; currentVKBInput.blur(); } currentVKBInput = null; }
     function vkbType(e, char) { if (e) e.stopPropagation(); if (currentVKBInput) { currentVKBInput.value += char; currentVKBInput.dispatchEvent(new Event('input', { bubbles: true })); } }
     function vkbBackspace(e) { if (e) e.stopPropagation(); if (currentVKBInput) { currentVKBInput.value = currentVKBInput.value.slice(0, -1); currentVKBInput.dispatchEvent(new Event('input', { bubbles: true })); } }
@@ -616,9 +454,11 @@
       if (['login', 'mode-select', 'admin', 'coletor-nf', 'coletor-main'].includes(viewId)) { if (nav) nav.style.display = 'none'; }
       else { if (nav) nav.style.display = 'flex'; document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); const b = document.getElementById('nav-btn-' + viewId); if (b) b.classList.add('active'); }
       if (viewId === 'manual-items') renderManualItemsList();
+      if (viewId === 'export') { document.getElementById('exp-count').innerText = appState.caixas.length; }
       if (viewId === 'coletor-main') { document.getElementById('col-main-count').innerText = appState.caixas.length; setTimeout(() => { const inp = document.getElementById('col-main-scan'); if (inp) { inp.value = ''; inp.focus(); } }, 100); }
       closeVKB();
     }
+    
     function navigateBack() {
       if (currentView === 'coletor-nf') navTo('mode-select');
       else if (currentView === 'coletor-main') navTo('coletor-nf');
@@ -658,43 +498,40 @@
       });
     }
 
-    const ADMIN_PASS_HASH = hashSimples('S1Mando@2026');
+    const ADMIN_PASS_HASH = '3cd86ad5'; // Hash atualizado por segurança
     function hashSimples(str) { let h = 0x811c9dc5; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(16); }
     function abrirAcessoAdmin() { document.getElementById('admin-pass').value = ''; document.getElementById('admin-lock').classList.remove('hidden'); document.getElementById('admin-panel').classList.add('hidden'); navTo('admin'); }
     function entrarPainelAdmin() { const pass = document.getElementById('admin-pass').value; if (hashSimples(pass) !== ADMIN_PASS_HASH) { showToast("Senha de administrador inválida."); return; } document.getElementById('admin-lock').classList.add('hidden'); document.getElementById('admin-panel').classList.remove('hidden'); renderSolicitacoes(); }
+    
     function renderSolicitacoes() {
       const box = document.getElementById('admin-pendentes');
-      box.innerHTML = 'Carregando...
-
-';
+      box.innerHTML = `Carregando...<br><br>`;
       db.ref('cadastros/pendencias').on('value', snap => {
-        if (!snap.exists()) { box.innerHTML = 'Nenhuma solicitação pendente.
-
-'; return; }
+        if (!snap.exists()) { box.innerHTML = `Nenhuma solicitação pendente.<br><br>`; return; }
         box.innerHTML = '';
         snap.forEach(child => {
           const p = child.val(); const key = child.key;
           const d = document.createElement('div');
           d.className = 'flex items-center justify-between gap-2 bg-slate-50 border border-slate-200 rounded-lg p-2.5';
-          d.innerHTML = '' + (p.nome || '') + '
-
-' + (p.email || '') + '
-
-
-
-<button onclick="aprovarAcesso(\'' + key + '\')" class="bg-emerald-600 text-white rounded px-2.5 py-1.5 text-[10px] font-black uppercase">Liberar</button><button onclick="recusarAcesso(\'' + key + '\')" class="bg-rose-100 text-rose-700 rounded px-2.5 py-1.5 text-[10px] font-black uppercase">Recusar</button>
-
-';
+          d.innerHTML = `
+            <div><div class="font-bold text-sm">${p.nome || ''}</div><div class="text-xs text-slate-500">${p.email || ''}</div></div>
+            <div class="flex flex-col gap-1">
+              <button onclick="aprovarAcesso('${key}')" class="bg-emerald-600 text-white rounded px-2.5 py-1.5 text-[10px] font-black uppercase"><i class="fas fa-check"></i> Liberar</button>
+              <button onclick="recusarAcesso('${key}')" class="bg-rose-100 text-rose-700 rounded px-2.5 py-1.5 text-[10px] font-black uppercase"><i class="fas fa-times"></i> Recusar</button>
+            </div>
+          `;
           box.appendChild(d);
         });
       });
     }
+    
     async function aprovarAcesso(key) {
       const ref = db.ref('cadastros/pendencias/' + key);
       const req = (await ref.once('value')).val();
       if (!req) { showToast("Solicitação não encontrada."); return; }
       try { await auth.createUserWithEmailAndPassword(req.email, req.senha); await db.ref('cadastros/operadores').push({ nome: req.nome, email: req.email, turno: "A" }); await ref.remove(); showToast("Acesso liberado com sucesso!"); } catch (e) { showToast("Falha ao liberar: " + e.message); }
     }
+    
     function recusarAcesso(key) { db.ref('cadastros/pendencias/' + key).remove(); showToast("Solicitação recusada."); }
 
     function buscarInfoPeca(rawInput) {
@@ -714,9 +551,10 @@
 
     function iniciarFluxo(modo) {
       appState.modo = modo;
-      if (modo === 'coletor') { document.getElementById('nf-input').value = appState.cabecalho.nota_fiscal_principal; navTo('coletor-nf'); }
+      if (modo === 'coletor') { document.getElementById('col-nf-input').value = appState.cabecalho.nota_fiscal_principal; navTo('coletor-nf'); }
       else { setToday(); document.getElementById('man-nf').value = appState.cabecalho.nota_fiscal_principal; document.getElementById('man-forn').value = appState.cabecalho.fornecedor; document.getElementById('man-turno').value = appState.cabecalho.turno || "A"; navTo('manual-header'); }
     }
+    
     function avancarParaBipagem() {
       const nf = document.getElementById('col-nf-input').value.trim();
       if (!nf) { showToast("Digite a Nota Fiscal!"); return; }
@@ -791,41 +629,45 @@
       const fornHeader = document.getElementById('man-forn');
       let info = buscarInfoPeca(raw);
       if (info && info.desc) {
-        feedback.innerHTML = '**' + info.desc + '**';
+        feedback.innerHTML = '<i class="fas fa-check-circle"></i> ' + info.desc;
         feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-center';
         if (raw.length > 5 && info.pn !== raw && info.pn.replace(/[^A-Z0-9]/g, '') === raw) pnInput.value = info.pn;
         if (info.fornecedor && (!fornHeader.value || fornHeader.value.trim() === '')) { fornHeader.value = info.fornecedor.toUpperCase(); appState.cabecalho.fornecedor = info.fornecedor.toUpperCase(); }
       } else if (raw.length > 3) {
-        feedback.innerText = 'PN NÃO ENCONTRADO';
+        feedback.innerHTML = '<i class="fas fa-times-circle"></i> PN NÃO ENCONTRADO';
         feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-rose-50 border border-rose-200 text-rose-700 text-center';
       }
     }
+    
     function renderManualItemsList() {
       const list = document.getElementById('man-items-list');
       document.getElementById('man-items-counter').innerText = appState.caixas.length + ' CAIXAS';
-      if (appState.caixas.length === 0) { list.innerHTML = '** Nenhuma caixa.
-
-'; return; }
+      if (appState.caixas.length === 0) { 
+        list.innerHTML = `<div class="text-center text-slate-400 py-8"><i class="fas fa-inbox text-3xl mb-2"></i><br>Nenhuma caixa.</div>`; 
+        return; 
+      }
       list.innerHTML = '';
       appState.caixas.forEach((c, idx) => {
-        list.innerHTML += 'CX ' + c.caixa_no + '
-
-' + (c.observacao || 'S/ CÓDIGO') + '
-
-
-
-QTD: ' + (c.quantidade_mencionada || '-') + ' LOTE: ' + (c.lote || '-') + ' TARA: ' + (c.peso_embalagem || '-') + ' kg
-
-NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + '**
-
-
-
-';
+        list.innerHTML += `
+          <div class="box-card mb-2">
+            <div class="flex justify-between items-start">
+              <div class="font-black text-blue-900">CX ${c.caixa_no}</div>
+              <button onclick="abrirEditarCaixa(${idx})" class="text-blue-600 p-1"><i class="fas fa-edit"></i></button>
+            </div>
+            <div class="font-mono text-sm mt-1 font-bold">${c.observacao || 'S/ CÓDIGO'}</div>
+            <div class="text-xs text-slate-500 mt-2">QTD: ${c.quantidade_mencionada || '-'} | LOTE: ${c.lote || '-'} | TARA: ${c.peso_embalagem || '-'} kg</div>
+            <div class="text-xs mt-2 bg-slate-100 p-2 rounded flex justify-between">
+              <span>NF: ${c.peso_bruto_nf || '-'}</span>
+              <span>Mando: <strong class="text-emerald-700">${c.peso_bruto_mando || '-'}</strong></span>
+            </div>
+          </div>
+        `;
       });
     }
+    
     function openManualAddModal() {
       editIndex = -1;
-      document.getElementById('modal-man-title').innerText = 'CAIXA Nº ' + (appState.caixas.length + 1);
+      document.getElementById('modal-man-title').innerHTML = '<i class="fas fa-box"></i> CAIXA Nº ' + (appState.caixas.length + 1);
       ['pn','lote','qtd','tara','pnf','pmando'].forEach(id => document.getElementById('man-box-' + id).value = '');
       document.getElementById('man-desc-feedback').innerText = 'DIGITE O CÓDIGO...';
       document.getElementById('man-desc-feedback').className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-white border border-slate-200 text-slate-500 text-center';
@@ -833,9 +675,10 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
       modal.classList.remove('hidden');
       setTimeout(() => { modal.classList.remove('translate-y-full'); document.getElementById('man-box-pn').focus(); }, 10);
     }
+    
     function abrirEditarCaixa(idx) {
       const c = appState.caixas[idx]; editIndex = idx;
-      document.getElementById('modal-man-title').innerText = 'EDITAR CX Nº ' + c.caixa_no;
+      document.getElementById('modal-man-title').innerHTML = '<i class="fas fa-edit"></i> EDITAR CX Nº ' + c.caixa_no;
       document.getElementById('man-box-pn').value = c.observacao || ''; document.getElementById('man-box-lote').value = c.lote || '';
       document.getElementById('man-box-qtd').value = c.quantidade_mencionada || ''; document.getElementById('man-box-tara').value = c.peso_embalagem || '';
       document.getElementById('man-box-pnf').value = c.peso_bruto_nf || ''; document.getElementById('man-box-pmando').value = c.peso_bruto_mando || '';
@@ -844,7 +687,9 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
       modal.classList.remove('hidden');
       setTimeout(() => modal.classList.remove('translate-y-full'), 10);
     }
+    
     function closeManualAddModal() { const modal = document.getElementById('modal-add-manual'); modal.classList.add('translate-y-full'); setTimeout(() => modal.classList.add('hidden'), 300); closeVKB(); }
+    
     function salvarManual(addAnother) {
       const pn = document.getElementById('man-box-pn').value.trim().toUpperCase();
       const lote = document.getElementById('man-box-lote').value;
@@ -871,7 +716,9 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
       modal.classList.remove('hidden'); modal.classList.add('flex');
       setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
     }
+    
     function closeEmailModal() { const modal = document.getElementById('modal-email'); const box = document.getElementById('email-box'); modal.classList.add('opacity-0'); box.classList.add('scale-95'); setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200); }
+    
     function criarWorkbookBase() {
       const wb = XLSX.utils.book_new();
       const wsData = [["CONFERÊNCIA / PESAGEM","","","","","",""],["NOTA FISCAL","ITEM","TOTAL DE PEÇA","FORNECEDOR","DATA CONFERÊNCIA","OPERADOR",""],[appState.cabecalho.nota_fiscal_principal,"","",appState.cabecalho.fornecedor,appState.cabecalho.data_conferencia,appState.cabecalho.operador,""],["","","","","","",""],["CAIXA Nº","QTD MENCIONADA","PESO EMBALAGEM","PESO BRUTO/NF","PESO BRUTO MANDO","LOTE","PART NUMBER"]];
@@ -885,6 +732,7 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
       XLSX.utils.book_append_sheet(wb, ws, "Pesagem");
       return wb;
     }
+    
     async function confirmarEnvioEmail() {
       const emailLogado = document.getElementById('email-logado').value.trim();
       const emailExtra = document.getElementById('email-extra').value.trim();
@@ -902,8 +750,10 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
       if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: subject, text: textBody }); showToast("Aberto no app de e-mail!"); shareSuccess = true; closeEmailModal(); } catch (error) { console.log("Compartilhamento bloqueado, acionando plano B...", error); } }
       if (!shareSuccess) { XLSX.writeFile(wb, fileName); const es = encodeURIComponent(subject); const eb = encodeURIComponent(textBody + "\n\nATENÇÃO: O ARQUIVO FOI BAIXADO. CLIQUE NO CLIPE DE PAPEL (ANEXO) PARA INCLUIR A PLANILHA."); window.location.href = 'mailto:' + dest + '?subject=' + es + '&body=' + eb; closeEmailModal(); }
     }
+    
     function gerarExcel() { if (typeof XLSX === 'undefined') { showToast("Excel indisponível."); return; } const wb = criarWorkbookBase(); XLSX.writeFile(wb, 'Conferencia_Pesagem.xlsx'); showToast("Excel Gerado e Baixado!"); }
     function sincronizarComDesktop() { if (!db || appState.caixas.length === 0) { showToast("Nada para enviar."); return; } const novaNota = { modo: appState.modo, title: "Lançamento Mobile", cabecalho: appState.cabecalho, caixas: appState.caixas }; db.ref('loteNotas').set((desktopLoteNotas || []).concat(novaNota)).then(() => showToast("Enviado para o Desktop!")); }
+    
     function abrirModalLimpar() { const modal = document.getElementById('modal-limpar'); const box = document.getElementById('limpar-box'); modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10); }
     function closeLimparModal() { const modal = document.getElementById('modal-limpar'); const box = document.getElementById('limpar-box'); modal.classList.add('opacity-0'); box.classList.add('scale-95'); setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200); }
     function confirmarLimparTudo() { appState.caixas = []; appState.cabecalho.nota_fiscal_principal = ""; navTo('mode-select'); showToast("Dados zerados."); closeLimparModal(); }
@@ -929,10 +779,17 @@ NF: ' + (c.peso_bruto_nf || '-') + ' Mando: **' + (c.peso_bruto_mando || '-') + 
         db.ref('loteNotas').on('value', snap => { desktopLoteNotas = snap.val() || []; document.getElementById('sync-status').classList.replace('bg-slate-500', 'bg-emerald-400'); });
         db.ref('cadastros/fornecedores').on('value', snap => { const dl = document.getElementById('forn-list'); dl.innerHTML = ''; const arr = Array.isArray(snap.val()) ? snap.val().filter(x => x) : Object.values(snap.val() || {}); arr.forEach(f => dl.innerHTML += '<option value="' + (f || '').toUpperCase() + '">'); });
         db.ref('cadastros/produtos_mestre').on('value', snap => { const val = snap.val(); if (val) { const arr = Array.isArray(val) ? val.filter(x => x) : Object.values(val || {}); arr.forEach(p => { if (p && p.partNumber) appCatalog[p.partNumber.toUpperCase()] = { desc: p.descricao, peso: p.custoUnitario || p.peso, fornecedor: p.fornecedor }; }); } });
-        db.ref('dynamicCatalog').on('value', snap => { const val = snap.val(); if (val) { const dl = document.getElementById('cat-list'); dl.innerHTML = ''; for (let k in val) { let originalKey = k.replace(/_DOT_/g, '.').replace(/_HASH_/g, '#').replace(/_DOL_/g, '$').replace(/_SLASH_.g, '/').replace(/_OB_/g, '[').replace(/_CB_/g, ']'); appCatalog[originalKey.toUpperCase()] = { desc: (val[k].desc || val[k].descricao || '').toUpperCase(), peso: val[k].peso !== undefined ? Number(val[k].peso) : null, fornecedor: val[k].forn || val[k].fornecedor || '' }; dl.innerHTML += '<option value="' + originalKey + '">' + originalKey + ' - ' + (val[k].desc || '') + '</option>'; } } });
+        db.ref('dynamicCatalog').on('value', snap => { const val = snap.val(); if (val) { const dl = document.getElementById('cat-list'); dl.innerHTML = ''; for (let k in val) { let originalKey = k.replace(/_DOT_/g, '.').replace(/_HASH_/g, '#').replace(/_DOL_/g, '$').replace(/_SLASH_/g, '/').replace(/_OB_/g, '[').replace(/_CB_/g, ']'); appCatalog[originalKey.toUpperCase()] = { desc: (val[k].desc || val[k].descricao || '').toUpperCase(), peso: val[k].peso !== undefined ? Number(val[k].peso) : null, fornecedor: val[k].forn || val[k].fornecedor || '' }; dl.innerHTML += '<option value="' + originalKey + '">' + originalKey + ' - ' + (val[k].desc || '') + '</option>'; } } });
       } catch (e) { console.error("Firebase init error:", e); }
     }
-    window.onload = function () { initFirebaseApp(); initVKB(); const loginEmail = document.getElementById('login-email'); if (loginEmail) loginEmail.addEventListener('blur', function () { this.value = formatarEmail(this.value); }); ['touchstart', 'mousemove', 'mousedown', 'keypress', 'scroll'].forEach(evt => document.addEventListener(evt, resetTimer, true)); };
+    
+    window.onload = function () { 
+      initFirebaseApp(); 
+      initVKB(); 
+      const loginEmail = document.getElementById('login-email'); 
+      if (loginEmail) loginEmail.addEventListener('blur', function () { this.value = formatarEmail(this.value); }); 
+      ['touchstart', 'mousemove', 'mousedown', 'keypress', 'scroll'].forEach(evt => document.addEventListener(evt, resetTimer, true)); 
+    };
   </script>
 </body>
 </html>
