@@ -187,14 +187,14 @@
     .vkb-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 6px; /* Espaço menor entre teclas */
+      gap: 6px;
     }
     .vkb-key {
       background: white;
       border-radius: 8px;
-      padding: 8px 0; /* Menos padding vertical */
+      padding: 8px 0;
       text-align: center;
-      font-size: 20px; /* Fonte menor */
+      font-size: 20px;
       font-weight: 900;
       color: #1e293b;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -213,218 +213,374 @@
 <body>
 
   <header class="bg-[#0f172a] text-white p-3 flex justify-between items-center shrink-0 shadow-md z-10 pt-[env(safe-area-inset-top,12px)]">
-    <div class="flex items-center gap-2">
+    
       <button id="btn-global-back" onclick="navigateBack()" class="hidden text-slate-300 hover:text-white px-2 py-1 text-lg">
-        <i class="fa-solid fa-arrow-left"></i>
+        **
       </button>
       
-      <div class="bg-white p-1.5 rounded-md shadow-sm ml-1">
-        <i class="fa-solid fa-scale-balanced text-[#0f172a] text-lg"></i>
-      </div>
-      <div>
+      
+        **
+      
+
+
+      
         <h1 class="font-black text-sm leading-tight tracking-tight">HL MANDO</h1>
-        <p class="text-[9px] text-slate-300 opacity-80 uppercase tracking-widest font-bold">Pesagem Mobile</p>
-      </div>
-    </div>
-    <div class="flex items-center gap-3">
+        Pesagem Mobile
+
+
+      
+
+
+    
+
+
+    
       <button onclick="logout('Deslogado com sucesso.')" id="btn-logout" class="hidden text-[10px] bg-slate-800 px-2 py-1.5 rounded text-slate-300 hover:text-white font-bold uppercase tracking-wider">
-        <i class="fa-solid fa-right-from-bracket"></i> Sair
+        ** Sair
       </button>
-      <div id="sync-status" class="w-2.5 h-2.5 rounded-full bg-slate-500 animate-pulse" title="Status DB"></div>
-    </div>
+      
+
+
+    
+
+
   </header>
 
-  <!-- TELA 0: LOGIN SEGURA -->
+  
   <main id="view-login" class="view-container active p-4">
-    <div class="flex flex-col h-full justify-center max-w-sm mx-auto space-y-5 pb-20">
-      <div class="text-center">
-        <div class="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
-          <i class="fa-solid fa-user-lock text-2xl"></i>
-        </div>
-        <h2 class="font-black text-2xl text-slate-800 tracking-tight">ACESSO</h2>
-        <p class="text-slate-500 font-bold text-xs mt-1">Identifique-se para iniciar a pesagem</p>
-      </div>
+    
+      
+        
+          **
+        
 
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-        <div>
-          <label class="mobile-label">Usuário</label>
-          <input type="text" id="login-email" class="mobile-input normal-case" placeholder="ex: joao (só o nome)" />
-          <p class="text-[9px] text-slate-400 font-bold mt-1 ml-1"><i class="fa-solid fa-circle-info"></i> O @hlcompany.com é inserido sozinho.</p>
-        </div>
-        <div>
+
+        <h2 class="font-black text-2xl text-slate-800 tracking-tight">Acesso ao sistema</h2>
+        Identifique-se com usuário ou e-mail
+
+
+      
+
+
+
+      
+        
+          <button onclick="setLoginTab('usuario')" id="tab-usuario" class="flex-1 py-2 rounded-md text-xs font-black uppercase transition-all bg-white text-blue-700 shadow-sm">Usuário</button>
+          <button onclick="setLoginTab('email')" id="tab-email" class="flex-1 py-2 rounded-md text-xs font-black uppercase transition-all text-slate-500">E-mail</button>
+        
+
+
+        
+          <label class="mobile-label" id="login-label">Nome de usuário</label>
+          <input type="text" id="login-ident" class="mobile-input normal-case" placeholder="Nome de usuário" />
+          ** Você pode usar seu nome de usuário ou apelido cadastrado.
+
+
+        
+
+
+        
           <label class="mobile-label">Senha</label>
           <input type="password" id="login-senha" class="mobile-input normal-case" placeholder="••••••••" />
-        </div>
-        <div class="pt-3 space-y-3">
+        
+
+
+        
           <button onclick="fazerLogin()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
             Entrar no Sistema
           </button>
-          <button onclick="fazerCadastro()" class="btn-large bg-slate-100 text-slate-700 hover:bg-slate-200">
-            Criar meu Cadastro
+          <button onclick="abrirModalCadastro()" class="btn-large bg-slate-100 text-slate-700 hover:bg-slate-200">
+            Criar acesso (Requer liberação)
           </button>
-        </div>
-      </div>
-    </div>
+        
+
+
+        Sessão encerrada após 10 min sem uso ou ao fechar o aplicativo
+
+
+      
+
+
+    
+
+
   </main>
 
-  <!-- TELA 1: HOME (ESCOLHA DE MODO) -->
-  <main id="view-mode-select" class="view-container p-4">
-    <div class="flex flex-col items-center justify-center h-full space-y-6 pt-4 pb-20 max-w-sm mx-auto">
+  
+  
+    
       
-      <div class="bg-blue-600 text-white w-full rounded-2xl p-4 shadow-lg shadow-blue-500/30 flex items-center gap-4">
-        <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
-          <i class="fa-solid fa-user-check text-lg"></i>
-        </div>
-        <div>
-          <p class="text-[9px] font-black uppercase text-blue-200">Operador Logado</p>
-          <p id="lbl-operador-logado" class="font-black text-lg tracking-tight">-</p>
-          <p id="lbl-operador-turno" class="text-[10px] font-bold text-blue-100 uppercase">-</p>
-        </div>
-      </div>
+        <h3 class="font-black text-base text-slate-800">** Validar Acesso</h3>
+        <button onclick="fecharModalCadastro()" class="text-slate-400 hover:text-slate-600 text-xl p-1">**</button>
+      
 
-      <div class="text-center w-full">
+
+      
+        ** Requer cadastro prévio
+
+
+      
+
+
+      
+        
+          <label class="mobile-label">Usuário ou E-mail autorizado</label>
+          <input type="text" id="cad-ident" class="mobile-input normal-case" placeholder="Nome de usuário ou e-mail" />
+        
+
+
+        
+          <label class="mobile-label">Crie uma Senha (mínimo 6 char)</label>
+          <input type="password" id="cad-senha" class="mobile-input normal-case" placeholder="••••••••" />
+        
+
+
+      
+
+
+      
+        <button onclick="fecharModalCadastro()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold uppercase text-sm">Cancelar</button>
+        <button onclick="fazerCadastro()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold uppercase text-sm shadow-lg shadow-blue-600/30">Validar e Criar</button>
+      
+
+
+    
+
+
+  
+
+
+
+  
+  <main id="view-mode-select" class="view-container p-4">
+    
+      
+      
+        
+          **
+        
+
+
+        
+          Operador Logado
+
+
+          -
+
+
+          -
+
+
+        
+
+
+      
+
+
+
+      
         <h2 class="font-black text-lg text-slate-800 uppercase tracking-tight mb-4">Escolha o Modo</h2>
-        <div class="space-y-4 w-full">
+        
           <button onclick="iniciarFluxo('coletor')" class="btn-large btn-primary py-5 relative overflow-hidden">
-            <div class="flex flex-col items-center gap-1 relative z-10">
-              <i class="fa-solid fa-barcode text-2xl mb-1"></i> 
-              <span>MODO COLETOR</span>
-              <span class="text-[10px] font-semibold text-blue-200 normal-case">Leitura de etiquetas (VDA)</span>
-            </div>
-            <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 z-0"></div>
-            <span class="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-[9px] px-2 py-0.5 font-black rounded-bl-lg z-10">RÁPIDO</span>
+            
+              ** 
+              MODO COLETOR
+              Leitura de etiquetas (VDA)
+            
+
+
+            
+
+
+            RÁPIDO
           </button>
           
           <button onclick="iniciarFluxo('manual')" class="btn-large bg-white text-slate-700 py-5 border-2 border-slate-200 shadow-sm">
-            <div class="flex flex-col items-center gap-1">
-              <i class="fa-solid fa-keyboard text-2xl mb-1"></i> 
-              <span>MODO MANUAL</span>
-              <span class="text-[10px] font-semibold text-slate-400 normal-case">Digitação passo a passo</span>
-            </div>
+            
+              ** 
+              MODO MANUAL
+              Digitação passo a passo
+            
+
+
           </button>
-        </div>
-      </div>
-    </div>
+        
+
+
+      
+
+
+    
+
+
   </main>
 
-  <!-- FLUXO COLETOR 1: DADOS NF -->
+  
   <main id="view-coletor-nf" class="view-container p-4">
-    <div class="max-w-sm mx-auto space-y-5 pt-4">
+    
       <h2 class="font-black text-lg text-slate-800 flex items-center gap-2 uppercase">
-        <i class="fa-solid fa-file-invoice text-blue-600"></i> Informe a Nota Fiscal
+        ** Informe a Nota Fiscal
       </h2>
       
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+      
         <label class="mobile-label">Nota Fiscal (Obrigatório)</label>
         <input type="text" readonly data-keyboard="nf" id="col-nf-input" class="mobile-input text-lg font-black cursor-pointer" placeholder="EX: 0197859" />
-        <p class="text-[10px] text-slate-400 font-bold mt-2">O fornecedor e outros dados serão puxados automaticamente no primeiro bip.</p>
-      </div>
+        O fornecedor e outros dados serão puxados automaticamente no primeiro bip.
+
+
+      
+
+
 
       <button onclick="avancarParaBipagem()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
-        Iniciar Bipagem <i class="fa-solid fa-arrow-right"></i>
+        Iniciar Bipagem **
       </button>
-    </div>
+    
+
+
   </main>
 
-  <!-- FLUXO COLETOR: SCANNER E PESAGEM INTEGRADOS -->
+  
   <main id="view-coletor-main" class="view-container p-3">
-    <div class="max-w-sm mx-auto space-y-3 pt-2">
+    
       
-      <div class="bg-blue-600 rounded-lg p-3 text-center shadow-lg shadow-blue-500/30">
-        <label class="mobile-label text-blue-100 mb-2"><i class="fa-solid fa-barcode"></i> Bipe a Etiqueta VDA</label>
+      
+        <label class="mobile-label text-blue-100 mb-2">** Bipe a Etiqueta VDA</label>
         <input type="text" id="col-main-scan" class="mobile-input text-center font-mono font-black text-blue-900 bg-white border-none py-3" placeholder="Aponte o leitor aqui..." autocomplete="off" />
-        <div id="col-main-feedback" class="text-[10px] font-bold text-blue-200 mt-2 uppercase">Caixas lidas nesta nota: <span id="col-main-count" class="text-white font-black text-sm">0</span></div>
-      </div>
+        Caixas lidas nesta nota: 0
 
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-3">
+
+      
+
+
+
+      
         <h2 class="font-black text-xs text-slate-800 mb-2 flex items-center gap-1 uppercase border-b border-slate-100 pb-2">
-          <i class="fa-solid fa-box-open text-blue-600"></i> Dados da Peça Extraídos
+          ** Dados da Peça Extraídos
         </h2>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
+        
+          
             <label class="mobile-label text-[9px]">Part Number</label>
             <input type="text" id="col-main-pn" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
-          </div>
-          <div>
+          
+
+
+          
             <label class="mobile-label text-[9px]">Lote</label>
             <input type="text" id="col-main-lote" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
-          </div>
-        </div>
-        <div class="mt-2 grid grid-cols-2 gap-2">
-          <div>
+          
+
+
+        
+
+
+        
+          
             <label class="mobile-label text-[9px]">Qtd (Peças)</label>
             <input type="text" id="col-main-qtd" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold" readonly placeholder="-" />
-          </div>
-          <div>
+          
+
+
+          
             <label class="mobile-label text-[9px]">Fornecedor</label>
             <input type="text" id="col-main-forn" class="mobile-input bg-slate-50 text-slate-600 border-none text-[10px] truncate" readonly placeholder="-" />
-          </div>
-        </div>
-      </div>
+          
 
-      <div class="bg-slate-50 rounded-lg shadow-sm border border-slate-200 p-3 space-y-3">
+
+        
+
+
+      
+
+
+
+      
         <h2 class="font-black text-sm text-slate-800 flex items-center gap-2 uppercase border-b border-slate-200 pb-2">
-          <i class="fa-solid fa-scale-unbalanced text-emerald-600"></i> Inserir Pesos
+          ** Inserir Pesos
         </h2>
-        <div>
+        
           <label class="mobile-label text-blue-800">1. Tara (Embalagem Vazia)</label>
           <input type="text" readonly data-keyboard="num" id="col-main-tara" class="mobile-input bg-white border-blue-300 text-base font-black text-blue-900 cursor-pointer" placeholder="Ex: 0,5" />
-        </div>
-        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
-          <div>
+        
+
+
+        
+          
             <label class="mobile-label text-slate-600">2. Peso Bruto NF</label>
             <input type="text" readonly data-keyboard="num" id="col-main-pnf" class="mobile-input bg-white text-sm cursor-pointer" placeholder="0,0" />
-          </div>
-          <div>
+          
+
+
+          
             <label class="mobile-label text-emerald-700">3. Peso Físico</label>
             <input type="text" readonly data-keyboard="num" id="col-main-pmando" class="mobile-input bg-emerald-100 border-emerald-300 text-emerald-900 font-black text-sm cursor-pointer" placeholder="0,0" />
-          </div>
-        </div>
-      </div>
+          
 
-      <div class="bg-indigo-50 rounded-lg shadow-sm border border-indigo-200 p-3 space-y-2 mb-3">
-        <label class="mobile-label text-indigo-800"><i class="fa-solid fa-copy"></i> Multiplicar (Caixas Idênticas)</label>
-        <div class="flex items-center gap-3">
+
+        
+
+
+      
+
+
+
+      
+        <label class="mobile-label text-indigo-800">** Multiplicar (Caixas Idênticas)</label>
+        
            <button type="button" onclick="changeMultiplier('col', -1)" class="w-12 h-10 bg-indigo-200 text-indigo-800 rounded-lg font-black text-lg active:scale-95 transition-transform">-</button>
            <input type="text" readonly data-keyboard="num" id="col-main-multiplier" class="mobile-input text-center font-black text-indigo-900 text-lg flex-1 cursor-pointer" value="1" />
            <button type="button" onclick="changeMultiplier('col', 1)" class="w-12 h-10 bg-indigo-600 text-white rounded-lg font-black text-lg active:scale-95 transition-transform">+</button>
-        </div>
-      </div>
+        
 
-      <div class="space-y-2 pb-6">
+
+      
+
+
+
+      
         <button onclick="salvarColetorMain(true)" class="btn-large btn-success py-3">
-          <i class="fa-solid fa-check"></i> Salvar e Bipar Próxima
+          ** Salvar e Bipar Próxima
         </button>
         <button onclick="salvarColetorMain(false)" class="btn-large bg-slate-800 text-white shadow-lg py-3 text-sm">
-          <i class="fa-solid fa-flag-checkered"></i> Salvar e Exportar
+          ** Salvar e Exportar
         </button>
-      </div>
-    </div>
+      
+
+
+    
+
+
   </main>
 
-  <!-- FLUXO MANUAL 1: DADOS NF -->
+  
   <main id="view-manual-header" class="view-container p-4">
-    <div class="max-w-sm mx-auto">
+    
       <h2 class="font-black text-lg text-slate-800 mb-3 flex items-center gap-2 uppercase">
-        <i class="fa-solid fa-keyboard text-slate-600"></i> Digitação Manual
+        ** Digitação Manual
       </h2>
       
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-3">
-        <div>
+      
+        
           <label class="mobile-label">Notas Fiscais (Separe por hífen)</label>
           <input type="text" readonly data-keyboard="nf" id="man-nf" class="mobile-input text-sm cursor-pointer" placeholder="EX: 0197859" />
-        </div>
-        <div>
+        
+
+
+        
           <label class="mobile-label">Fornecedor</label>
           <input type="text" id="man-forn" list="forn-list" class="mobile-input text-sm" placeholder="EX: AÇO PEÇAS" />
           <datalist id="forn-list"></datalist>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="mobile-label flex justify-between">Data <span onclick="setToday()" class="text-blue-600 cursor-pointer">HOJE</span></label>
+        
+
+
+        
+          
+            <label class="mobile-label flex justify-between">Data HOJE</label>
             <input type="text" id="man-data" class="mobile-input text-sm" placeholder="DD/MM/AAAA" />
-          </div>
-          <div>
+          
+
+
+          
             <label class="mobile-label">Turno</label>
             <select id="man-turno" class="mobile-input bg-white text-sm">
               <option value="A">TURNO A</option>
@@ -433,208 +589,310 @@
               <option value="D">TURNO D</option>
               <option value="COMERCIAL">COMERCIAL</option>
             </select>
-          </div>
-        </div>
-      </div>
+          
+
+
+        
+
+
+      
+
+
       <button onclick="navTo('manual-items')" class="btn-large btn-primary mt-5">
-        Avançar para Caixas <i class="fa-solid fa-arrow-right"></i>
+        Avançar para Caixas **
       </button>
-    </div>
-  </main>
-
-  <!-- FLUXO MANUAL 2: LISTA DE CAIXAS -->
-  <main id="view-manual-items" class="view-container p-3 bg-slate-50">
-    <div class="flex justify-between items-center mb-3 max-w-sm mx-auto">
-      <h2 class="font-black text-base text-slate-800 flex items-center gap-2 uppercase">
-        <i class="fa-solid fa-boxes-stacked text-indigo-600"></i> Caixas Lidas
-      </h2>
-      <span id="man-items-counter" class="bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded text-[10px]">0 itens</span>
-    </div>
-
-    <div id="man-items-list" class="space-y-2 pb-20 max-w-sm mx-auto"></div>
-
-    <div class="fixed bottom-[65px] left-0 w-full p-3 bg-gradient-to-t from-slate-50 to-transparent pointer-events-none flex justify-center">
-      <button onclick="openManualAddModal()" class="btn-large btn-primary pointer-events-auto shadow-lg shadow-blue-500/30 max-w-sm">
-        <i class="fa-solid fa-plus"></i> Add Caixa Manual
-      </button>
-    </div>
-  </main>
-
-  <!-- MODAL ADIÇÃO MANUAL -->
-  <div id="modal-add-manual" class="fixed inset-0 bg-white z-[100] hidden flex-col transition-transform translate-y-full duration-300">
-    <div class="bg-[#0f172a] text-white p-3 flex justify-between items-center shrink-0">
-      <h2 id="modal-man-title" class="font-bold text-base">CAIXA Nº 1</h2>
-      <button onclick="closeManualAddModal()" class="text-white text-xl p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
-    </div>
     
-    <div class="flex-1 overflow-y-auto p-3 bg-slate-50 space-y-3">
-      <div class="max-w-sm mx-auto">
-        <div>
+
+
+  </main>
+
+  
+  <main id="view-manual-items" class="view-container p-3 bg-slate-50">
+    
+      <h2 class="font-black text-base text-slate-800 flex items-center gap-2 uppercase">
+        ** Caixas Lidas
+      </h2>
+      0 itens
+    
+
+
+
+    
+
+
+
+    
+      <button onclick="openManualAddModal()" class="btn-large btn-primary pointer-events-auto shadow-lg shadow-blue-500/30 max-w-sm">
+        ** Add Caixa Manual
+      </button>
+    
+
+
+  </main>
+
+  
+  
+    
+      <h2 id="modal-man-title" class="font-bold text-base">CAIXA Nº 1</h2>
+      <button onclick="closeManualAddModal()" class="text-white text-xl p-1 cursor-pointer">**</button>
+    
+
+
+    
+    
+      
+        
           <label class="mobile-label">Part Number / Código</label>
           <input type="text" id="man-box-pn" list="cat-list" oninput="onManualPnInput(this.value)" class="mobile-input font-mono text-blue-800 font-bold" placeholder="EX: BC14030500" />
           <datalist id="cat-list"></datalist>
-          <div id="man-desc-feedback" class="text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-white border border-slate-200 text-slate-500 text-center">
+          
             DIGITE O CÓDIGO DA PEÇA...
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-2 mt-3">
-          <div>
+          
+
+
+        
+
+
+        
+          
             <label class="mobile-label">Lote</label>
             <input type="text" id="man-box-lote" class="mobile-input text-sm" placeholder="LOTE" />
-          </div>
-          <div>
+          
+
+
+          
             <label class="mobile-label">Qtd</label>
             <input type="text" readonly data-keyboard="num" id="man-box-qtd" class="mobile-input text-sm font-bold cursor-pointer" placeholder="Qtd" />
-          </div>
-        </div>
-        <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm mt-3 space-y-2">
-          <div>
+          
+
+
+        
+
+
+        
+          
             <label class="mobile-label">Tara (Embalagem)</label>
             <input type="text" readonly data-keyboard="num" id="man-box-tara" class="mobile-input text-sm cursor-pointer" placeholder="Kg" />
-          </div>
-          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
-            <div>
+          
+
+
+          
+            
               <label class="mobile-label text-[9px]">Peso Bruto NF</label>
               <input type="text" readonly data-keyboard="num" id="man-box-pnf" class="mobile-input bg-slate-50 text-sm cursor-pointer" placeholder="0,0" />
-            </div>
-            <div>
+            
+
+
+            
               <label class="mobile-label text-[9px] text-emerald-700">Peso Físico</label>
               <input type="text" readonly data-keyboard="num" id="man-box-pmando" class="mobile-input border-emerald-300 bg-emerald-50 text-emerald-800 font-black text-sm cursor-pointer" placeholder="0,0" />
-            </div>
-          </div>
-        </div>
+            
 
-        <div id="man-multiplier-container" class="bg-indigo-50 p-3 rounded-lg border border-indigo-200 shadow-sm mt-3 space-y-2">
-          <label class="mobile-label text-indigo-800"><i class="fa-solid fa-copy"></i> Multiplicar Lançamento</label>
-          <div class="flex items-center gap-3">
+
+          
+
+
+        
+
+
+
+        
+          <label class="mobile-label text-indigo-800">** Multiplicar Lançamento</label>
+          
              <button type="button" onclick="changeMultiplier('man', -1)" class="w-12 h-10 bg-indigo-200 text-indigo-800 rounded-lg font-black text-lg active:scale-95 transition-transform">-</button>
              <input type="text" readonly data-keyboard="num" id="man-box-multiplier" class="mobile-input text-center font-black text-indigo-900 text-lg flex-1 cursor-pointer" value="1" />
              <button type="button" onclick="changeMultiplier('man', 1)" class="w-12 h-10 bg-indigo-600 text-white rounded-lg font-black text-lg active:scale-95 transition-transform">+</button>
-          </div>
-        </div>
+          
 
-      </div>
-    </div>
+
+        
+
+
+
+      
+
+
     
-    <div class="p-3 bg-white border-t border-slate-200 shrink-0 space-y-2 pb-[env(safe-area-inset-bottom,12px)] flex flex-col items-center">
-      <div class="w-full max-w-sm flex flex-col gap-2">
+
+
+    
+    
+      
         <button onclick="salvarManual(true)" class="btn-large btn-success py-3 text-sm">
-          <i class="fa-solid fa-check"></i> Salvar e Add Outra
+          ** Salvar e Add Outra
         </button>
         <button onclick="salvarManual(false)" class="btn-large btn-primary bg-slate-800 py-3 text-sm">
           Salvar e Fechar
         </button>
-      </div>
-    </div>
-  </div>
+      
 
-  <!-- TELA 3: RESUMO E EXPORTAÇÃO -->
+
+    
+
+
+  
+
+
+
+  
   <main id="view-export" class="view-container p-4">
-    <div class="max-w-sm mx-auto">
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 text-center mb-5">
-        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
-          <i class="fa-solid fa-clipboard-check text-2xl"></i>
-        </div>
-        <h2 class="font-black text-lg text-slate-800 uppercase mb-1">Conferência Pronta</h2>
-        <p class="text-[11px] text-slate-500 font-bold"><span id="resumo-qtd-caixas">0</span> caixas registradas.</p>
-      </div>
+    
+      
+        
+          **
+        
 
-      <div class="space-y-3">
+
+        <h2 class="font-black text-lg text-slate-800 uppercase mb-1">Conferência Pronta</h2>
+        0 caixas registradas.
+
+
+      
+
+
+
+      
         <button onclick="openEmailModal()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
-          <i class="fa-solid fa-envelope"></i> Enviar por E-mail
+          ** Enviar por E-mail
         </button>
         
         <button onclick="gerarExcel()" class="btn-large bg-white text-emerald-700 border-2 border-emerald-600">
-          <i class="fa-solid fa-download"></i> Apenas Salvar Excel
+          ** Apenas Salvar Excel
         </button>
         
         <button onclick="sincronizarComDesktop()" class="btn-large btn-primary shadow-lg shadow-blue-600/30">
-          <i class="fa-solid fa-cloud-arrow-up"></i> Enviar p/ Desktop
+          ** Enviar p/ Desktop
         </button>
         
-        <div class="pt-5 border-t border-slate-200 mt-5">
+        
           <button onclick="abrirModalLimpar()" class="btn-large bg-red-50 text-red-600 border border-red-200 text-sm">
-            <i class="fa-solid fa-trash-can"></i> Limpar / Iniciar Nova
+            ** Limpar / Iniciar Nova
           </button>
-        </div>
-      </div>
-    </div>
+        
+
+
+      
+
+
+    
+
+
   </main>
 
-  <!-- MODAL ENVIO DE E-MAIL -->
-  <div id="modal-email" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center z-[200] px-4 opacity-0 transition-opacity">
-    <div class="bg-white p-5 rounded-2xl w-full max-w-sm shadow-xl transform scale-95 transition-transform duration-200" id="email-box">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="font-black text-base text-slate-800"><i class="fa-solid fa-envelope text-emerald-600"></i> Enviar Planilha</h3>
-        <button onclick="closeEmailModal()" class="text-slate-400 hover:text-slate-600 text-xl p-1"><i class="fa-solid fa-xmark"></i></button>
-      </div>
+  
+  
+    
+      
+        <h3 class="font-black text-base text-slate-800">** Enviar Planilha</h3>
+        <button onclick="closeEmailModal()" class="text-slate-400 hover:text-slate-600 text-xl p-1">**</button>
+      
 
-      <div class="space-y-3 mb-5">
-        <div>
+
+
+      
+        
           <label class="mobile-label">E-mail Operador</label>
           <input type="text" id="email-logado" class="mobile-input bg-slate-100 text-slate-500 font-bold" readonly />
-        </div>
-        <div>
+        
+
+
+        
           <label class="mobile-label">E-mail Adicional (Opcional)</label>
           <input type="email" id="email-extra" class="mobile-input normal-case" placeholder="ex: gestor@hlcompany.com" />
-        </div>
-        <div class="bg-blue-50 border border-blue-200 p-2.5 rounded-lg flex items-start gap-2">
-          <i class="fa-solid fa-circle-info text-blue-500 mt-0.5 text-[10px]"></i>
-          <p class="text-[9px] text-blue-800 font-bold uppercase leading-tight">
+        
+
+
+        
+          **
+          
             O sistema usará o compartilhamento nativo. Escolha seu app de E-mail (Gmail/Outlook) e o Excel já estará anexado automaticamente!
-          </p>
-        </div>
-      </div>
+          
+
+
+        
+
+
+      
+
+
 
       <button onclick="confirmarEnvioEmail()" class="btn-large bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
         Abrir Compartilhamento
       </button>
-    </div>
-  </div>
+    
 
-  <!-- MODAL CONFIRMAÇÃO LIMPAR -->
-  <div id="modal-limpar" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center z-[300] px-4 opacity-0 transition-opacity">
-    <div class="bg-white p-5 rounded-2xl w-full max-w-xs shadow-xl text-center transform scale-95 transition-transform duration-200" id="limpar-box">
-      <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3">
-        <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
-      </div>
+
+  
+
+
+
+  
+  
+    
+      
+        **
+      
+
+
       <h3 class="font-black text-lg text-slate-800 mb-1">Atenção!</h3>
-      <p class="text-xs text-slate-500 font-bold mb-5">Deseja apagar todos os dados desta nota? Esta ação não pode ser desfeita.</p>
-      <div class="flex gap-2">
+      Deseja apagar todos os dados desta nota? Esta ação não pode ser desfeita.
+
+
+      
         <button onclick="closeLimparModal()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold uppercase text-sm">Cancelar</button>
         <button onclick="confirmarLimparTudo()" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold uppercase text-sm shadow-lg shadow-red-600/30">Sim, Apagar</button>
-      </div>
-    </div>
-  </div>
+      
 
-  <!-- Bottom Navigation -->
+
+    
+
+
+  
+
+
+
+  
   <nav class="bottom-nav" id="main-bottom-nav">
-    <div onclick="navTo('mode-select')" class="nav-item">
-      <i class="fa-solid fa-bars"></i>
+    
+      **
       Modo
-    </div>
-    <div onclick="navTo('manual-items')" class="nav-item active" id="nav-btn-items">
-      <i class="fa-solid fa-boxes-stacked"></i>
+    
+
+
+    
+      **
       Caixas
-    </div>
-    <div onclick="navTo('export')" class="nav-item" id="nav-btn-export">
-      <i class="fa-solid fa-share-nodes"></i>
+    
+
+
+    
+      **
       Exportar
-    </div>
+    
+
+
   </nav>
 
-  <!-- TECLADO VIRTUAL INJETADO -->
-  <div id="virtual-kb" class="fixed bottom-0 left-0 w-full bg-slate-100/95 backdrop-blur-sm shadow-[0_-10px_20px_rgba(0,0,0,0.1)] transform translate-y-full transition-transform duration-300 z-[999] rounded-t-2xl pb-[env(safe-area-inset-bottom,8px)] border-t border-slate-200">
-    <div class="flex justify-between items-center p-2 border-b border-slate-200 bg-white rounded-t-2xl">
-      <span class="text-[11px] font-black text-slate-500 uppercase tracking-wider pl-2" id="vkb-title">TECLADO</span>
-      <button onclick="closeVKB()" class="text-slate-400 hover:text-slate-700 py-1 px-3 text-xl"><i class="fa-solid fa-chevron-down"></i></button>
-    </div>
-    <div id="vkb-keys" class="vkb-grid p-2">
-      <!-- Botões injetados via JS -->
-    </div>
-  </div>
+  
+  
+    
+      TECLADO
+      <button onclick="closeVKB()" class="text-slate-400 hover:text-slate-700 py-1 px-3 text-xl">**</button>
+    
 
-  <div id="toast" class="toast">Mensagem...</div>
+
+    
+      
+    
+
+
+  
+
+
+
+  Mensagem...
+
+
 
   <script>
     let appState = {
@@ -662,7 +920,6 @@
       "BC380A2200": { desc: "CARCACA DIRECAO", peso: 2.15, fornecedor: "MANDO HEADQUARTER" },
       "BC14030500": { desc: "PINHAO", peso: 0.8, fornecedor: "AÇO PEÇAS" },
       // ==== COLE SEU ARQUIVO AQUI DEPOIS ====
-
     };
 
     let editIndex = -1;
@@ -672,6 +929,8 @@
     let appCatalog = {};
     let currentView = 'login';
     let scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
+    let loginTab = 'usuario';
+    let loginProfileTemp = null;
 
     // ==========================================
     // LÓGICA DO MULTIPLICADOR DE CAIXAS
@@ -724,16 +983,16 @@
       });
 
       if (type === 'nf') {
-        title.innerHTML = '<i class="fa-solid fa-file-invoice text-blue-500 mr-1"></i> TECLADO NF';
+        title.innerHTML = '** TECLADO NF';
         keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, '-')">-</button>`;
       } else {
-        title.innerHTML = '<i class="fa-solid fa-scale-unbalanced text-emerald-500 mr-1"></i> TECLADO NUMÉRICO';
+        title.innerHTML = '** TECLADO NUMÉRICO';
         keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, ',')">,</button>`;
       }
 
       keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '0')">0</button>`;
-      keysHtml += `<button type="button" class="vkb-key action" onclick="vkbBackspace(event)"><i class="fa-solid fa-delete-left"></i></button>`;
-      keysHtml += `<button type="button" class="vkb-key enter" onclick="vkbEnter(event)">AVANÇAR / OK <i class="fa-solid fa-arrow-turn-down fa-rotate-90 ml-1"></i></button>`;
+      keysHtml += `<button type="button" class="vkb-key action" onclick="vkbBackspace(event)">**</button>`;
+      keysHtml += `<button type="button" class="vkb-key enter" onclick="vkbEnter(event)">AVANÇAR / OK **</button>`;
 
       keysContainer.innerHTML = keysHtml;
       vkb.classList.remove('translate-y-full');
@@ -809,7 +1068,7 @@
     // ==========================================
     let inactivityTimer;
     let lastActivityTime = Date.now();
-    const INACTIVITY_TIME_MS = 10 * 60 * 1000; // 10 minutos cravados
+    const INACTIVITY_TIME_MS = 10 * 60 * 1000;
 
     function checkInactivityAndLogout() {
       if (firebase && firebase.auth && firebase.auth().currentUser) {
@@ -825,14 +1084,13 @@
       }
     }
 
-    // Apenas checa se passou 10 minutos quando o operador VOLTAR para o app. Não desloga imediatamente ao sair!
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
             if (firebase && firebase.auth && firebase.auth().currentUser) {
                 if (Date.now() - lastActivityTime >= INACTIVITY_TIME_MS) {
                     logout("Sessão expirada. Você ficou fora por mais de 10 minutos.");
                 } else {
-                    resetTimer(); // Retomou a tempo! Reinicia os 10 minutos de tolerância.
+                    resetTimer();
                 }
             }
         }
@@ -892,42 +1150,107 @@
         else if (currentView === 'export') navTo('mode-select');
     }
 
+    // ==========================================
+    // LOGIN: ABAS USUÁRIO / E-MAIL
+    // ==========================================
+    function setLoginTab(tab) {
+      loginTab = tab;
+      const tabU = document.getElementById('tab-usuario');
+      const tabE = document.getElementById('tab-email');
+      const label = document.getElementById('login-label');
+      const hint = document.getElementById('login-hint');
+      const input = document.getElementById('login-ident');
+      if (tab === 'usuario') {
+        tabU.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all bg-white text-blue-700 shadow-sm';
+        tabE.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all text-slate-500';
+        label.innerText = 'Nome de usuário';
+        hint.innerHTML = '** Você pode usar seu nome de usuário ou apelido cadastrado.';
+        input.placeholder = 'Nome de usuário';
+      } else {
+        tabE.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all bg-white text-blue-700 shadow-sm';
+        tabU.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all text-slate-500';
+        label.innerText = 'E-mail';
+        hint.innerHTML = '** Use o e-mail cadastrado no sistema.';
+        input.placeholder = 'ex: joao@empresa.com';
+      }
+    }
+
+    function abrirModalCadastro() {
+      const modal = document.getElementById('modal-cadastro-acesso');
+      const box = document.getElementById('cadastro-box');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+    }
+
+    function fecharModalCadastro() {
+      const modal = document.getElementById('modal-cadastro-acesso');
+      const box = document.getElementById('cadastro-box');
+      modal.classList.add('opacity-0');
+      box.classList.add('scale-95');
+      setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
+    }
+
     function fazerLogin() {
-      const emailRaw = document.getElementById('login-email').value;
+      const ident = document.getElementById('login-ident').value.trim();
       const senha = document.getElementById('login-senha').value;
-      if (!emailRaw || !senha) { showToast("Preencha usuário e senha."); return; }
-      auth.signInWithEmailAndPassword(formatarEmail(emailRaw), senha)
-        .then(() => { showToast("Login com sucesso!"); })
-        .catch(error => { showToast(error.code === 'auth/invalid-credential' ? "❌ Conta não existe ou senha errada." : "Erro: " + error.message); });
+      if (!ident || !senha) { showToast("Preencha usuário/e-mail e senha."); return; }
+      const resolverLogin = (email) => {
+        auth.signInWithEmailAndPassword(email, senha)
+          .then(() => { showToast("Login com sucesso!"); })
+          .catch(error => { showToast(error.code === 'auth/invalid-credential' ? "❌ Conta não existe ou senha errada." : "Erro: " + error.message); });
+      };
+      if (loginTab === 'email') {
+        resolverLogin(ident.toLowerCase());
+      } else {
+        db.ref('cadastros/operadores').once('value').then(snap => {
+          let ops = snap.val();
+          let arr = Array.isArray(ops) ? ops.filter(o => o) : Object.values(ops || {});
+          let op = arr.find(o => o && (
+            (o.usuario && o.usuario.trim().toLowerCase() === ident.trim().toLowerCase()) ||
+            (o.email && o.email.trim().toLowerCase() === ident.trim().toLowerCase())
+          ));
+          if (op) {
+            loginProfileTemp = { nome: op.nome, turno: op.turno };
+            const email = op.email || (ident.includes('@') ? ident : ident + '@hlcompany.com');
+            resolverLogin(email);
+          } else {
+            showToast("❌ Esse usuário não existe no cadastro. Fale com o administrador.");
+          }
+        }).catch(() => showToast("Erro ao buscar usuário."));
+      }
     }
 
     function fazerCadastro() {
-      const emailRaw = document.getElementById('login-email').value;
-      const senha = document.getElementById('login-senha').value;
-      if (!emailRaw || !senha) { showToast("Preencha usuário e senha para cadastrar."); return; }
-      
-      const email = formatarEmail(emailRaw);
-      const nomeOp = emailRaw.split('@')[0].toUpperCase();
-      
-      auth.createUserWithEmailAndPassword(email, senha)
-        .then(() => {
-          db.ref('cadastros/operadores').once('value').then(snap => {
-            let ops = snap.val(); let arr = Array.isArray(ops) ? ops : Object.values(ops || {});
-            if (!arr.some(o => o && o.email && o.email.toLowerCase() === email.toLowerCase())) {
-               db.ref('cadastros/operadores').push({ nome: nomeOp, email: email, turno: "A" });
-            }
-          });
-          showToast("Acesso ativado com sucesso!");
-        })
-        .catch(error => { showToast(error.code === 'auth/email-already-in-use' ? "❌ Usuário já existe!" : "Falha: " + error.message); });
+      const ident = document.getElementById('cad-ident').value.trim();
+      const senha = document.getElementById('cad-senha').value;
+      if (!ident || !senha) { showToast("Preencha usuário/e-mail e senha."); return; }
+      if (senha.length < 6) { showToast("A senha deve ter no mínimo 6 caracteres."); return; }
+      db.ref('cadastros/operadores').once('value').then(snap => {
+        let ops = snap.val();
+        let arr = Array.isArray(ops) ? ops.filter(o => o) : Object.values(ops || {});
+        let op = arr.find(o => o && (
+          (o.usuario && o.usuario.trim().toLowerCase() === ident.trim().toLowerCase()) ||
+          (o.email && o.email.trim().toLowerCase() === ident.trim().toLowerCase())
+        ));
+        if (!op) {
+          showToast("❌ Esse usuário não existe no cadastro. Fale com o administrador.");
+          return;
+        }
+        loginProfileTemp = { nome: op.nome, turno: op.turno };
+        const email = op.email || (ident.includes('@') ? ident : ident + '@hlcompany.com');
+        auth.createUserWithEmailAndPassword(email, senha)
+          .then(() => { showToast("Acesso criado! Aguarde a liberação."); fecharModalCadastro(); })
+          .catch(error => { showToast(error.code === 'auth/email-already-in-use' ? "❌ Já existe senha para este login." : "Falha: " + error.message); });
+      }).catch(() => showToast("Erro ao validar acesso."));
     }
 
     function logout(mensagemToast = "Deslogado com sucesso.") {
-      if(auth) {
+      if (auth) {
         auth.signOut().then(() => {
           appState.caixas = [];
           document.getElementById('btn-logout').classList.add('hidden');
-          document.getElementById('login-email').value = ''; document.getElementById('login-senha').value = '';
+          document.getElementById('login-ident').value = ''; document.getElementById('login-senha').value = '';
           clearTimeout(inactivityTimer); closeVKB(); showToast(mensagemToast); navTo('login');
         });
       }
@@ -971,7 +1294,7 @@
 
     function avancarParaBipagem() {
       const nf = document.getElementById('col-nf-input').value.trim();
-      if(!nf) { showToast("Digite a Nota Fiscal!"); return; }
+      if (!nf) { showToast("Digite a Nota Fiscal!"); return; }
       appState.cabecalho.nota_fiscal_principal = nf.toUpperCase();
       const hoje = new Date(); appState.cabecalho.data_conferencia = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
       navTo('coletor-main');
@@ -998,7 +1321,7 @@
 
     function processarColetorMain(codigoBruto) {
       const upper = String(codigoBruto).toUpperCase().trim().replace(/[\x00-\x1F\x7F-\x9F]/g, "");
-      if(!upper) return;
+      if (!upper) return;
 
       scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
 
@@ -1086,8 +1409,8 @@
 
       showToast(multiplier > 1 ? `${multiplier} Caixas salvas com sucesso!` : "Caixa salva!");
 
-      if(addAnother) {
-        ['pn', 'forn', 'lote', 'qtd', 'tara', 'pnf', 'pmando'].forEach(id => document.getElementById('col-main-'+id).value = '');
+      if (addAnother) {
+        ['pn', 'forn', 'lote', 'qtd', 'tara', 'pnf', 'pmando'].forEach(id => document.getElementById('col-main-' + id).value = '');
         document.getElementById('col-main-multiplier').value = '1'; 
         navTo('coletor-main'); 
       } else { 
@@ -1104,8 +1427,8 @@
       
       let info = buscarInfoPeca(raw);
       
-      if(info && info.desc) {
-          feedback.innerHTML = `<b>${info.desc}</b>`;
+      if (info && info.desc) {
+          feedback.innerHTML = `**${info.desc}**`;
           feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-center';
           if (raw.length > 5 && info.pn !== raw && info.pn.replace(/[^A-Z0-9]/g, '') === raw) { pnInput.value = info.pn; }
           if (info.fornecedor && (!fornHeader.value || fornHeader.value.trim() === '')) {
@@ -1122,24 +1445,38 @@
       document.getElementById('man-items-counter').innerText = `${appState.caixas.length} CAIXAS`;
       
       if (appState.caixas.length === 0) {
-        list.innerHTML = `<div class="text-center p-6 text-slate-400 font-bold text-xs uppercase"><i class="fa-solid fa-box-open text-3xl mb-2 opacity-50 block"></i> Nenhuma caixa.</div>`;
+        list.innerHTML = `** Nenhuma caixa.
+
+`;
         return;
       }
       list.innerHTML = '';
       appState.caixas.forEach((c, idx) => {
         list.innerHTML += `
-          <div class="box-card" onclick="openManualEditModal(${idx})">
-            <div class="flex justify-between items-start mb-1">
-              <div class="font-black text-slate-800 text-sm">CX ${c.caixa_no}</div>
-              <div class="font-bold text-blue-700 bg-blue-50 px-2 rounded text-[10px]">${c.observacao || 'S/ CÓDIGO'}</div>
-            </div>
-            <div class="text-[10px] font-bold text-slate-500 mb-2 border-t border-slate-100 pt-1.5 flex justify-between">
-              <span>QTD: ${c.quantidade_mencionada || '-'}</span> <span>LOTE: ${c.lote || '-'}</span> <span>TARA: ${c.peso_embalagem || '-'} kg</span>
-            </div>
-            <div class="text-[10px] font-bold text-slate-500 pt-1 border-t border-slate-100 flex justify-between">
-              <span>NF: ${c.peso_bruto_nf || '-'}</span> <span>Mando: <b class="text-emerald-600">${c.peso_bruto_mando || '-'}</b></span>
-            </div>
-          </div>
+          
+            
+              CX ${c.caixa_no}
+
+
+              ${c.observacao || 'S/ CÓDIGO'}
+
+
+            
+
+
+            
+              QTD: ${c.quantidade_mencionada || '-'} LOTE: ${c.lote || '-'} TARA: ${c.peso_embalagem || '-'} kg
+            
+
+
+            
+              NF: ${c.peso_bruto_nf || '-'} Mando: **${c.peso_bruto_mando || '-'}**
+            
+
+
+          
+
+
         `;
       });
     }
@@ -1224,7 +1561,7 @@
       showToast(multiplier > 1 ? `${multiplier} Caixas salvas com sucesso!` : "Caixa salva!");
       renderManualItemsList();
       
-      if(addAnother && editIndex === -1) {
+      if (addAnother && editIndex === -1) {
         document.getElementById('man-box-pn').value = '';
         document.getElementById('man-box-pmando').value = '';
         document.getElementById('man-box-multiplier').value = '1';
@@ -1400,7 +1737,9 @@
                let ops = snap.val();
                let arr = Array.isArray(ops) ? ops : Object.values(ops || {});
                let opProfile = arr.find(o => o && o.email && o.email.toLowerCase() === user.email.toLowerCase());
-
+               if (!opProfile && loginProfileTemp) {
+                   opProfile = loginProfileTemp;
+               }
                if (opProfile) {
                    appState.cabecalho.operador = opProfile.nome;
                    appState.cabecalho.turno = opProfile.turno;
@@ -1413,7 +1752,7 @@
                    document.getElementById('lbl-operador-logado').innerText = userName;
                    document.getElementById('lbl-operador-turno').innerText = "TURNO A";
                }
-
+               loginProfileTemp = null;
                document.getElementById('btn-logout').classList.remove('hidden');
                if (currentView === 'login') navTo('mode-select');
             });
@@ -1466,12 +1805,10 @@
       } catch(e) { console.error("Firebase init error:", e); }
     }
 
-    window.onload = function() {
+    window.onload = function () {
       initFirebaseApp();
       initVKB();
-      const loginEmail = document.getElementById('login-email');
-      if(loginEmail) loginEmail.addEventListener('blur', function() { this.value = formatarEmail(this.value); });
-      
+      setLoginTab('usuario');
       ['touchstart', 'mousemove', 'mousedown', 'keypress', 'scroll'].forEach(evt => {
         document.addEventListener(evt, resetTimer, true);
       });
