@@ -187,14 +187,14 @@
     .vkb-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
+      gap: 6px; /* Espaço menor entre teclas */
     }
     .vkb-key {
       background: white;
       border-radius: 8px;
-      padding: 8px 0;
+      padding: 8px 0; /* Menos padding vertical */
       text-align: center;
-      font-size: 20px;
+      font-size: 20px; /* Fonte menor */
       font-weight: 900;
       color: #1e293b;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -241,19 +241,15 @@
         <div class="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
           <i class="fa-solid fa-user-lock text-2xl"></i>
         </div>
-        <h2 class="font-black text-2xl text-slate-800 tracking-tight">Acesso ao sistema</h2>
-        <p class="text-slate-500 font-bold text-xs mt-1">Identifique-se com usuário ou e-mail</p>
+        <h2 class="font-black text-2xl text-slate-800 tracking-tight">ACESSO</h2>
+        <p class="text-slate-500 font-bold text-xs mt-1">Identifique-se para iniciar a pesagem</p>
       </div>
 
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-        <div class="flex bg-slate-100 rounded-lg p-1">
-          <button onclick="setLoginTab('usuario')" id="tab-usuario" class="flex-1 py-2 rounded-md text-xs font-black uppercase transition-all bg-white text-blue-700 shadow-sm">Usuário</button>
-          <button onclick="setLoginTab('email')" id="tab-email" class="flex-1 py-2 rounded-md text-xs font-black uppercase transition-all text-slate-500">E-mail</button>
-        </div>
         <div>
-          <label class="mobile-label" id="login-label">Nome de usuário</label>
-          <input type="text" id="login-ident" class="mobile-input normal-case" placeholder="Nome de usuário" />
-          <p class="text-[9px] text-slate-400 font-bold mt-1 ml-1" id="login-hint"><i class="fa-solid fa-circle-info"></i> Você pode usar seu nome de usuário ou apelido cadastrado.</p>
+          <label class="mobile-label">Usuário</label>
+          <input type="text" id="login-email" class="mobile-input normal-case" placeholder="ex: joao (só o nome)" />
+          <p class="text-[9px] text-slate-400 font-bold mt-1 ml-1"><i class="fa-solid fa-circle-info"></i> O @hlcompany.com é inserido sozinho.</p>
         </div>
         <div>
           <label class="mobile-label">Senha</label>
@@ -263,41 +259,13 @@
           <button onclick="fazerLogin()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
             Entrar no Sistema
           </button>
-          <button onclick="abrirModalCadastro()" class="btn-large bg-slate-100 text-slate-700 hover:bg-slate-200">
-            Criar acesso (Requer liberação)
+          <button onclick="fazerCadastro()" class="btn-large bg-slate-100 text-slate-700 hover:bg-slate-200">
+            Criar meu Cadastro
           </button>
         </div>
-        <p class="text-[9px] text-slate-400 font-bold text-center pt-1">Sessão encerrada após 10 min sem uso ou ao fechar o aplicativo</p>
       </div>
     </div>
   </main>
-
-  <!-- MODAL CRIAR ACESSO -->
-  <div id="modal-cadastro-acesso" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center z-[200] px-4 opacity-0 transition-opacity">
-    <div class="bg-white p-5 rounded-2xl w-full max-w-sm shadow-xl transform scale-95 transition-transform duration-200" id="cadastro-box">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="font-black text-base text-slate-800"><i class="fa-solid fa-user-lock text-blue-600"></i> Validar Acesso</h3>
-        <button onclick="fecharModalCadastro()" class="text-slate-400 hover:text-slate-600 text-xl p-1"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div class="bg-blue-50 border border-blue-200 p-2.5 rounded-lg mb-4">
-        <p class="text-[9px] text-blue-800 font-bold uppercase leading-tight"><i class="fa-solid fa-circle-info"></i> Requer cadastro prévio</p>
-      </div>
-      <div class="space-y-3 mb-5">
-        <div>
-          <label class="mobile-label">Usuário ou E-mail autorizado</label>
-          <input type="text" id="cad-ident" class="mobile-input normal-case" placeholder="Nome de usuário ou e-mail" />
-        </div>
-        <div>
-          <label class="mobile-label">Crie uma Senha (mínimo 6 char)</label>
-          <input type="password" id="cad-senha" class="mobile-input normal-case" placeholder="••••••••" />
-        </div>
-      </div>
-      <div class="flex gap-2">
-        <button onclick="fecharModalCadastro()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold uppercase text-sm">Cancelar</button>
-        <button onclick="fazerCadastro()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold uppercase text-sm shadow-lg shadow-blue-600/30">Validar e Criar</button>
-      </div>
-    </div>
-  </div>
 
   <!-- TELA 1: HOME (ESCOLHA DE MODO) -->
   <main id="view-mode-select" class="view-container p-4">
@@ -694,6 +662,7 @@
       "BC380A2200": { desc: "CARCACA DIRECAO", peso: 2.15, fornecedor: "MANDO HEADQUARTER" },
       "BC14030500": { desc: "PINHAO", peso: 0.8, fornecedor: "AÇO PEÇAS" },
       // ==== COLE SEU ARQUIVO AQUI DEPOIS ====
+
     };
 
     let editIndex = -1;
@@ -703,8 +672,6 @@
     let appCatalog = {};
     let currentView = 'login';
     let scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
-    let loginTab = 'usuario';
-    let loginProfileTemp = null;
 
     // ==========================================
     // LÓGICA DO MULTIPLICADOR DE CAIXAS
@@ -842,7 +809,7 @@
     // ==========================================
     let inactivityTimer;
     let lastActivityTime = Date.now();
-    const INACTIVITY_TIME_MS = 10 * 60 * 1000;
+    const INACTIVITY_TIME_MS = 10 * 60 * 1000; // 10 minutos cravados
 
     function checkInactivityAndLogout() {
       if (firebase && firebase.auth && firebase.auth().currentUser) {
@@ -858,13 +825,14 @@
       }
     }
 
+    // Apenas checa se passou 10 minutos quando o operador VOLTAR para o app. Não desloga imediatamente ao sair!
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
             if (firebase && firebase.auth && firebase.auth().currentUser) {
                 if (Date.now() - lastActivityTime >= INACTIVITY_TIME_MS) {
                     logout("Sessão expirada. Você ficou fora por mais de 10 minutos.");
                 } else {
-                    resetTimer();
+                    resetTimer(); // Retomou a tempo! Reinicia os 10 minutos de tolerância.
                 }
             }
         }
@@ -924,107 +892,42 @@
         else if (currentView === 'export') navTo('mode-select');
     }
 
-    // ==========================================
-    // LOGIN: ABAS USUÁRIO / E-MAIL
-    // ==========================================
-    function setLoginTab(tab) {
-      loginTab = tab;
-      const tabU = document.getElementById('tab-usuario');
-      const tabE = document.getElementById('tab-email');
-      const label = document.getElementById('login-label');
-      const hint = document.getElementById('login-hint');
-      const input = document.getElementById('login-ident');
-      if (tab === 'usuario') {
-        tabU.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all bg-white text-blue-700 shadow-sm';
-        tabE.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all text-slate-500';
-        label.innerText = 'Nome de usuário';
-        hint.innerHTML = '<i class="fa-solid fa-circle-info"></i> Você pode usar seu nome de usuário ou apelido cadastrado.';
-        input.placeholder = 'Nome de usuário';
-      } else {
-        tabE.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all bg-white text-blue-700 shadow-sm';
-        tabU.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all text-slate-500';
-        label.innerText = 'E-mail';
-        hint.innerHTML = '<i class="fa-solid fa-circle-info"></i> Use o e-mail cadastrado no sistema.';
-        input.placeholder = 'ex: joao@empresa.com';
-      }
-    }
-
-    function abrirModalCadastro() {
-      const modal = document.getElementById('modal-cadastro-acesso');
-      const box = document.getElementById('cadastro-box');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-      setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
-    }
-
-    function fecharModalCadastro() {
-      const modal = document.getElementById('modal-cadastro-acesso');
-      const box = document.getElementById('cadastro-box');
-      modal.classList.add('opacity-0');
-      box.classList.add('scale-95');
-      setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
-    }
-
     function fazerLogin() {
-      const ident = document.getElementById('login-ident').value.trim();
+      const emailRaw = document.getElementById('login-email').value;
       const senha = document.getElementById('login-senha').value;
-      if (!ident || !senha) { showToast("Preencha usuário/e-mail e senha."); return; }
-      const resolverLogin = (email) => {
-        auth.signInWithEmailAndPassword(email, senha)
-          .then(() => { showToast("Login com sucesso!"); })
-          .catch(error => { showToast(error.code === 'auth/invalid-credential' ? "❌ Conta não existe ou senha errada." : "Erro: " + error.message); });
-      };
-      if (loginTab === 'email') {
-        resolverLogin(ident.toLowerCase());
-      } else {
-        db.ref('cadastros/operadores').once('value').then(snap => {
-          let ops = snap.val();
-          let arr = Array.isArray(ops) ? ops.filter(o => o) : Object.values(ops || {});
-          let op = arr.find(o => o && (
-            (o.usuario && o.usuario.trim().toLowerCase() === ident.trim().toLowerCase()) ||
-            (o.email && o.email.trim().toLowerCase() === ident.trim().toLowerCase())
-          ));
-          if (op) {
-            loginProfileTemp = { nome: op.nome, turno: op.turno };
-            const email = op.email || (ident.includes('@') ? ident : ident + '@hlcompany.com');
-            resolverLogin(email);
-          } else {
-            showToast("❌ Esse usuário não existe no cadastro. Fale com o administrador.");
-          }
-        }).catch(() => showToast("Erro ao buscar usuário."));
-      }
+      if (!emailRaw || !senha) { showToast("Preencha usuário e senha."); return; }
+      auth.signInWithEmailAndPassword(formatarEmail(emailRaw), senha)
+        .then(() => { showToast("Login com sucesso!"); })
+        .catch(error => { showToast(error.code === 'auth/invalid-credential' ? "❌ Conta não existe ou senha errada." : "Erro: " + error.message); });
     }
 
     function fazerCadastro() {
-      const ident = document.getElementById('cad-ident').value.trim();
-      const senha = document.getElementById('cad-senha').value;
-      if (!ident || !senha) { showToast("Preencha usuário/e-mail e senha."); return; }
-      if (senha.length < 6) { showToast("A senha deve ter no mínimo 6 caracteres."); return; }
-      db.ref('cadastros/operadores').once('value').then(snap => {
-        let ops = snap.val();
-        let arr = Array.isArray(ops) ? ops.filter(o => o) : Object.values(ops || {});
-        let op = arr.find(o => o && (
-          (o.usuario && o.usuario.trim().toLowerCase() === ident.trim().toLowerCase()) ||
-          (o.email && o.email.trim().toLowerCase() === ident.trim().toLowerCase())
-        ));
-        if (!op) {
-          showToast("❌ Esse usuário não existe no cadastro. Fale com o administrador.");
-          return;
-        }
-        loginProfileTemp = { nome: op.nome, turno: op.turno };
-        const email = op.email || (ident.includes('@') ? ident : ident + '@hlcompany.com');
-        auth.createUserWithEmailAndPassword(email, senha)
-          .then(() => { showToast("Acesso criado! Aguarde a liberação."); fecharModalCadastro(); })
-          .catch(error => { showToast(error.code === 'auth/email-already-in-use' ? "❌ Já existe senha para este login." : "Falha: " + error.message); });
-      }).catch(() => showToast("Erro ao validar acesso."));
+      const emailRaw = document.getElementById('login-email').value;
+      const senha = document.getElementById('login-senha').value;
+      if (!emailRaw || !senha) { showToast("Preencha usuário e senha para cadastrar."); return; }
+      
+      const email = formatarEmail(emailRaw);
+      const nomeOp = emailRaw.split('@')[0].toUpperCase();
+      
+      auth.createUserWithEmailAndPassword(email, senha)
+        .then(() => {
+          db.ref('cadastros/operadores').once('value').then(snap => {
+            let ops = snap.val(); let arr = Array.isArray(ops) ? ops : Object.values(ops || {});
+            if (!arr.some(o => o && o.email && o.email.toLowerCase() === email.toLowerCase())) {
+               db.ref('cadastros/operadores').push({ nome: nomeOp, email: email, turno: "A" });
+            }
+          });
+          showToast("Acesso ativado com sucesso!");
+        })
+        .catch(error => { showToast(error.code === 'auth/email-already-in-use' ? "❌ Usuário já existe!" : "Falha: " + error.message); });
     }
 
     function logout(mensagemToast = "Deslogado com sucesso.") {
-      if (auth) {
+      if(auth) {
         auth.signOut().then(() => {
           appState.caixas = [];
           document.getElementById('btn-logout').classList.add('hidden');
-          document.getElementById('login-ident').value = ''; document.getElementById('login-senha').value = '';
+          document.getElementById('login-email').value = ''; document.getElementById('login-senha').value = '';
           clearTimeout(inactivityTimer); closeVKB(); showToast(mensagemToast); navTo('login');
         });
       }
@@ -1068,7 +971,7 @@
 
     function avancarParaBipagem() {
       const nf = document.getElementById('col-nf-input').value.trim();
-      if (!nf) { showToast("Digite a Nota Fiscal!"); return; }
+      if(!nf) { showToast("Digite a Nota Fiscal!"); return; }
       appState.cabecalho.nota_fiscal_principal = nf.toUpperCase();
       const hoje = new Date(); appState.cabecalho.data_conferencia = String(hoje.getDate()).padStart(2, '0') + '/' + String(hoje.getMonth() + 1).padStart(2, '0') + '/' + hoje.getFullYear();
       navTo('coletor-main');
@@ -1095,7 +998,7 @@
 
     function processarColetorMain(codigoBruto) {
       const upper = String(codigoBruto).toUpperCase().trim().replace(/[\x00-\x1F\x7F-\x9F]/g, "");
-      if (!upper) return;
+      if(!upper) return;
 
       scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
 
@@ -1183,8 +1086,8 @@
 
       showToast(multiplier > 1 ? `${multiplier} Caixas salvas com sucesso!` : "Caixa salva!");
 
-      if (addAnother) {
-        ['pn', 'forn', 'lote', 'qtd', 'tara', 'pnf', 'pmando'].forEach(id => document.getElementById('col-main-' + id).value = '');
+      if(addAnother) {
+        ['pn', 'forn', 'lote', 'qtd', 'tara', 'pnf', 'pmando'].forEach(id => document.getElementById('col-main-'+id).value = '');
         document.getElementById('col-main-multiplier').value = '1'; 
         navTo('coletor-main'); 
       } else { 
@@ -1201,7 +1104,7 @@
       
       let info = buscarInfoPeca(raw);
       
-      if (info && info.desc) {
+      if(info && info.desc) {
           feedback.innerHTML = `<b>${info.desc}</b>`;
           feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-center';
           if (raw.length > 5 && info.pn !== raw && info.pn.replace(/[^A-Z0-9]/g, '') === raw) { pnInput.value = info.pn; }
@@ -1321,7 +1224,7 @@
       showToast(multiplier > 1 ? `${multiplier} Caixas salvas com sucesso!` : "Caixa salva!");
       renderManualItemsList();
       
-      if (addAnother && editIndex === -1) {
+      if(addAnother && editIndex === -1) {
         document.getElementById('man-box-pn').value = '';
         document.getElementById('man-box-pmando').value = '';
         document.getElementById('man-box-multiplier').value = '1';
@@ -1497,9 +1400,7 @@
                let ops = snap.val();
                let arr = Array.isArray(ops) ? ops : Object.values(ops || {});
                let opProfile = arr.find(o => o && o.email && o.email.toLowerCase() === user.email.toLowerCase());
-               if (!opProfile && loginProfileTemp) {
-                   opProfile = loginProfileTemp;
-               }
+
                if (opProfile) {
                    appState.cabecalho.operador = opProfile.nome;
                    appState.cabecalho.turno = opProfile.turno;
@@ -1512,7 +1413,7 @@
                    document.getElementById('lbl-operador-logado').innerText = userName;
                    document.getElementById('lbl-operador-turno').innerText = "TURNO A";
                }
-               loginProfileTemp = null;
+
                document.getElementById('btn-logout').classList.remove('hidden');
                if (currentView === 'login') navTo('mode-select');
             });
@@ -1565,10 +1466,12 @@
       } catch(e) { console.error("Firebase init error:", e); }
     }
 
-    window.onload = function () {
+    window.onload = function() {
       initFirebaseApp();
       initVKB();
-      setLoginTab('usuario');
+      const loginEmail = document.getElementById('login-email');
+      if(loginEmail) loginEmail.addEventListener('blur', function() { this.value = formatarEmail(this.value); });
+      
       ['touchstart', 'mousemove', 'mousedown', 'keypress', 'scroll'].forEach(evt => {
         document.addEventListener(evt, resetTimer, true);
       });
