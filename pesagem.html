@@ -20,23 +20,31 @@
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background-color:var(--bg);color:var(--text);margin:0;padding:0;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;touch-action:pan-y}
     button{font-family:inherit;cursor:pointer}
     input,select{font-family:inherit}
-    .view-container{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:90px;display:none;animation:fadeIn .2s ease;width:100%}
-    .view-container.active{display:block}
+
+    /* ===== TELAS: controle rígido (corrige empilhamento) ===== */
+    .view-container{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:90px;display:none!important;animation:fadeIn .2s ease;width:100%}
+    .view-container.active{display:block!important}
     @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
     .mobile-input{width:100%;padding:10px 12px;font-size:16px!important;border:1px solid #cbd5e1;border-radius:8px;background-color:#f1f5f9;transition:all .2s;outline:none;text-transform:uppercase;font-weight:700;box-sizing:border-box}
     .mobile-input:focus{border-color:var(--primary);background-color:#fff;box-shadow:0 0 0 2px rgba(0,92,158,.15);font-size:16px!important}
     .mobile-label{display:block;font-size:11px;font-weight:800;color:#64748b;margin-bottom:4px;text-transform:uppercase}
+
     .btn-large{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:10px;font-weight:900;font-size:15px;text-transform:uppercase;transition:transform .1s;border:none;cursor:pointer}
     .btn-large:active{transform:scale(.97)}
     .btn-primary{background-color:var(--primary);color:#fff;box-shadow:0 4px 6px -1px rgba(0,92,158,.2)}
     .btn-success{background-color:#10b981;color:#fff}
+
     .bottom-nav{position:fixed;bottom:0;left:0;width:100%;background:#fff;border-top:1px solid #e2e8f0;display:none;justify-content:space-around;padding:6px 0;padding-bottom:env(safe-area-inset-bottom,8px);box-shadow:0 -4px 15px rgba(0,0,0,.03);z-index:50}
     .nav-item{display:flex;flex-direction:column;align-items:center;color:#94a3b8;font-size:10px;font-weight:800;padding:8px;border-radius:8px;flex:1;text-transform:uppercase;cursor:pointer}
     .nav-item.active{color:var(--primary)}
     .nav-item .ic{font-size:18px;margin-bottom:2px}
+
     .box-card{background:#fff;border-radius:10px;padding:14px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,.04);border:1px solid #e2e8f0;border-left:4px solid var(--primary);cursor:pointer}
+
     .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-100px);background:#1e293b;color:#fff;padding:12px 20px;border-radius:20px;font-weight:bold;font-size:13px;z-index:1000;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);box-shadow:0 4px 12px rgba(0,0,0,.15);white-space:nowrap}
     .toast.show{transform:translateX(-50%) translateY(0)}
+
     .vkb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
     .vkb-key{background:#fff;border-radius:8px;padding:8px 0;text-align:center;font-size:20px;font-weight:900;color:#1e293b;box-shadow:0 1px 3px rgba(0,0,0,.1);border:1px solid #e2e8f0;transition:all .1s;user-select:none;-webkit-user-select:none;touch-action:manipulation}
     .vkb-key:active{background:#cbd5e1;transform:scale(.95)}
@@ -44,9 +52,11 @@
     .vkb-key.enter{background:#005c9e;color:#fff;grid-column:span 3;border:none;font-size:14px;text-transform:uppercase;padding:10px 0;margin-top:2px;box-shadow:0 4px 6px -1px rgba(0,92,158,.2)}
     .vkb-key.enter:active{transform:scale(.98);background:#004b80}
     .vkb-shell{position:fixed;bottom:0;left:0;width:100%;background:rgba(241,245,249,.95);backdrop-filter:blur(4px);box-shadow:0 -10px 20px rgba(0,0,0,.1);z-index:999;border-top-left-radius:16px;border-top-right-radius:16px;padding-bottom:env(safe-area-inset-bottom,8px);border-top:1px solid #e2e8f0}
+
     .ic{width:1em;height:1em;display:inline-block;vertical-align:-0.125em;flex-shrink:0}
     .safe-top{padding-top:env(safe-area-inset-top,12px)}
     .safe-bottom{padding-bottom:env(safe-area-inset-bottom,12px)}
+
     /* ===== UTILITÁRIOS (substituem o Tailwind) ===== */
     .flex{display:flex}.flex-col{flex-direction:column}.flex-1{flex:1}.items-center{align-items:center}.items-start{align-items:flex-start}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.shrink-0{flex-shrink:0}.gap-1{gap:4px}.gap-2{gap:8px}.gap-3{gap:12px}.gap-4{gap:16px}.grid{display:grid}.grid-cols-2{grid-template-columns:repeat(2,1fr)}
     .space-y-2>*+*{margin-top:8px}.space-y-3>*+*{margin-top:12px}.space-y-4>*+*{margin-top:16px}.space-y-5>*+*{margin-top:20px}.space-y-6>*+*{margin-top:24px}
@@ -706,55 +716,47 @@
   
 
 
-
-  Mensagem...
-
-
-
-    <script>
+  <script>
     // ===== ÍCONES SVG INLINE (substituem o Font Awesome) =====
     var ICONS = {
-      'fa-arrow-left': 'M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18',
-      'fa-arrow-right': 'M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3',
-      'fa-arrow-turn-down': 'M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75',
-      'fa-check': 'M4.5 12.75l6 6 9-13.5',
-      'fa-xmark': 'M6 18L18 6M6 6l12 12',
-      'fa-plus': 'M12 4.5v15m7.5-7.5h-15',
-      'fa-chevron-down': 'M19.5 8.25l-7.5 7.5-7.5-7.5',
-      'fa-circle-info': 'M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z',
-      'fa-user-check': 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z',
-      'fa-user-lock': 'M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z',
-      'fa-barcode': 'M4 5v14M8 5v14M12 5v14M16 5v14M20 5v14',
-      'fa-keyboard': 'M4 7h16a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V9a2 2 0 012-2zm2 4h.01M8 12h.01M10 10h.01M12 12h.01M14 10h.01M16 12h.01M18 10h.01M6 15h12',
-      'fa-file-invoice': 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z',
-      'fa-box-open': 'M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9',
-      'fa-scale-balanced': 'M12 3v18M5 21h14M7 8h10M7 8L4.5 13.5a3.25 3.25 0 005 0L7 8zm10 0l-2.5 5.5a3.25 3.25 0 005 0L17 8z',
-      'fa-scale-unbalanced': 'M12 3v18M5 21h14M7 8h10M7 8L4.5 13.5a3.25 3.25 0 005 0L7 8zm10 0l-2.5 5.5a3.25 3.25 0 005 0L17 8z',
-      'fa-copy': 'M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75',
-      'fa-flag-checkered': 'M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5',
-      'fa-boxes-stacked': 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z',
-      'fa-clipboard-check': 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-      'fa-envelope': 'M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75',
-      'fa-download': 'M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3',
-      'fa-cloud-arrow-up': 'M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z',
-      'fa-trash-can': 'M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0',
-      'fa-triangle-exclamation': 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z',
-      'fa-bars': 'M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5',
-      'fa-share-nodes': 'M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z',
-      'fa-delete-left': 'M9.143 4.5h6.714a4.5 4.5 0 014.5 4.5v6a4.5 4.5 0 01-4.5 4.5H9.143a4.5 4.5 0 01-3.183-1.318L1.5 12l4.46-5.182A4.5 4.5 0 019.143 4.5zM12 8.25a.75.75 0 00-1.06 0L9.75 9.44l-1.19-1.19a.75.75 0 10-1.06 1.06l1.19 1.19-1.19 1.19a.75.75 0 101.06 1.06l1.19-1.19 1.19 1.19a.75.75 0 101.06-1.06L10.81 10.5l1.19-1.19a.75.75 0 000-1.06z',
-      'fa-right-from-bracket': 'M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9'
+      'arrow-left': 'M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18',
+      'arrow-right': 'M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3',
+      'arrow-down': 'M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75',
+      'check': 'M4.5 12.75l6 6 9-13.5',
+      'xmark': 'M6 18L18 6M6 6l12 12',
+      'plus': 'M12 4.5v15m7.5-7.5h-15',
+      'chevron-down': 'M19.5 8.25l-7.5 7.5-7.5-7.5',
+      'info': 'M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z',
+      'user': 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z',
+      'lock': 'M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z',
+      'barcode': 'M4 5v14M8 5v14M12 5v14M16 5v14M20 5v14',
+      'keyboard': 'M4 7h16a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V9a2 2 0 012-2zm2 4h.01M8 12h.01M10 10h.01M12 12h.01M14 10h.01M16 12h.01M18 10h.01M6 15h12',
+      'document': 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z',
+      'cube': 'M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9',
+      'scale': 'M12 3v18M5 21h14M7 8h10M7 8L4.5 13.5a3.25 3.25 0 005 0L7 8zm10 0l-2.5 5.5a3.25 3.25 0 005 0L17 8z',
+      'copy': 'M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75',
+      'flag': 'M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5',
+      'boxes': 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z',
+      'clipboard': 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+      'envelope': 'M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75',
+      'download': 'M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3',
+      'cloud-up': 'M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z',
+      'trash': 'M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0',
+      'alert': 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z',
+      'bars': 'M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5',
+      'share': 'M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z',
+      'backspace': 'M9.143 4.5h6.714a4.5 4.5 0 014.5 4.5v6a4.5 4.5 0 01-4.5 4.5H9.143a4.5 4.5 0 01-3.183-1.318L1.5 12l4.46-5.182A4.5 4.5 0 019.143 4.5zM12 8.25a.75.75 0 00-1.06 0L9.75 9.44l-1.19-1.19a.75.75 0 10-1.06 1.06l1.19 1.19-1.19 1.19a.75.75 0 101.06 1.06l1.19-1.19 1.19 1.19a.75.75 0 101.06-1.06L10.81 10.5l1.19-1.19a.75.75 0 000-1.06z',
+      'logout': 'M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9'
     };
     function ic(name, cls) {
       if (!ICONS[name]) return '';
       return '<svg class="ic ' + (cls || '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + ICONS[name] + '"/></svg>';
     }
     function initIcons() {
-      document.querySelectorAll('i[class*="fa-"]').forEach(function(el) {
-        var m = (el.className || '').match(/fa-([a-z0-9-]+)/);
-        if (m && ICONS['fa-' + m[1]]) {
-          var svg = ic('fa-' + m[1], el.className.replace(/fa-[a-z0-9-]+/, ''));
-          el.outerHTML = svg;
-        }
+      document.querySelectorAll('[data-ic]').forEach(function(el) {
+        var n = el.getAttribute('data-ic');
+        var c = el.getAttribute('class') || '';
+        if (ICONS[n]) el.outerHTML = ic(n, c);
       });
     }
 
@@ -828,15 +830,15 @@
       const numKeys = ['1','2','3','4','5','6','7','8','9'];
       numKeys.forEach(k => { keysHtml += '<button type="button" class="vkb-key" onclick="vkbType(event, \'' + k + '\')">' + k + '</button>'; });
       if (type === 'nf') {
-        title.innerHTML = ic('fa-file-invoice', 'text-blue-500 mr-1') + ' TECLADO NF';
+        title.innerHTML = ic('document', 'text-blue-500 mr-1') + ' TECLADO NF';
         keysHtml += '<button type="button" class="vkb-key action" onclick="vkbType(event, \'-\')">-</button>';
       } else {
-        title.innerHTML = ic('fa-scale-unbalanced', 'text-emerald-500 mr-1') + ' TECLADO NUMÉRICO';
+        title.innerHTML = ic('scale', 'text-emerald-500 mr-1') + ' TECLADO NUMÉRICO';
         keysHtml += '<button type="button" class="vkb-key action" onclick="vkbType(event, \',\')">,</button>';
       }
       keysHtml += '<button type="button" class="vkb-key" onclick="vkbType(event, \'0\')">0</button>';
-      keysHtml += '<button type="button" class="vkb-key action" onclick="vkbBackspace(event)">' + ic('fa-delete-left') + '</button>';
-      keysHtml += '<button type="button" class="vkb-key enter" onclick="vkbEnter(event)">AVANÇAR / OK ' + ic('fa-arrow-turn-down', 'ml-1') + '</button>';
+      keysHtml += '<button type="button" class="vkb-key action" onclick="vkbBackspace(event)">' + ic('backspace') + '</button>';
+      keysHtml += '<button type="button" class="vkb-key enter" onclick="vkbEnter(event)">AVANÇAR / OK ' + ic('arrow-down', 'ml-1') + '</button>';
       keysContainer.innerHTML = keysHtml;
       vkb.classList.remove('translate-y-full');
       setTimeout(() => { if (currentVKBInput) currentVKBInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 200);
@@ -946,27 +948,34 @@
       return (v && !v.includes('@')) ? v + '@hlcompany.com' : v;
     }
 
+    // ===== NAVEGAÇÃO (corrige empilhamento: esconde todas e mostra só a alvo) =====
     function navTo(viewId) {
-      document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
-      const target = document.getElementById('view-' + viewId);
-      if (target) target.classList.add('active');
+      document.querySelectorAll('.view-container').forEach(function(el) {
+        el.classList.remove('active');
+        el.style.display = 'none';
+      });
+      var target = document.getElementById('view-' + viewId);
+      if (target) {
+        target.classList.add('active');
+        target.style.display = 'block';
+      }
       currentView = viewId;
-      const nav = document.getElementById('main-bottom-nav');
-      const backBtn = document.getElementById('btn-global-back');
+      var nav = document.getElementById('main-bottom-nav');
+      var backBtn = document.getElementById('btn-global-back');
       if (viewId === 'login' || viewId === 'mode-select') backBtn.classList.add('hidden'); else backBtn.classList.remove('hidden');
-      if (['login', 'mode-select', 'coletor-nf', 'coletor-main'].includes(viewId)) {
+      if (['login', 'mode-select', 'coletor-nf', 'coletor-main'].indexOf(viewId) !== -1) {
         if (nav) nav.style.display = 'none';
       } else {
         if (nav) nav.style.display = 'flex';
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        const btn = document.getElementById('nav-btn-' + (viewId === 'manual-items' ? 'items' : viewId));
+        document.querySelectorAll('.nav-item').forEach(function(el) { el.classList.remove('active'); });
+        var btn = document.getElementById('nav-btn-' + (viewId === 'manual-items' ? 'items' : viewId));
         if (btn) btn.classList.add('active');
       }
       if (viewId === 'manual-items') renderManualItemsList();
       if (viewId === 'export') document.getElementById('resumo-qtd-caixas').innerText = appState.caixas.length;
       if (viewId === 'coletor-main') {
         document.getElementById('col-main-count').innerText = appState.caixas.length;
-        setTimeout(() => { const inp = document.getElementById('col-main-scan'); if (inp) { inp.value = ''; inp.focus(); } }, 100);
+        setTimeout(function() { var inp = document.getElementById('col-main-scan'); if (inp) { inp.value = ''; inp.focus(); } }, 100);
       }
       closeVKB();
     }
@@ -991,13 +1000,13 @@
         tabU.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all bg-white text-blue-700 shadow-sm';
         tabE.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all text-slate-500';
         label.innerText = 'Nome de usuário';
-        hint.innerHTML = ic('fa-circle-info') + ' Você pode usar seu nome de usuário ou apelido cadastrado.';
+        hint.innerHTML = ic('info') + ' Você pode usar seu nome de usuário ou apelido cadastrado.';
         input.placeholder = 'Nome de usuário';
       } else {
         tabE.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all bg-white text-blue-700 shadow-sm';
         tabU.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all text-slate-500';
         label.innerText = 'E-mail';
-        hint.innerHTML = ic('fa-circle-info') + ' Use o e-mail cadastrado no sistema.';
+        hint.innerHTML = ic('info') + ' Use o e-mail cadastrado no sistema.';
         input.placeholder = 'ex: joao@empresa.com';
       }
     }
@@ -1590,3 +1599,6 @@
 </body>
 </html>
 
+
+
+  
