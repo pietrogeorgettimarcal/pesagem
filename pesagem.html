@@ -9,188 +9,66 @@
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2800/2800118.png">
   <title>App Pesagem Mobile - HL Mando</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
+  <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
   <style>
-    :root {
-      --primary: #005c9e;
-      --primary-dark: #004b80;
-      --bg: #f8fafc;
-      --text: #1e293b;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      touch-action: pan-y;
-    }
-    .view-container {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding-bottom: 90px;
-      display: none !important;
-      animation: fadeIn 0.2s ease;
-      width: 100%;
-    }
-    .view-container.active {
-      display: block !important;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .mobile-input {
-      width: 100%;
-      padding: 10px 12px;
-      font-size: 16px !important;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      background-color: #f1f5f9;
-      transition: all 0.2s;
-      outline: none;
-      text-transform: uppercase;
-      font-weight: 700;
-      box-sizing: border-box;
-    }
-    .mobile-input:focus {
-      border-color: var(--primary);
-      background-color: #fff;
-      box-shadow: 0 0 0 2px rgba(0, 92, 158, 0.15);
-      font-size: 16px !important;
-    }
-    .mobile-label {
-      display: block;
-      font-size: 11px;
-      font-weight: 800;
-      color: #64748b;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-    }
-    .btn-large {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      padding: 14px;
-      border-radius: 10px;
-      font-weight: 900;
-      font-size: 15px;
-      text-transform: uppercase;
-      transition: transform 0.1s;
-      border: none;
-      cursor: pointer;
-    }
-    .btn-large:active { transform: scale(0.97); }
-    .btn-primary {
-      background-color: var(--primary);
-      color: white;
-      box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2);
-    }
-    .btn-success { background-color: #10b981; color: white; }
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: white;
-      border-top: 1px solid #e2e8f0;
-      display: none;
-      justify-content: space-around;
-      padding: 6px 0;
-      padding-bottom: env(safe-area-inset-bottom, 8px);
-      box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
-      z-index: 50;
-    }
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: #94a3b8;
-      font-size: 10px;
-      font-weight: 800;
-      padding: 8px;
-      border-radius: 8px;
-      flex: 1;
-      text-transform: uppercase;
-      cursor: pointer;
-    }
-    .nav-item.active { color: var(--primary); }
-    .nav-item i { font-size: 18px; margin-bottom: 2px; }
-    .box-card {
-      background: white;
-      border-radius: 10px;
-      padding: 14px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-      border: 1px solid #e2e8f0;
-      border-left: 4px solid var(--primary);
-      cursor: pointer;
-    }
-    .toast {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-100px);
-      background: #1e293b;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 20px;
-      font-weight: bold;
-      font-size: 13px;
-      z-index: 1000;
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      white-space: nowrap;
-    }
-    .toast.show { transform: translateX(-50%) translateY(0); }
-    .vkb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-    .vkb-key {
-      background: white;
-      border-radius: 8px;
-      padding: 8px 0;
-      text-align: center;
-      font-size: 20px;
-      font-weight: 900;
-      color: #1e293b;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      border: 1px solid #e2e8f0;
-      transition: all 0.1s;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: manipulation;
-    }
-    .vkb-key:active { background: #cbd5e1; transform: scale(0.95); }
-    .vkb-key.action { background: #e2e8f0; color: #475569; font-size: 18px; }
-    .vkb-key.enter {
-      background: #005c9e;
-      color: white;
-      grid-column: span 3;
-      border: none;
-      font-size: 14px;
-      text-transform: uppercase;
-      padding: 10px 0;
-      margin-top: 2px;
-      box-shadow: 0 4px 6px -1px rgba(0, 92, 158, 0.2);
-    }
-    .vkb-key.enter:active { transform: scale(0.98); background: #004b80; }
+    :root{--primary:#005c9e;--primary-dark:#004b80;--bg:#f8fafc;--text:#1e293b}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background-color:var(--bg);color:var(--text);margin:0;padding:0;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;touch-action:pan-y}
+    button{font-family:inherit;cursor:pointer}
+    input,select{font-family:inherit}
+    .view-container{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:90px;display:none;animation:fadeIn .2s ease;width:100%}
+    .view-container.active{display:block}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+    .mobile-input{width:100%;padding:10px 12px;font-size:16px!important;border:1px solid #cbd5e1;border-radius:8px;background-color:#f1f5f9;transition:all .2s;outline:none;text-transform:uppercase;font-weight:700;box-sizing:border-box}
+    .mobile-input:focus{border-color:var(--primary);background-color:#fff;box-shadow:0 0 0 2px rgba(0,92,158,.15);font-size:16px!important}
+    .mobile-label{display:block;font-size:11px;font-weight:800;color:#64748b;margin-bottom:4px;text-transform:uppercase}
+    .btn-large{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:10px;font-weight:900;font-size:15px;text-transform:uppercase;transition:transform .1s;border:none;cursor:pointer}
+    .btn-large:active{transform:scale(.97)}
+    .btn-primary{background-color:var(--primary);color:#fff;box-shadow:0 4px 6px -1px rgba(0,92,158,.2)}
+    .btn-success{background-color:#10b981;color:#fff}
+    .bottom-nav{position:fixed;bottom:0;left:0;width:100%;background:#fff;border-top:1px solid #e2e8f0;display:none;justify-content:space-around;padding:6px 0;padding-bottom:env(safe-area-inset-bottom,8px);box-shadow:0 -4px 15px rgba(0,0,0,.03);z-index:50}
+    .nav-item{display:flex;flex-direction:column;align-items:center;color:#94a3b8;font-size:10px;font-weight:800;padding:8px;border-radius:8px;flex:1;text-transform:uppercase;cursor:pointer}
+    .nav-item.active{color:var(--primary)}
+    .nav-item .ic{font-size:18px;margin-bottom:2px}
+    .box-card{background:#fff;border-radius:10px;padding:14px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,.04);border:1px solid #e2e8f0;border-left:4px solid var(--primary);cursor:pointer}
+    .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-100px);background:#1e293b;color:#fff;padding:12px 20px;border-radius:20px;font-weight:bold;font-size:13px;z-index:1000;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);box-shadow:0 4px 12px rgba(0,0,0,.15);white-space:nowrap}
+    .toast.show{transform:translateX(-50%) translateY(0)}
+    .vkb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+    .vkb-key{background:#fff;border-radius:8px;padding:8px 0;text-align:center;font-size:20px;font-weight:900;color:#1e293b;box-shadow:0 1px 3px rgba(0,0,0,.1);border:1px solid #e2e8f0;transition:all .1s;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+    .vkb-key:active{background:#cbd5e1;transform:scale(.95)}
+    .vkb-key.action{background:#e2e8f0;color:#475569;font-size:18px}
+    .vkb-key.enter{background:#005c9e;color:#fff;grid-column:span 3;border:none;font-size:14px;text-transform:uppercase;padding:10px 0;margin-top:2px;box-shadow:0 4px 6px -1px rgba(0,92,158,.2)}
+    .vkb-key.enter:active{transform:scale(.98);background:#004b80}
+    .vkb-shell{position:fixed;bottom:0;left:0;width:100%;background:rgba(241,245,249,.95);backdrop-filter:blur(4px);box-shadow:0 -10px 20px rgba(0,0,0,.1);z-index:999;border-top-left-radius:16px;border-top-right-radius:16px;padding-bottom:env(safe-area-inset-bottom,8px);border-top:1px solid #e2e8f0}
+    .ic{width:1em;height:1em;display:inline-block;vertical-align:-0.125em;flex-shrink:0}
+    .safe-top{padding-top:env(safe-area-inset-top,12px)}
+    .safe-bottom{padding-bottom:env(safe-area-inset-bottom,12px)}
+    /* ===== UTILITÁRIOS (substituem o Tailwind) ===== */
+    .flex{display:flex}.flex-col{flex-direction:column}.flex-1{flex:1}.items-center{align-items:center}.items-start{align-items:flex-start}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.shrink-0{flex-shrink:0}.gap-1{gap:4px}.gap-2{gap:8px}.gap-3{gap:12px}.gap-4{gap:16px}.grid{display:grid}.grid-cols-2{grid-template-columns:repeat(2,1fr)}
+    .space-y-2>*+*{margin-top:8px}.space-y-3>*+*{margin-top:12px}.space-y-4>*+*{margin-top:16px}.space-y-5>*+*{margin-top:20px}.space-y-6>*+*{margin-top:24px}
+    .hidden{display:none!important}.block{display:block}.absolute{position:absolute}.relative{position:relative}.fixed{position:fixed}.inset-0{inset:0}.top-0{top:0}.right-0{right:0}.left-0{left:0}.bottom-0{bottom:0}.bottom-\[65px\]{bottom:65px}.z-0{z-index:0}.z-10{z-index:10}.z-\[100\]{z-index:100}.z-\[200\]{z-index:200}.z-\[300\]{z-index:300}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.pointer-events-none{pointer-events:none}.pointer-events-auto{pointer-events:auto}.cursor-pointer{cursor:pointer}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .w-full{width:100%}.w-2\.5{width:10px}.h-2\.5{height:10px}.w-10{width:40px}.h-10{height:40px}.w-12{width:48px}.h-12{height:48px}.w-14{width:56px}.h-14{height:56px}.w-16{width:64px}.h-16{height:64px}.max-w-sm{max-width:384px}.max-w-xs{max-width:320px}.h-full{height:100%}
+    .p-1{padding:4px}.p-1\.5{padding:6px}.p-2{padding:8px}.p-2\.5{padding:10px}.p-3{padding:12px}.p-4{padding:16px}.p-5{padding:20px}.p-6{padding:24px}.px-2{padding-left:8px;padding-right:8px}.px-3{padding-left:12px;padding-right:12px}.px-4{padding-left:16px;padding-right:16px}.py-0\.5{padding-top:2px;padding-bottom:2px}.py-1{padding-top:4px;padding-bottom:4px}.py-1\.5{padding-top:6px;padding-bottom:6px}.py-2{padding-top:8px;padding-bottom:8px}.py-3{padding-top:12px;padding-bottom:12px}.py-5{padding-top:20px;padding-bottom:20px}.pt-1{padding-top:4px}.pt-1\.5{padding-top:6px}.pt-2{padding-top:8px}.pt-3{padding-top:12px}.pt-4{padding-top:16px}.pt-5{padding-top:20px}.pb-2{padding-bottom:8px}.pb-6{padding-bottom:24px}.pb-20{padding-bottom:80px}.pl-2{padding-left:8px}.mt-1{margin-top:4px}.mt-2{margin-top:8px}.mt-3{margin-top:12px}.mt-4{margin-top:16px}.mt-5{margin-top:20px}.mb-1{margin-bottom:4px}.mb-2{margin-bottom:8px}.mb-3{margin-bottom:12px}.mb-4{margin-bottom:16px}.mb-5{margin-bottom:20px}.ml-1{margin-left:4px}.mr-1{margin-right:4px}.mx-auto{margin-left:auto;margin-right:auto}
+    .text-center{text-align:center}.text-xs{font-size:12px}.text-sm{font-size:14px}.text-base{font-size:16px}.text-lg{font-size:18px}.text-xl{font-size:20px}.text-2xl{font-size:24px}.text-3xl{font-size:30px}.text-\[9px\]{font-size:9px}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.font-bold{font-weight:700}.font-black{font-weight:900}.font-extrabold{font-weight:800}.font-semibold{font-weight:600}.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.uppercase{text-transform:uppercase}.normal-case{text-transform:none}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-0.025em}.tracking-wider{letter-spacing:.05em}.tracking-widest{letter-spacing:.1em}
+    .text-white{color:#fff}.text-slate-300{color:#cbd5e1}.text-slate-400{color:#94a3b8}.text-slate-500{color:#64748b}.text-slate-600{color:#475569}.text-slate-700{color:#334155}.text-slate-800{color:#1e293b}.text-blue-100{color:#dbeafe}.text-blue-200{color:#bfdbfe}.text-blue-500{color:#3b82f6}.text-blue-600{color:#2563eb}.text-blue-700{color:#1d4ed8}.text-blue-800{color:#1e40af}.text-blue-900{color:#1e3a8a}.text-emerald-500{color:#10b981}.text-emerald-600{color:#059669}.text-emerald-700{color:#047857}.text-emerald-800{color:#065f46}.text-emerald-900{color:#064e3b}.text-indigo-800{color:#3730a3}.text-indigo-900{color:#312e81}.text-red-600{color:#dc2626}.text-rose-700{color:#be123c}.text-yellow-900{color:#78350f}.text-\[\#0f172a\]{color:#0f172a}
+    .bg-white{background-color:#fff}.bg-white\/20{background-color:rgba(255,255,255,.2)}.bg-slate-50{background-color:#f8fafc}.bg-slate-100{background-color:#f1f5f9}.bg-slate-200{background-color:#e2e8f0}.bg-slate-500{background-color:#64748b}.bg-slate-800{background-color:#1e293b}.bg-slate-900\/60{background-color:rgba(15,23,42,.6)}.bg-blue-50{background-color:#eff6ff}.bg-blue-100{background-color:#dbeafe}.bg-blue-500{background-color:#3b82f6}.bg-blue-600{background-color:#2563eb}.bg-emerald-50{background-color:#ecfdf5}.bg-emerald-100{background-color:#d1fae5}.bg-emerald-600{background-color:#059669}.bg-indigo-50{background-color:#eef2ff}.bg-indigo-100{background-color:#e0e7ff}.bg-indigo-200{background-color:#c7d2fe}.bg-indigo-600{background-color:#4f46e5}.bg-red-50{background-color:#fef2f2}.bg-red-100{background-color:#fee2e2}.bg-red-600{background-color:#dc2626}.bg-rose-50{background-color:#fff1f2}.bg-yellow-400{background-color:#facc15}.bg-\[\#0f172a\]{background-color:#0f172a}
+    .border{border:1px solid #e2e8f0}.border-2{border:2px solid #e2e8f0}.border-t{border-top:1px solid #e2e8f0}.border-b{border-bottom:1px solid #e2e8f0}.border-none{border:none}.border-slate-100{border-color:#f1f5f9}.border-slate-200{border-color:#e2e8f0}.border-blue-200{border-color:#bfdbfe}.border-blue-300{border-color:#93c5fd}.border-emerald-200{border-color:#a7f3d0}.border-emerald-300{border-color:#6ee7b7}.border-emerald-600{border-color:#059669}.border-indigo-200{border-color:#c7d2fe}.border-red-200{border-color:#fecaca}.border-rose-200{border-color:#fecdd3}
+    .rounded{border-radius:4px}.rounded-md{border-radius:6px}.rounded-lg{border-radius:8px}.rounded-xl{border-radius:12px}.rounded-2xl{border-radius:16px}.rounded-t-2xl{border-top-left-radius:16px;border-top-right-radius:16px}.rounded-full{border-radius:9999px}.rounded-bl-lg{border-bottom-left-radius:8px}
+    .shadow-sm{box-shadow:0 1px 2px rgba(0,0,0,.05)}.shadow-md{box-shadow:0 4px 6px -1px rgba(0,0,0,.1)}.shadow-lg{box-shadow:0 10px 15px -3px rgba(0,0,0,.1)}.shadow-xl{box-shadow:0 20px 25px -5px rgba(0,0,0,.1)}.shadow-blue-500\/30{box-shadow:0 10px 15px -3px rgba(59,130,246,.3)}.shadow-blue-600\/30{box-shadow:0 10px 15px -3px rgba(37,99,235,.3)}.shadow-emerald-600\/30{box-shadow:0 10px 15px -3px rgba(5,150,105,.3)}.shadow-red-600\/30{box-shadow:0 10px 15px -3px rgba(220,38,38,.3)}
+    .transition-all{transition:all .2s}.transition-transform{transition:transform .3s}.transition-opacity{transition:opacity .2s}.duration-200{transition-duration:200ms}.duration-300{transition-duration:300ms}.scale-95{transform:scale(.95)}.translate-y-full{transform:translateY(100%)}.opacity-0{opacity:0}.opacity-50{opacity:.5}.opacity-80{opacity:.8}.animate-pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .hover\:text-white:hover{color:#fff}.hover\:text-slate-600:hover{color:#475569}.hover\:text-slate-700:hover{color:#334155}.hover\:bg-slate-200:hover{background-color:#e2e8f0}.active\:scale-95:active{transform:scale(.95)}
+    .bg-gradient-to-r.from-blue-600.to-blue-500{background:linear-gradient(to right,#2563eb,#3b82f6)}
+    .bg-gradient-to-t.from-slate-50{background:linear-gradient(to top,#f8fafc,transparent)}
   </style>
 </head>
 <body>
 
-  <header class="bg-[#0f172a] text-white p-3 flex justify-between items-center shrink-0 shadow-md z-10 pt-[env(safe-area-inset-top,12px)]">
+  <header class="bg-[#0f172a] text-white p-3 flex justify-between items-center shrink-0 shadow-md z-10 safe-top">
     <div class="flex items-center gap-2">
       <button id="btn-global-back" onclick="navigateBack()" class="hidden text-slate-300 hover:text-white px-2 py-1 text-lg">
         <i class="fa-solid fa-arrow-left"></i>
@@ -211,7 +89,7 @@
     </div>
   </header>
 
-  <!-- TELA 0: LOGIN SEGURA (única visível no início) -->
+  <!-- TELA 0: LOGIN SEGURA -->
   <main id="view-login" class="view-container active p-4">
     <div class="flex flex-col h-full justify-center max-w-sm mx-auto space-y-5 pb-20">
       <div class="text-center">
@@ -236,12 +114,8 @@
           <input type="password" id="login-senha" class="mobile-input normal-case" placeholder="••••••••" />
         </div>
         <div class="pt-3 space-y-3">
-          <button onclick="fazerLogin()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
-            Entrar no Sistema
-          </button>
-          <button onclick="abrirModalCadastro()" class="btn-large bg-slate-100 text-slate-700 hover:bg-slate-200">
-            Criar acesso (Requer liberação)
-          </button>
+          <button onclick="fazerLogin()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">Entrar no Sistema</button>
+          <button onclick="abrirModalCadastro()" class="btn-large bg-slate-100 text-slate-700 hover:bg-slate-200">Criar acesso (Requer liberação)</button>
         </div>
         <p class="text-[9px] text-slate-400 font-bold text-center pt-1">Sessão encerrada após 10 min sem uso ou ao fechar o aplicativo</p>
       </div>
@@ -276,7 +150,7 @@
   </div>
 
   <!-- TELA 1: HOME (ESCOLHA DE MODO) -->
-  <main id="view-mode-select" class="view-container p-4" style="display:none">
+  <main id="view-mode-select" class="view-container p-4">
     <div class="flex flex-col items-center justify-center h-full space-y-6 pt-4 pb-20 max-w-sm mx-auto">
       <div class="bg-blue-600 text-white w-full rounded-2xl p-4 shadow-lg shadow-blue-500/30 flex items-center gap-4">
         <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
@@ -313,7 +187,7 @@
   </main>
 
   <!-- FLUXO COLETOR 1: DADOS NF -->
-  <main id="view-coletor-nf" class="view-container p-4" style="display:none">
+  <main id="view-coletor-nf" class="view-container p-4">
     <div class="max-w-sm mx-auto space-y-5 pt-4">
       <h2 class="font-black text-lg text-slate-800 flex items-center gap-2 uppercase">
         <i class="fa-solid fa-file-invoice text-blue-600"></i> Informe a Nota Fiscal
@@ -330,7 +204,7 @@
   </main>
 
   <!-- FLUXO COLETOR: SCANNER E PESAGEM INTEGRADOS -->
-  <main id="view-coletor-main" class="view-container p-3" style="display:none">
+  <main id="view-coletor-main" class="view-container p-3">
     <div class="max-w-sm mx-auto space-y-3 pt-2">
       <div class="bg-blue-600 rounded-lg p-3 text-center shadow-lg shadow-blue-500/30">
         <label class="mobile-label text-blue-100 mb-2"><i class="fa-solid fa-barcode"></i> Bipe a Etiqueta VDA</label>
@@ -384,24 +258,20 @@
       <div class="bg-indigo-50 rounded-lg shadow-sm border border-indigo-200 p-3 space-y-2 mb-3">
         <label class="mobile-label text-indigo-800"><i class="fa-solid fa-copy"></i> Multiplicar (Caixas Idênticas)</label>
         <div class="flex items-center gap-3">
-           <button type="button" onclick="changeMultiplier('col', -1)" class="w-12 h-10 bg-indigo-200 text-indigo-800 rounded-lg font-black text-lg active:scale-95 transition-transform">-</button>
-           <input type="text" readonly data-keyboard="num" id="col-main-multiplier" class="mobile-input text-center font-black text-indigo-900 text-lg flex-1 cursor-pointer" value="1" />
-           <button type="button" onclick="changeMultiplier('col', 1)" class="w-12 h-10 bg-indigo-600 text-white rounded-lg font-black text-lg active:scale-95 transition-transform">+</button>
+          <button type="button" onclick="changeMultiplier('col', -1)" class="w-12 h-10 bg-indigo-200 text-indigo-800 rounded-lg font-black text-lg active:scale-95 transition-transform">-</button>
+          <input type="text" readonly data-keyboard="num" id="col-main-multiplier" class="mobile-input text-center font-black text-indigo-900 text-lg flex-1 cursor-pointer" value="1" />
+          <button type="button" onclick="changeMultiplier('col', 1)" class="w-12 h-10 bg-indigo-600 text-white rounded-lg font-black text-lg active:scale-95 transition-transform">+</button>
         </div>
       </div>
       <div class="space-y-2 pb-6">
-        <button onclick="salvarColetorMain(true)" class="btn-large btn-success py-3">
-          <i class="fa-solid fa-check"></i> Salvar e Bipar Próxima
-        </button>
-        <button onclick="salvarColetorMain(false)" class="btn-large bg-slate-800 text-white shadow-lg py-3 text-sm">
-          <i class="fa-solid fa-flag-checkered"></i> Salvar e Exportar
-        </button>
+        <button onclick="salvarColetorMain(true)" class="btn-large btn-success py-3"><i class="fa-solid fa-check"></i> Salvar e Bipar Próxima</button>
+        <button onclick="salvarColetorMain(false)" class="btn-large bg-slate-800 text-white shadow-lg py-3 text-sm"><i class="fa-solid fa-flag-checkered"></i> Salvar e Exportar</button>
       </div>
     </div>
   </main>
 
   <!-- FLUXO MANUAL 1: DADOS NF -->
-  <main id="view-manual-header" class="view-container p-4" style="display:none">
+  <main id="view-manual-header" class="view-container p-4">
     <div class="max-w-sm mx-auto">
       <h2 class="font-black text-lg text-slate-800 mb-3 flex items-center gap-2 uppercase">
         <i class="fa-solid fa-keyboard text-slate-600"></i> Digitação Manual
@@ -440,7 +310,7 @@
   </main>
 
   <!-- FLUXO MANUAL 2: LISTA DE CAIXAS -->
-  <main id="view-manual-items" class="view-container p-3 bg-slate-50" style="display:none">
+  <main id="view-manual-items" class="view-container p-3 bg-slate-50">
     <div class="flex justify-between items-center mb-3 max-w-sm mx-auto">
       <h2 class="font-black text-base text-slate-800 flex items-center gap-2 uppercase">
         <i class="fa-solid fa-boxes-stacked text-indigo-600"></i> Caixas Lidas
@@ -456,7 +326,7 @@
   </main>
 
   <!-- MODAL ADIÇÃO MANUAL -->
-  <div id="modal-add-manual" class="fixed inset-0 bg-white z-[100] hidden flex-col transition-transform translate-y-full duration-300">
+  <div id="modal-add-manual" class="fixed inset-0 bg-white z-[100] hidden flex flex-col transition-transform translate-y-full duration-300">
     <div class="bg-[#0f172a] text-white p-3 flex justify-between items-center shrink-0">
       <h2 id="modal-man-title" class="font-bold text-base">CAIXA Nº 1</h2>
       <button onclick="closeManualAddModal()" class="text-white text-xl p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
@@ -500,27 +370,23 @@
         <div id="man-multiplier-container" class="bg-indigo-50 p-3 rounded-lg border border-indigo-200 shadow-sm mt-3 space-y-2">
           <label class="mobile-label text-indigo-800"><i class="fa-solid fa-copy"></i> Multiplicar Lançamento</label>
           <div class="flex items-center gap-3">
-             <button type="button" onclick="changeMultiplier('man', -1)" class="w-12 h-10 bg-indigo-200 text-indigo-800 rounded-lg font-black text-lg active:scale-95 transition-transform">-</button>
-             <input type="text" readonly data-keyboard="num" id="man-box-multiplier" class="mobile-input text-center font-black text-indigo-900 text-lg flex-1 cursor-pointer" value="1" />
-             <button type="button" onclick="changeMultiplier('man', 1)" class="w-12 h-10 bg-indigo-600 text-white rounded-lg font-black text-lg active:scale-95 transition-transform">+</button>
+            <button type="button" onclick="changeMultiplier('man', -1)" class="w-12 h-10 bg-indigo-200 text-indigo-800 rounded-lg font-black text-lg active:scale-95 transition-transform">-</button>
+            <input type="text" readonly data-keyboard="num" id="man-box-multiplier" class="mobile-input text-center font-black text-indigo-900 text-lg flex-1 cursor-pointer" value="1" />
+            <button type="button" onclick="changeMultiplier('man', 1)" class="w-12 h-10 bg-indigo-600 text-white rounded-lg font-black text-lg active:scale-95 transition-transform">+</button>
           </div>
         </div>
       </div>
     </div>
-    <div class="p-3 bg-white border-t border-slate-200 shrink-0 space-y-2 pb-[env(safe-area-inset-bottom,12px)] flex flex-col items-center">
+    <div class="p-3 bg-white border-t border-slate-200 shrink-0 space-y-2 safe-bottom flex flex-col items-center">
       <div class="w-full max-w-sm flex flex-col gap-2">
-        <button onclick="salvarManual(true)" class="btn-large btn-success py-3 text-sm">
-          <i class="fa-solid fa-check"></i> Salvar e Add Outra
-        </button>
-        <button onclick="salvarManual(false)" class="btn-large btn-primary bg-slate-800 py-3 text-sm">
-          Salvar e Fechar
-        </button>
+        <button onclick="salvarManual(true)" class="btn-large btn-success py-3 text-sm"><i class="fa-solid fa-check"></i> Salvar e Add Outra</button>
+        <button onclick="salvarManual(false)" class="btn-large btn-primary bg-slate-800 py-3 text-sm">Salvar e Fechar</button>
       </div>
     </div>
   </div>
 
   <!-- TELA 3: RESUMO E EXPORTAÇÃO -->
-  <main id="view-export" class="view-container p-4" style="display:none">
+  <main id="view-export" class="view-container p-4">
     <div class="max-w-sm mx-auto">
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 text-center mb-5">
         <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -609,18 +475,63 @@
   </nav>
 
   <!-- TECLADO VIRTUAL INJETADO -->
-  <div id="virtual-kb" class="fixed bottom-0 left-0 w-full bg-slate-100/95 backdrop-blur-sm shadow-[0_-10px_20px_rgba(0,0,0,0.1)] transform translate-y-full transition-transform duration-300 z-[999] rounded-t-2xl pb-[env(safe-area-inset-bottom,8px)] border-t border-slate-200">
+  <div id="virtual-kb" class="vkb-shell translate-y-full transition-transform duration-300">
     <div class="flex justify-between items-center p-2 border-b border-slate-200 bg-white rounded-t-2xl">
       <span class="text-[11px] font-black text-slate-500 uppercase tracking-wider pl-2" id="vkb-title">TECLADO</span>
       <button onclick="closeVKB()" class="text-slate-400 hover:text-slate-700 py-1 px-3 text-xl"><i class="fa-solid fa-chevron-down"></i></button>
     </div>
-    <div id="vkb-keys" class="vkb-grid p-2">
-      <!-- Botões injetados via JS -->
-    </div>
+    <div id="vkb-keys" class="vkb-grid p-2"></div>
   </div>
 
   <div id="toast" class="toast">Mensagem...</div>
+
 <script>
+    // ===== ÍCONES SVG INLINE (substituem o Font Awesome) =====
+    var ICONS = {
+      'fa-arrow-left': 'M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18',
+      'fa-arrow-right': 'M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3',
+      'fa-arrow-turn-down': 'M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75',
+      'fa-check': 'M4.5 12.75l6 6 9-13.5',
+      'fa-xmark': 'M6 18L18 6M6 6l12 12',
+      'fa-plus': 'M12 4.5v15m7.5-7.5h-15',
+      'fa-chevron-down': 'M19.5 8.25l-7.5 7.5-7.5-7.5',
+      'fa-circle-info': 'M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z',
+      'fa-user-check': 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z',
+      'fa-user-lock': 'M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z',
+      'fa-barcode': 'M4 5v14M8 5v14M12 5v14M16 5v14M20 5v14',
+      'fa-keyboard': 'M4 7h16a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V9a2 2 0 012-2zm2 4h.01M8 12h.01M10 10h.01M12 12h.01M14 10h.01M16 12h.01M18 10h.01M6 15h12',
+      'fa-file-invoice': 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z',
+      'fa-box-open': 'M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9',
+      'fa-scale-balanced': 'M12 3v18M5 21h14M7 8h10M7 8L4.5 13.5a3.25 3.25 0 005 0L7 8zm10 0l-2.5 5.5a3.25 3.25 0 005 0L17 8z',
+      'fa-scale-unbalanced': 'M12 3v18M5 21h14M7 8h10M7 8L4.5 13.5a3.25 3.25 0 005 0L7 8zm10 0l-2.5 5.5a3.25 3.25 0 005 0L17 8z',
+      'fa-copy': 'M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75',
+      'fa-flag-checkered': 'M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5',
+      'fa-boxes-stacked': 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z',
+      'fa-clipboard-check': 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+      'fa-envelope': 'M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75',
+      'fa-download': 'M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3',
+      'fa-cloud-arrow-up': 'M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z',
+      'fa-trash-can': 'M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0',
+      'fa-triangle-exclamation': 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z',
+      'fa-bars': 'M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5',
+      'fa-share-nodes': 'M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z',
+      'fa-delete-left': 'M9.143 4.5h6.714a4.5 4.5 0 014.5 4.5v6a4.5 4.5 0 01-4.5 4.5H9.143a4.5 4.5 0 01-3.183-1.318L1.5 12l4.46-5.182A4.5 4.5 0 019.143 4.5zM12 8.25a.75.75 0 00-1.06 0L9.75 9.44l-1.19-1.19a.75.75 0 10-1.06 1.06l1.19 1.19-1.19 1.19a.75.75 0 101.06 1.06l1.19-1.19 1.19 1.19a.75.75 0 101.06-1.06L10.81 10.5l1.19-1.19a.75.75 0 000-1.06z',
+      'fa-right-from-bracket': 'M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9'
+    };
+    function ic(name, cls) {
+      if (!ICONS[name]) return '';
+      return '<svg class="ic ' + (cls || '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + ICONS[name] + '"/></svg>';
+    }
+    function initIcons() {
+      document.querySelectorAll('i[class*="fa-"]').forEach(function(el) {
+        var m = (el.className || '').match(/fa-([a-z0-9-]+)/);
+        if (m && ICONS['fa-' + m[1]]) {
+          var svg = ic('fa-' + m[1], el.className.replace(/fa-[a-z0-9-]+/, ''));
+          el.outerHTML = svg;
+        }
+      });
+    }
+
     let appState = {
       modo: null,
       cabecalho: { fornecedor: "", nota_fiscal_principal: "", data_conferencia: "", operador: "", turno: "A" },
@@ -689,19 +600,17 @@
       const title = document.getElementById('vkb-title');
       let keysHtml = '';
       const numKeys = ['1','2','3','4','5','6','7','8','9'];
-      numKeys.forEach(k => {
-        keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '${k}')">${k}</button>`;
-      });
+      numKeys.forEach(k => { keysHtml += '<button type="button" class="vkb-key" onclick="vkbType(event, \'' + k + '\')">' + k + '</button>'; });
       if (type === 'nf') {
-        title.innerHTML = '<i class="fa-solid fa-file-invoice text-blue-500 mr-1"></i> TECLADO NF';
-        keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, '-')">-</button>`;
+        title.innerHTML = ic('fa-file-invoice', 'text-blue-500 mr-1') + ' TECLADO NF';
+        keysHtml += '<button type="button" class="vkb-key action" onclick="vkbType(event, \'-\')">-</button>';
       } else {
-        title.innerHTML = '<i class="fa-solid fa-scale-unbalanced text-emerald-500 mr-1"></i> TECLADO NUMÉRICO';
-        keysHtml += `<button type="button" class="vkb-key action" onclick="vkbType(event, ',')">,</button>`;
+        title.innerHTML = ic('fa-scale-unbalanced', 'text-emerald-500 mr-1') + ' TECLADO NUMÉRICO';
+        keysHtml += '<button type="button" class="vkb-key action" onclick="vkbType(event, \',\')">,</button>';
       }
-      keysHtml += `<button type="button" class="vkb-key" onclick="vkbType(event, '0')">0</button>`;
-      keysHtml += `<button type="button" class="vkb-key action" onclick="vkbBackspace(event)"><i class="fa-solid fa-delete-left"></i></button>`;
-      keysHtml += `<button type="button" class="vkb-key enter" onclick="vkbEnter(event)">AVANÇAR / OK <i class="fa-solid fa-arrow-turn-down fa-rotate-90 ml-1"></i></button>`;
+      keysHtml += '<button type="button" class="vkb-key" onclick="vkbType(event, \'0\')">0</button>';
+      keysHtml += '<button type="button" class="vkb-key action" onclick="vkbBackspace(event)">' + ic('fa-delete-left') + '</button>';
+      keysHtml += '<button type="button" class="vkb-key enter" onclick="vkbEnter(event)">AVANÇAR / OK ' + ic('fa-arrow-turn-down', 'ml-1') + '</button>';
       keysContainer.innerHTML = keysHtml;
       vkb.classList.remove('translate-y-full');
       setTimeout(() => { if (currentVKBInput) currentVKBInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 200);
@@ -757,10 +666,7 @@
       else if (id === 'man-box-qtd') advanceTo('man-box-tara');
       else if (id === 'man-box-tara') advanceTo('man-box-pnf');
       else if (id === 'man-box-pnf') advanceTo('man-box-pmando');
-      else if (id === 'man-box-pmando') {
-        if (editIndex === -1) advanceTo('man-box-multiplier');
-        else closeVKB();
-      }
+      else if (id === 'man-box-pmando') { if (editIndex === -1) advanceTo('man-box-multiplier'); else closeVKB(); }
       else if (id === 'man-box-multiplier') closeVKB();
       else if (id === 'col-nf-input') { closeVKB(); avancarParaBipagem(); }
       else if (id === 'man-nf') { closeVKB(); document.getElementById('man-forn').focus(); }
@@ -814,34 +720,27 @@
       return (v && !v.includes('@')) ? v + '@hlcompany.com' : v;
     }
 
-    // ===== NAVEGAÇÃO (corrige empilhamento: esconde todas, mostra só a alvo) =====
     function navTo(viewId) {
-      document.querySelectorAll('.view-container').forEach(function(el) {
-        el.classList.remove('active');
-        el.style.display = 'none';
-      });
-      var target = document.getElementById('view-' + viewId);
-      if (target) {
-        target.classList.add('active');
-        target.style.display = 'block';
-      }
+      document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById('view-' + viewId);
+      if (target) target.classList.add('active');
       currentView = viewId;
-      var nav = document.getElementById('main-bottom-nav');
-      var backBtn = document.getElementById('btn-global-back');
+      const nav = document.getElementById('main-bottom-nav');
+      const backBtn = document.getElementById('btn-global-back');
       if (viewId === 'login' || viewId === 'mode-select') backBtn.classList.add('hidden'); else backBtn.classList.remove('hidden');
-      if (['login', 'mode-select', 'coletor-nf', 'coletor-main'].indexOf(viewId) !== -1) {
+      if (['login', 'mode-select', 'coletor-nf', 'coletor-main'].includes(viewId)) {
         if (nav) nav.style.display = 'none';
       } else {
         if (nav) nav.style.display = 'flex';
-        document.querySelectorAll('.nav-item').forEach(function(el) { el.classList.remove('active'); });
-        var btn = document.getElementById('nav-btn-' + (viewId === 'manual-items' ? 'items' : viewId));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        const btn = document.getElementById('nav-btn-' + (viewId === 'manual-items' ? 'items' : viewId));
         if (btn) btn.classList.add('active');
       }
       if (viewId === 'manual-items') renderManualItemsList();
       if (viewId === 'export') document.getElementById('resumo-qtd-caixas').innerText = appState.caixas.length;
       if (viewId === 'coletor-main') {
         document.getElementById('col-main-count').innerText = appState.caixas.length;
-        setTimeout(function() { var inp = document.getElementById('col-main-scan'); if (inp) { inp.value = ''; inp.focus(); } }, 100);
+        setTimeout(() => { const inp = document.getElementById('col-main-scan'); if (inp) { inp.value = ''; inp.focus(); } }, 100);
       }
       closeVKB();
     }
@@ -866,13 +765,13 @@
         tabU.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all bg-white text-blue-700 shadow-sm';
         tabE.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all text-slate-500';
         label.innerText = 'Nome de usuário';
-        hint.innerHTML = '<i class="fa-solid fa-circle-info"></i> Você pode usar seu nome de usuário ou apelido cadastrado.';
+        hint.innerHTML = ic('fa-circle-info') + ' Você pode usar seu nome de usuário ou apelido cadastrado.';
         input.placeholder = 'Nome de usuário';
       } else {
         tabE.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all bg-white text-blue-700 shadow-sm';
         tabU.className = 'flex-1 py-2 rounded-md text-xs font-black uppercase transition-all text-slate-500';
         label.innerText = 'E-mail';
-        hint.innerHTML = '<i class="fa-solid fa-circle-info"></i> Use o e-mail cadastrado no sistema.';
+        hint.innerHTML = ic('fa-circle-info') + ' Use o e-mail cadastrado no sistema.';
         input.placeholder = 'ex: joao@empresa.com';
       }
     }
@@ -1096,7 +995,7 @@
         };
         appState.caixas.push(itemData);
       }
-      showToast(multiplier > 1 ? `${multiplier} Caixas salvas com sucesso!` : "Caixa salva!");
+      showToast(multiplier > 1 ? multiplier + " Caixas salvas com sucesso!" : "Caixa salva!");
       if (addAnother) {
         ['pn', 'forn', 'lote', 'qtd', 'tara', 'pnf', 'pmando'].forEach(id => document.getElementById('col-main-' + id).value = '');
         document.getElementById('col-main-multiplier').value = '1';
@@ -1114,7 +1013,7 @@
       const fornHeader = document.getElementById('man-forn');
       let info = buscarInfoPeca(raw);
       if (info && info.desc) {
-        feedback.innerHTML = `<b>${info.desc}</b>`;
+        feedback.innerHTML = '<b>' + info.desc + '</b>';
         feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-center';
         if (raw.length > 5 && info.pn !== raw && info.pn.replace(/[^A-Z0-9]/g, '') === raw) { pnInput.value = info.pn; }
         if (info.fornecedor && (!fornHeader.value || fornHeader.value.trim() === '')) {
@@ -1128,34 +1027,25 @@
 
     function renderManualItemsList() {
       const list = document.getElementById('man-items-list');
-      document.getElementById('man-items-counter').innerText = `${appState.caixas.length} CAIXAS`;
+      document.getElementById('man-items-counter').innerText = appState.caixas.length + ' CAIXAS';
       if (appState.caixas.length === 0) {
-        list.innerHTML = `<div class="text-center p-6 text-slate-400 font-bold text-xs uppercase"><i class="fa-solid fa-box-open text-3xl mb-2 opacity-50 block"></i> Nenhuma caixa.</div>`;
+        list.innerHTML = '<div class="text-center p-6 text-slate-400 font-bold text-xs uppercase"><i class="fa-solid fa-box-open text-3xl mb-2 opacity-50 block"></i> Nenhuma caixa.</div>';
         return;
       }
       list.innerHTML = '';
       appState.caixas.forEach((c, idx) => {
-        list.innerHTML += `
-          <div class="box-card" onclick="openManualEditModal(${idx})">
-            <div class="flex justify-between items-start mb-1">
-              <div class="font-black text-slate-800 text-sm">CX ${c.caixa_no}</div>
-              <div class="font-bold text-blue-700 bg-blue-50 px-2 rounded text-[10px]">${c.observacao || 'S/ CÓDIGO'}</div>
-            </div>
-            <div class="text-[10px] font-bold text-slate-500 mb-2 border-t border-slate-100 pt-1.5 flex justify-between">
-              <span>QTD: ${c.quantidade_mencionada || '-'}</span> <span>LOTE: ${c.lote || '-'}</span> <span>TARA: ${c.peso_embalagem || '-'} kg</span>
-            </div>
-            <div class="text-[10px] font-bold text-slate-500 pt-1 border-t border-slate-100 flex justify-between">
-              <span>NF: ${c.peso_bruto_nf || '-'}</span> <span>Mando: <b class="text-emerald-600">${c.peso_bruto_mando || '-'}</b></span>
-            </div>
-          </div>
-        `;
+        list.innerHTML += '<div class="box-card" onclick="openManualEditModal(' + idx + ')">' +
+          '<div class="flex justify-between items-start mb-1"><div class="font-black text-slate-800 text-sm">CX ' + c.caixa_no + '</div><div class="font-bold text-blue-700 bg-blue-50 px-2 rounded text-[10px]">' + (c.observacao || 'S/ CÓDIGO') + '</div></div>' +
+          '<div class="text-[10px] font-bold text-slate-500 mb-2 border-t border-slate-100 pt-1.5 flex justify-between"><span>QTD: ' + (c.quantidade_mencionada || '-') + '</span> <span>LOTE: ' + (c.lote || '-') + '</span> <span>TARA: ' + (c.peso_embalagem || '-') + ' kg</span></div>' +
+          '<div class="text-[10px] font-bold text-slate-500 pt-1 border-t border-slate-100 flex justify-between"><span>NF: ' + (c.peso_bruto_nf || '-') + '</span> <span>Mando: <b class="text-emerald-600">' + (c.peso_bruto_mando || '-') + '</b></span></div>' +
+          '</div>';
       });
     }
 
     function openManualAddModal() {
       editIndex = -1;
-      document.getElementById('modal-man-title').innerText = `CAIXA Nº ${appState.caixas.length + 1}`;
-      ['pn', 'lote', 'qtd', 'tara', 'pnf', 'pmando'].forEach(id => document.getElementById(`man-box-${id}`).value = '');
+      document.getElementById('modal-man-title').innerText = 'CAIXA Nº ' + (appState.caixas.length + 1);
+      ['pn', 'lote', 'qtd', 'tara', 'pnf', 'pmando'].forEach(id => document.getElementById('man-box-' + id).value = '');
       document.getElementById('man-desc-feedback').innerText = 'DIGITE O CÓDIGO...';
       document.getElementById('man-desc-feedback').className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-white border border-slate-200 text-slate-500 text-center';
       document.getElementById('man-box-multiplier').value = '1';
@@ -1168,7 +1058,7 @@
     function openManualEditModal(idx) {
       editIndex = idx;
       const c = appState.caixas[idx];
-      document.getElementById('modal-man-title').innerText = `EDITAR CX Nº ${c.caixa_no}`;
+      document.getElementById('modal-man-title').innerText = 'EDITAR CX Nº ' + c.caixa_no;
       document.getElementById('man-box-pn').value = c.observacao || '';
       document.getElementById('man-box-lote').value = c.lote || '';
       document.getElementById('man-box-qtd').value = c.quantidade_mencionada || '';
@@ -1218,7 +1108,7 @@
         if (editIndex > -1) { appState.caixas[editIndex] = itemData; }
         else { appState.caixas.push(itemData); }
       }
-      showToast(multiplier > 1 ? `${multiplier} Caixas salvas com sucesso!` : "Caixa salva!");
+      showToast(multiplier > 1 ? multiplier + " Caixas salvas com sucesso!" : "Caixa salva!");
       renderManualItemsList();
       if (addAnother && editIndex === -1) {
         document.getElementById('man-box-pn').value = '';
@@ -1234,7 +1124,7 @@
     function openEmailModal() {
       const modal = document.getElementById('modal-email');
       const box = document.getElementById('email-box');
-      let userEmail = appState.cabecalho.operador ? `${appState.cabecalho.operador.toLowerCase()}@hlcompany.com` : 'operador@hlcompany.com';
+      let userEmail = appState.cabecalho.operador ? appState.cabecalho.operador.toLowerCase() + '@hlcompany.com' : 'operador@hlcompany.com';
       try { const user = firebase.auth().currentUser; if (user && user.email) userEmail = user.email; } catch (e) {}
       document.getElementById('email-logado').value = userEmail;
       document.getElementById('email-extra').value = '';
@@ -1284,45 +1174,51 @@
       return wb;
     }
 
-    async function confirmarEnvioEmail() {
+    function carregarXLSX(callback) {
+      if (typeof XLSX !== 'undefined') { callback(); return; }
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js';
+      s.onload = function(){ callback(); };
+      s.onerror = function(){ showToast("Falha ao carregar o Excel. Verifique a internet."); };
+      document.head.appendChild(s);
+    }
+
+    function confirmarEnvioEmail() {
       const emailLogado = document.getElementById('email-logado').value.trim();
       const emailExtra = document.getElementById('email-extra').value.trim();
       let dest = emailLogado;
-      if (emailExtra) dest += `,${emailExtra}`;
+      if (emailExtra) dest += ',' + emailExtra;
       const nf = appState.cabecalho.nota_fiscal_principal || 'S/N';
-      const fileName = `Conferencia_NF_${nf}.xlsx`;
-      const subject = `Planilha de Pesagem - NF ${nf}`;
-      const textBody = `Olá,\n\nSegue em anexo a planilha de pesagem referente à NF ${nf}.\n\nPara: ${dest}\n\nEnviado via App Mobile HL Mando.`;
-      if (typeof XLSX === 'undefined') { showToast("Excel indisponível."); return; }
-      const wb = criarWorkbookBase();
-      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const file = new File([blob], fileName, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      let shareSuccess = false;
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({ files: [file], title: subject, text: textBody });
-          showToast("Aberto no app de e-mail!");
-          shareSuccess = true;
-          closeEmailModal();
-        } catch (error) {
-          console.log("Compartilhamento nativo bloqueado (normal no preview). Acionando plano B...", error);
+      const fileName = 'Conferencia_NF_' + nf + '.xlsx';
+      const subject = 'Planilha de Pesagem - NF ' + nf;
+      const textBody = 'Olá,\n\nSegue em anexo a planilha de pesagem referente à NF ' + nf + '.\n\nPara: ' + dest + '\n\nEnviado via App Mobile HL Mando.';
+      carregarXLSX(function(){
+        const wb = criarWorkbookBase();
+        const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const file = new File([blob], fileName, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        let shareSuccess = false;
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], title: subject, text: textBody })
+            .then(() => { showToast("Aberto no app de e-mail!"); shareSuccess = true; closeEmailModal(); })
+            .catch(() => { console.log("Compartilhamento nativo bloqueado. Plano B..."); });
         }
-      }
-      if (!shareSuccess) {
-        XLSX.writeFile(wb, fileName);
-        const encodedSubject = encodeURIComponent(subject);
-        const encodedBody = encodeURIComponent(textBody + "\n\n⚠️ ATENÇÃO: O ARQUIVO FOI BAIXADO. CLIQUE NO CLIPE DE PAPEL (ANEXO) PARA INCLUIR A PLANILHA QUE ACABOU DE BAIXAR.");
-        window.location.href = `mailto:${dest}?subject=${encodedSubject}&body=${encodedBody}`;
-        closeEmailModal();
-      }
+        if (!shareSuccess) {
+          XLSX.writeFile(wb, fileName);
+          const encodedSubject = encodeURIComponent(subject);
+          const encodedBody = encodeURIComponent(textBody + "\n\n⚠️ ATENÇÃO: O ARQUIVO FOI BAIXADO. CLIQUE NO CLIPE DE PAPEL (ANEXO) PARA INCLUIR A PLANILHA QUE ACABOU DE BAIXAR.");
+          window.location.href = 'mailto:' + dest + '?subject=' + encodedSubject + '&body=' + encodedBody;
+          closeEmailModal();
+        }
+      });
     }
 
     function gerarExcel() {
-      if (typeof XLSX === 'undefined') { showToast("Excel indisponível."); return; }
-      const wb = criarWorkbookBase();
-      XLSX.writeFile(wb, `Conferencia_Pesagem.xlsx`);
-      showToast("Excel Gerado e Baixado!");
+      carregarXLSX(function(){
+        const wb = criarWorkbookBase();
+        XLSX.writeFile(wb, 'Conferencia_Pesagem.xlsx');
+        showToast("Excel Gerado e Baixado!");
+      });
     }
 
     function sincronizarComDesktop() {
@@ -1406,7 +1302,7 @@
         db.ref('cadastros/fornecedores').on('value', snap => {
           const dl = document.getElementById('forn-list'); dl.innerHTML = '';
           const arr = Array.isArray(snap.val()) ? snap.val().filter(x => x) : Object.values(snap.val() || {});
-          arr.forEach(f => dl.innerHTML += `<option value="${(f || '').toUpperCase()}">`);
+          arr.forEach(f => dl.innerHTML += '<option value="' + (f || '').toUpperCase() + '">');
         });
         db.ref('cadastros/produtos_mestre').on('value', snap => {
           const val = snap.val();
@@ -1434,7 +1330,7 @@
                 peso: val[k].peso !== undefined ? Number(val[k].peso) : null,
                 fornecedor: val[k].forn || val[k].fornecedor || ''
               };
-              dl.innerHTML += `<option value="${originalKey}">${originalKey} - ${val[k].desc || ''}</option>`;
+              dl.innerHTML += '<option value="' + originalKey + '">' + originalKey + ' - ' + (val[k].desc || '') + '</option>';
             }
           }
         });
@@ -1442,6 +1338,7 @@
     }
 
     window.onload = function () {
+      initIcons();
       initFirebaseApp();
       initVKB();
       setLoginTab('usuario');
