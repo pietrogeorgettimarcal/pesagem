@@ -15,6 +15,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     :root { --primary:#005c9e; --primary-dark:#004b80; --bg:#f1f5f9; --text:#1e293b; }
     body {
@@ -158,6 +159,15 @@
       border-top-left-radius:16px; border-top-right-radius:16px;
       padding-bottom:env(safe-area-inset-bottom,8px); border-top:1px solid #e2e8f0;
     }
+
+    /* ===== CÂMERA (MODO CELULAR) ===== */
+    #qr-reader { width:100%; border-radius:16px; overflow:hidden; background:#000; }
+    #qr-reader video { width:100% !important; border-radius:16px; }
+    #qr-reader img { display:none !important; }
+    #qr-reader__dashboard_section_csr { border:0 !important; padding:0 !important; }
+    #qr-reader__camera_permission_button,
+    #qr-reader__file_scan_button { display:none !important; }
+    .cam-feed { width:100%; max-width:420px; margin:0 auto; }
   </style>
 </head>
 <body>
@@ -244,7 +254,7 @@
     </div>
   </div>
 
-  <!-- TELA 1: HOME / MODO -->
+  <!-- TELA 1: HOME / MODO (3 opções) -->
   <main id="view-mode-select" class="view-container p-4" style="display:none">
     <div class="flex flex-col items-center justify-center h-full space-y-6 pt-4 pb-20 max-w-sm mx-auto">
       <div class="page-head aba-azul w-full">
@@ -267,6 +277,16 @@
           </div>
           <i class="fa-solid fa-chevron-right bc-setinha"></i>
         </button>
+        <button onclick="iniciarFluxo('celular')" class="btn-choice" style="background:linear-gradient(135deg,#059669,#065f46)">
+          <div class="bc-main">
+            <div class="bc-ico" style="background:rgba(255,255,255,.18)"><i class="fa-solid fa-camera"></i></div>
+            <div>
+              <div class="bc-titulo">Modo Celular</div>
+              <div class="bc-desc">Ler QR Code / código de barras com a câmera</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right bc-setinha"></i>
+        </button>
         <button onclick="iniciarFluxo('manual')" class="btn-choice" style="background:linear-gradient(135deg,#334155,#1e293b)">
           <div class="bc-main">
             <div class="bc-ico" style="background:rgba(255,255,255,.18)"><i class="fa-solid fa-keyboard"></i></div>
@@ -284,7 +304,7 @@
     </div>
   </main>
 
-  <!-- FLUXO COLETOR 1: DADOS NF -->
+  <!-- FLUXO COLETOR/CELULAR 1: DADOS NF -->
   <main id="view-coletor-nf" class="view-container p-4" style="display:none">
     <div class="max-w-sm mx-auto space-y-5 pt-4">
       <h2 class="font-black text-lg text-slate-800 flex items-center gap-2 uppercase">
@@ -293,7 +313,7 @@
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
         <label class="mobile-label">Nota Fiscal (Obrigatório)</label>
         <input type="text" readonly data-keyboard="nf" id="col-nf-input" class="mobile-input text-lg font-black cursor-pointer" placeholder="EX: 0197859" />
-        <p class="text-[10px] text-slate-400 font-bold mt-2">O fornecedor e outros dados serão puxados automaticamente no primeiro bip.</p>
+        <p class="text-[10px] text-slate-400 font-bold mt-2">O fornecedor e outros dados serão puxados automaticamente no primeiro bip/leitura.</p>
       </div>
       <button onclick="avancarParaBipagem()" class="btn-large btn-primary shadow-lg shadow-blue-500/30">
         Iniciar Bipagem <i class="fa-solid fa-arrow-right"></i>
@@ -301,11 +321,16 @@
     </div>
   </main>
 
-  <!-- FLUXO COLETOR: SCANNER E PESAGEM -->
+  <!-- FLUXO COLETOR/CELULAR: PESAGEM (com botão de câmera) -->
   <main id="view-coletor-main" class="view-container p-3" style="display:none">
     <div class="max-w-sm mx-auto space-y-3 pt-2">
       <div class="bg-blue-600 rounded-lg p-3 text-center shadow-lg shadow-blue-500/30">
-        <label class="mobile-label text-blue-100 mb-2"><i class="fa-solid fa-barcode"></i> Bipe a Etiqueta VDA</label>
+        <div class="flex items-center justify-between mb-2">
+          <label class="mobile-label text-blue-100 mb-0"><i class="fa-solid fa-barcode"></i> Bipe a Etiqueta VDA</label>
+          <button type="button" onclick="abrirCamera()" class="bg-white/20 text-white text-[9px] font-black uppercase px-2 py-1.5 rounded-lg active:scale-95 transition-transform">
+            <i class="fa-solid fa-camera"></i> Câmera
+          </button>
+        </div>
         <input type="text" id="col-main-scan" class="mobile-input text-center font-mono font-black text-blue-900 bg-white border-none py-3" placeholder="Aponte o leitor aqui..." autocomplete="off" />
         <div id="col-main-feedback" class="text-[10px] font-bold text-blue-200 mt-2 uppercase">Caixas lidas nesta nota: <span id="col-main-count" class="text-white font-black text-sm">0</span></div>
       </div>
@@ -586,6 +611,22 @@
     </div>
   </div>
 
+  <!-- MODAL CÂMERA (MODO CELULAR) -->
+  <div id="modal-camera" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[600] flex-col p-3">
+    <div class="w-full max-w-md">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-white font-black uppercase text-sm flex items-center gap-2">
+          <i class="fa-solid fa-camera text-emerald-400"></i> Ler Etiqueta
+        </h3>
+        <button onclick="pararCamera()" class="text-white text-xl p-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="qr-reader"></div>
+      <p class="text-center text-slate-300 text-[10px] font-bold uppercase mt-3">
+        Aponte para o QR Code ou código de barras da etiqueta VDA
+      </p>
+    </div>
+  </div>
+
   <!-- MODAL ENVIO DE E-MAIL -->
   <div id="modal-email" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center z-[200] px-4 opacity-0 transition-opacity">
     <div class="bg-white p-5 rounded-2xl w-full max-w-sm shadow-xl transform scale-95 transition-transform duration-200" id="email-box">
@@ -658,11 +699,6 @@
   <div id="toast" class="toast">Mensagem...</div>
 
   <script>
-    // ==========================================
-    // CONFIGURAÇÃO / ESTADO GLOBAL
-    // ==========================================
-    const NODE_LOTE = 'loteNotas'; // nó compartilhado com o desktop (troque aqui se o desktop usar outro nome)
-
     let appState = {
       modo: null,
       cabecalho: { fornecedor: "", nota_fiscal_principal: "", data_conferencia: "", operador: "", turno: "A" },
@@ -704,6 +740,66 @@
     let loginProfileTemp = null;
     let currentVKBInput = null;
     let scanTimeout;
+
+    // ==========================================
+    // CÂMERA (MODO CELULAR)
+    // ==========================================
+    let html5Qr = null;
+    let cameraRodando = false;
+
+    function abrirCamera() {
+      const modal = document.getElementById('modal-camera');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      if (cameraRodando) return;
+      if (typeof Html5Qrcode === 'undefined') { showToast("Biblioteca de câmera indisponível."); return; }
+      try {
+        html5Qr = new Html5Qrcode("qr-reader");
+        const config = {
+          fps: 10,
+          qrbox: { width: 240, height: 240 },
+          showTorchButtonIfSupported: true,
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.ITF,
+            Html5QrcodeSupportedFormats.CODABAR,
+            Html5QrcodeSupportedFormats.DATA_MATRIX
+          ]
+        };
+        html5Qr.start(
+          { facingMode: "environment" },
+          config,
+          function (texto) {
+            pararCamera();
+            showToast("Código lido!");
+            processarColetorMain(texto);
+          },
+          function () {}
+        );
+        cameraRodando = true;
+      } catch (e) {
+        showToast("Erro ao abrir a câmera: " + (e.message || e));
+      }
+    }
+
+    async function pararCamera() {
+      const modal = document.getElementById('modal-camera');
+      if (html5Qr) {
+        try {
+          if (html5Qr.isScanning) { await html5Qr.stop(); html5Qr.clear(); }
+        } catch (e) {}
+        html5Qr = null;
+      }
+      cameraRodando = false;
+      if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    }
 
     // ==========================================
     // INATIVIDADE (10 MIN) COM CONTADOR NO HEADER
@@ -847,12 +943,18 @@
         var btn = document.getElementById('nav-btn-' + (viewId === 'manual-items' ? 'items' : viewId));
         if (btn) btn.classList.add('active');
       }
+      // Fecha a câmera ao sair da tela de pesagem
+      if (viewId !== 'coletor-main' && (cameraRodando || html5Qr)) pararCamera();
       if (viewId === 'manual-items') renderManualItemsList();
       if (viewId === 'export') document.getElementById('resumo-qtd-caixas').innerText = appState.caixas.length;
       if (viewId === 'notificacoes') renderNotificacoes();
       if (viewId === 'coletor-main') {
         document.getElementById('col-main-count').innerText = appState.caixas.length;
         setTimeout(function() { var inp = document.getElementById('col-main-scan'); if (inp) { inp.value = ''; inp.focus(); } }, 100);
+        // No modo celular, abre a câmera automaticamente
+        if (appState.modo === 'celular') {
+          setTimeout(function(){ abrirCamera(); }, 600);
+        }
       }
       closeVKB();
     }
@@ -1073,6 +1175,7 @@
           appState.caixas = [];
           pendingGap = null;
           gapAlertCount = 0;
+          if (cameraRodando || html5Qr) pararCamera();
           document.getElementById('btn-logout').classList.add('hidden');
           document.getElementById('login-ident').value = ''; document.getElementById('login-senha').value = '';
           clearTimeout(inactivityTimer);
@@ -1201,10 +1304,10 @@
       if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
     }
 
-    // OK: NÃO salva; limpa apenas o Peso Mando e deixa calcular de novo
     function fecharGapAlert() {
       const modal = document.getElementById('modal-gap-alert');
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+      if (cameraRodando) pararCamera();
       showToast("Refaça a pesagem (Peso Mando) antes de salvar.");
       const manModal = document.getElementById('modal-add-manual');
       if (manModal && !manModal.classList.contains('hidden')) {
@@ -1233,7 +1336,6 @@
       }
     }
 
-    // IGNORAR confirmado: salva mesmo com gap
     function ignorarGapAlert() {
       const modal = document.getElementById('modal-gap-alert');
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
@@ -1275,11 +1377,11 @@
     }
 
     // ==========================================
-    // FLUXO: INICIAR
+    // FLUXO: INICIAR (agora 3 modos)
     // ==========================================
     function iniciarFluxo(modo) {
       appState.modo = modo;
-      if (modo === 'coletor') {
+      if (modo === 'coletor' || modo === 'celular') {
         document.getElementById('col-nf-input').value = appState.cabecalho.nota_fiscal_principal; navTo('coletor-nf');
       } else {
         setToday();
@@ -1300,7 +1402,7 @@
     }
 
     // ==========================================
-    // COLETOR: SCANNER E SALVAMENTO
+    // COLETOR/CELULAR: PROCESSAMENTO DO CÓDIGO
     // ==========================================
     const scanInput = document.getElementById('col-main-scan');
     scanInput.addEventListener('keydown', function(event) {
@@ -1378,7 +1480,7 @@
       const pnf = document.getElementById('col-main-pnf').value;
       const pmando = document.getElementById('col-main-pmando').value;
       const multiplier = parseInt(document.getElementById('col-main-multiplier').value) || 1;
-      if (!pn || pn === '-') { showToast("Bipe uma etiqueta primeiro."); return; }
+      if (!pn || pn === '-') { showToast("Bipe/leia uma etiqueta primeiro."); return; }
       if (!tara && !pmando) { showToast("Preencha ao menos a Tara ou o Peso Mando."); return; }
       const itens = [];
       for (let i = 0; i < multiplier; i++) {
@@ -1416,7 +1518,7 @@
     }
 
     // ==========================================
-    // MANUAL: CAMPOS, LISTA, LOTE DO DESKTOP
+    // MANUAL
     // ==========================================
     function onManualPnInput(val) {
       const raw = String(val).trim().toUpperCase();
@@ -1489,28 +1591,18 @@
     }
 
     // ==========================================
-    // NORMALIZAÇÃO E SINCRONIA SEGURA (transação atômica, não apaga o lote)
+    // NORMALIZAÇÃO E SINCRONIA SEGURA
     // ==========================================
     function normalizarRegistro(nota, r) {
-      if (nota && nota.cabecalho) {
-        const cab = nota.cabecalho;
-        nota = Object.assign({}, nota, {
-          fornecedor: nota.fornecedor || cab.fornecedor,
-          nf: nota.nf || cab.nota_fiscal_principal,
-          data_pesagem: nota.data_pesagem || cab.data_conferencia,
-          operador: nota.operador || cab.operador,
-          turno: nota.turno || cab.turno
-        });
-      }
       return {
         origem: nota.origem || 'desktop',
         fornecedor: nota.fornecedor || r.fornecedor || '',
         nf: nota.nf || r.nf || '',
-        data: nota.data_pesagem || nota.data || nota.data_conferencia || '',
+        data: nota.data_pesagem || nota.data || '',
         operador: nota.operador || '',
         turno: nota.turno || '',
         caixa_no: r.caixa_no || r.caixaNo || '',
-        codigo: r.codigo || r.codigo_bc || r.pn || r.observacao || '',
+        codigo: r.codigo || r.codigo_bc || r.pn || r.observacao || '-',
         descricao: r.descricao || '',
         qtd: r.qtd_pecas || r.qtd || r.quantidade_mencionada || '',
         peso_nf: r.peso_nf || r.peso_bruto_nf || '',
@@ -1519,19 +1611,25 @@
       };
     }
 
-    function toList(v) { return Array.isArray(v) ? v.filter(x => x) : (v && typeof v === 'object' ? Object.values(v).filter(x => x) : []); }
     function normalizarLote(val) {
       const lista = [];
-      toList(val).forEach(n => {
-        if (!n || typeof n !== 'object') return;
-        // Firebase pode transformar listas em objetos: aceita os dois formatos
-        const caixas = toList(n.caixas);
-        const registros = toList(n.registros);
-        const itens = caixas.length ? caixas : registros;
-        if (itens.length) itens.forEach(r => { if (r && typeof r === 'object') lista.push(normalizarRegistro(n, r)); });
-        else if (n.caixa_no || n.codigo || n.observacao) lista.push(normalizarRegistro(n, n));
-        // notas sem nenhuma caixa são ignoradas (antes viravam cartões vazios)
-      });
+      if (Array.isArray(val)) {
+        val.filter(x => x).forEach(n => {
+          if (n && Array.isArray(n.registros)) {
+            n.registros.forEach(r => lista.push(normalizarRegistro(n, r)));
+          } else if (n && typeof n === 'object') {
+            lista.push(normalizarRegistro(n, n));
+          }
+        });
+      } else if (val && typeof val === 'object') {
+        Object.values(val).filter(x => x).forEach(n => {
+          if (n && Array.isArray(n.registros)) {
+            n.registros.forEach(r => lista.push(normalizarRegistro(n, r)));
+          } else if (n && typeof n === 'object') {
+            lista.push(normalizarRegistro(n, n));
+          }
+        });
+      }
       return lista;
     }
 
@@ -1554,7 +1652,6 @@
       }));
     }
 
-    // Envio automático com TRANSAÇÃO: nunca apaga o resto do lote
     function autosincronizar(comToast) {
       if (!db) { if (comToast) showToast("Banco não conectado."); return; }
       if (!appState.cabecalho.nota_fiscal_principal || appState.caixas.length === 0) return;
@@ -1566,39 +1663,16 @@
         data_pesagem: appState.cabecalho.data_conferencia || "",
         turno: appState.cabecalho.turno || "A",
         operador: appState.cabecalho.operador || "",
-        registros: montarRegistrosMobile(),
-        // Formato que o Desktop (pesagem.html) entende:
-        modo: "manual",
-        title: "", imageSrc: "",
-        cabecalho: {
-          fornecedor: (appState.cabecalho.fornecedor || "").toUpperCase(),
-          nota_fiscal_principal: nf,
-          data_conferencia: appState.cabecalho.data_conferencia || "",
-          operador: (appState.cabecalho.operador || "").toUpperCase(),
-          turno: appState.cabecalho.turno || "A"
-        },
-        caixas: appState.caixas.map((c, i) => ({
-          id: c.id || ('mob_' + Date.now() + '_' + i),
-          caixa_no: c.caixa_no || (i + 1),
-          observacao: c.observacao || "",
-          descricao: c.descricao || "",
-          quantidade_mencionada: c.quantidade_mencionada || "",
-          peso_unitario: c.peso_unitario || "",
-          peso_embalagem: c.peso_embalagem || "",
-          peso_bruto_nf: c.peso_bruto_nf || "",
-          peso_bruto_mando: c.peso_bruto_mando || "",
-          lote: c.lote || "",
-          selected: false
-        }))
+        registros: montarRegistrosMobile()
       };
-      db.ref(NODE_LOTE).transaction(function (atual) {
+      db.ref('loteNotas').transaction(function (atual) {
         let arr = Array.isArray(atual) ? atual.filter(x => x) : (atual && typeof atual === 'object' ? Object.values(atual).filter(x => x) : []);
-        arr = arr.filter(n => !(n && n.origem === 'mobile' && String(n.nf || (n.cabecalho && n.cabecalho.nota_fiscal_principal) || '') === String(nf)));
+        arr = arr.filter(n => !(n && n.origem === 'mobile' && String(n.nf || '') === String(nf)));
         arr.push(novaNota);
         return arr;
       }).then(function () {
         if (comToast) showToast("Nota enviada para o Desktop!");
-        db.ref(NODE_LOTE).once('value').then(s => processarDadosLote(s.val())).catch(() => {});
+        db.ref('loteNotas').once('value').then(s => processarDadosLote(s.val())).catch(() => {});
       }).catch(function () {
         if (comToast) showToast("Erro ao sincronizar.");
       });
@@ -1606,7 +1680,7 @@
 
     function baixarCaixasDesktop(silencioso) {
       if (!db) { if (!silencioso) showToast("Banco não conectado."); return; }
-      db.ref(NODE_LOTE).once('value').then(snap => {
+      db.ref('loteNotas').once('value').then(snap => {
         processarDadosLote(snap.val());
         renderManualItemsList();
         if (!silencioso) showToast(desktopCaixas.length ? desktopCaixas.length + " caixas do desktop carregadas." : "Nenhuma caixa no desktop.");
@@ -1806,7 +1880,6 @@
       showToast("Excel Gerado e Baixado!");
     }
 
-    // Botão manual (mantido; o envio já é automático nos salvamentos)
     function sincronizarComDesktop() {
       if (!db || appState.caixas.length === 0) { showToast("Nada para enviar."); return; }
       autosincronizar(true);
@@ -1834,6 +1907,7 @@
       appState.cabecalho.nota_fiscal_principal = "";
       pendingGap = null;
       gapAlertCount = 0;
+      if (cameraRodando || html5Qr) pararCamera();
       navTo('mode-select');
       showToast("Dados zerados.");
       closeLimparModal();
@@ -1891,7 +1965,7 @@
           }
         });
 
-        db.ref(NODE_LOTE).on('value', snap => {
+        db.ref('loteNotas').on('value', snap => {
           desktopLoteNotas = snap.val() || [];
           document.getElementById('sync-status').classList.replace('bg-slate-500', 'bg-emerald-400');
           processarDadosLote(snap.val());
