@@ -167,7 +167,6 @@
     #qr-reader__dashboard_section_csr { border:0 !important; padding:0 !important; }
     #qr-reader__camera_permission_button,
     #qr-reader__file_scan_button { display:none !important; }
-    .cam-feed { width:100%; max-width:420px; margin:0 auto; }
   </style>
 </head>
 <body>
@@ -282,7 +281,7 @@
             <div class="bc-ico" style="background:rgba(255,255,255,.18)"><i class="fa-solid fa-camera"></i></div>
             <div>
               <div class="bc-titulo">Modo Celular</div>
-              <div class="bc-desc">Ler QR Code / código de barras com a câmera</div>
+              <div class="bc-desc">QR Code, Data Matrix e código de barras</div>
             </div>
           </div>
           <i class="fa-solid fa-chevron-right bc-setinha"></i>
@@ -321,7 +320,7 @@
     </div>
   </main>
 
-  <!-- FLUXO COLETOR/CELULAR: PESAGEM (com botão de câmera) -->
+  <!-- FLUXO COLETOR/CELULAR: PESAGEM -->
   <main id="view-coletor-main" class="view-container p-3" style="display:none">
     <div class="max-w-sm mx-auto space-y-3 pt-2">
       <div class="bg-blue-600 rounded-lg p-3 text-center shadow-lg shadow-blue-500/30">
@@ -336,28 +335,34 @@
       </div>
       <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-3">
         <h2 class="font-black text-xs text-slate-800 mb-2 flex items-center gap-1 uppercase border-b border-slate-100 pb-2">
-          <i class="fa-solid fa-box-open text-blue-600"></i> Dados da Peça Extraídos
+          <i class="fa-solid fa-box-open text-blue-600"></i> Dados da Peça Extraídos <span class="text-[8px] text-slate-400 font-bold">(editáveis)</span>
         </h2>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="mobile-label text-[9px]">Part Number</label>
-            <input type="text" id="col-main-pn" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
+            <input type="text" id="col-main-pn" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" placeholder="-" />
           </div>
           <div>
             <label class="mobile-label text-[9px]">Lote</label>
-            <input type="text" id="col-main-lote" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" readonly placeholder="-" />
+            <input type="text" id="col-main-lote" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold truncate" placeholder="-" />
           </div>
         </div>
         <div class="mt-2 grid grid-cols-2 gap-2">
           <div>
             <label class="mobile-label text-[9px]">Qtd (Peças)</label>
-            <input type="text" id="col-main-qtd" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold" readonly placeholder="-" />
+            <input type="text" id="col-main-qtd" class="mobile-input bg-slate-50 text-slate-600 border-none text-xs font-bold" placeholder="-" />
           </div>
           <div>
             <label class="mobile-label text-[9px]">Fornecedor</label>
-            <input type="text" id="col-main-forn" class="mobile-input bg-slate-50 text-slate-600 border-none text-[10px] truncate" readonly placeholder="-" />
+            <input type="text" id="col-main-forn" class="mobile-input bg-slate-50 text-slate-600 border-none text-[10px] truncate" placeholder="-" />
           </div>
         </div>
+      </div>
+      <div class="bg-emerald-50 rounded-lg shadow-sm border border-emerald-200 p-3 flex items-start gap-3">
+        <input type="checkbox" id="chk-fixar-item" onchange="toggleFixarItem(this.checked)" class="w-5 h-5 mt-0.5 shrink-0" />
+        <label for="chk-fixar-item" class="text-[10px] font-extrabold uppercase text-emerald-900 leading-tight cursor-pointer">
+          <i class="fa-solid fa-repeat"></i> Item único — ler a etiqueta 1x e repetir a peça: só digitar as taras/pesos de cada caixa (infos editáveis acima)
+        </label>
       </div>
       <div class="bg-slate-50 rounded-lg shadow-sm border border-slate-200 p-3 space-y-3">
         <h2 class="font-black text-sm text-slate-800 flex items-center gap-2 uppercase border-b border-slate-200 pb-2">
@@ -622,7 +627,7 @@
       </div>
       <div id="qr-reader"></div>
       <p class="text-center text-slate-300 text-[10px] font-bold uppercase mt-3">
-        Aponte para o QR Code ou código de barras da etiqueta VDA
+        Aponte para o QR Code, Data Matrix ou código de barras da etiqueta
       </p>
     </div>
   </div>
@@ -710,6 +715,7 @@
     let desktopCaixas = [];
     let pendingGap = null;
     let gapAlertCount = 0;
+    let fixarItem = false; // modo item único: ler 1 etiqueta e repetir a peça
 
     const mapaFornecedores = {
       '1065': 'CARIBOR', '3131': 'DETWYLLER', '0824': 'AÇO PEÇAS', '0172': 'DASOL',
@@ -734,6 +740,7 @@
     let auth = null;
     let desktopLoteNotas = [];
     let appCatalog = {};
+    let sb1Produtos = [];   // produtos da tabela SB1 (cadastros/produtos_mestre do desktop)
     let currentView = 'login';
     let scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
     let loginTab = 'usuario';
@@ -742,7 +749,7 @@
     let scanTimeout;
 
     // ==========================================
-    // CÂMERA (MODO CELULAR)
+    // CÂMERA (MODO CELULAR): QR + 1D + DATA MATRIX
     // ==========================================
     let html5Qr = null;
     let cameraRodando = false;
@@ -758,11 +765,15 @@
         html5Qr = new Html5Qrcode("qr-reader");
         const config = {
           fps: 10,
-          qrbox: { width: 240, height: 240 },
+          // área retangular: melhora leitura de códigos 1D lineares (CODE_128/EAN/ITF)
+          qrbox: function (vw, vh) {
+            return { width: Math.floor(vw * 0.85), height: Math.floor(vh * 0.5) };
+          },
           showTorchButtonIfSupported: true,
           formatsToSupport: [
             Html5QrcodeSupportedFormats.QR_CODE,
-            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.DATA_MATRIX,   // etiqueta WHB (2D)
+            Html5QrcodeSupportedFormats.CODE_128,      // 1D linear
             Html5QrcodeSupportedFormats.CODE_39,
             Html5QrcodeSupportedFormats.EAN_13,
             Html5QrcodeSupportedFormats.EAN_8,
@@ -770,7 +781,8 @@
             Html5QrcodeSupportedFormats.UPC_E,
             Html5QrcodeSupportedFormats.ITF,
             Html5QrcodeSupportedFormats.CODABAR,
-            Html5QrcodeSupportedFormats.DATA_MATRIX
+            Html5QrcodeSupportedFormats.AZTEC,
+            Html5QrcodeSupportedFormats.PDF_417
           ]
         };
         html5Qr.start(
@@ -799,6 +811,19 @@
       }
       cameraRodando = false;
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    }
+
+    // ==========================================
+    // ITEM ÚNICO (fixar peça)
+    // ==========================================
+    function toggleFixarItem(v) {
+      fixarItem = !!v;
+      if (fixarItem) {
+        showToast("Item fixado: não é preciso re-ler a etiqueta. Só digite os pesos.");
+        setTimeout(() => advanceTo('col-main-tara'), 200);
+      } else {
+        showToast("Item liberado: bipe/leia a etiqueta a cada caixa.");
+      }
     }
 
     // ==========================================
@@ -943,15 +968,19 @@
         var btn = document.getElementById('nav-btn-' + (viewId === 'manual-items' ? 'items' : viewId));
         if (btn) btn.classList.add('active');
       }
-      // Fecha a câmera ao sair da tela de pesagem
       if (viewId !== 'coletor-main' && (cameraRodando || html5Qr)) pararCamera();
       if (viewId === 'manual-items') renderManualItemsList();
       if (viewId === 'export') document.getElementById('resumo-qtd-caixas').innerText = appState.caixas.length;
       if (viewId === 'notificacoes') renderNotificacoes();
       if (viewId === 'coletor-main') {
         document.getElementById('col-main-count').innerText = appState.caixas.length;
-        setTimeout(function() { var inp = document.getElementById('col-main-scan'); if (inp) { inp.value = ''; inp.focus(); } }, 100);
-        // No modo celular, abre a câmera automaticamente
+        setTimeout(function() {
+          var inp = document.getElementById(fixarItem ? 'col-main-tara' : 'col-main-scan');
+          if (inp) {
+            if (!fixarItem) inp.value = '';
+            inp.focus();
+          }
+        }, 100);
         if (appState.modo === 'celular') {
           setTimeout(function(){ abrirCamera(); }, 600);
         }
@@ -1175,6 +1204,8 @@
           appState.caixas = [];
           pendingGap = null;
           gapAlertCount = 0;
+          fixarItem = false;
+          const chk = document.getElementById('chk-fixar-item'); if (chk) chk.checked = false;
           if (cameraRodando || html5Qr) pararCamera();
           document.getElementById('btn-logout').classList.add('hidden');
           document.getElementById('login-ident').value = ''; document.getElementById('login-senha').value = '';
@@ -1186,28 +1217,43 @@
     }
 
     // ==========================================
-    // BUSCA DE PEÇA
+    // BUSCA DO PART NUMBER COMPLETO NA TABELA SB1
     // ==========================================
-    function buscarInfoPeca(rawInput) {
-      let cleanInput = rawInput.replace(/[^A-Z0-9]/g, '');
-      let bestMatch = { pn: rawInput, desc: "", peso: null, fornecedor: "" };
-      let maxLen = 0;
+    function buscarPNCompletoSB1(codigoBruto) {
+      const limpo = String(codigoBruto).toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (!limpo) return null;
+      const lista = sb1Produtos.filter(p => p && p.partNumber);
+      let exato = lista.find(p => String(p.partNumber).toUpperCase().replace(/[^A-Z0-9]/g, '') === limpo);
+      if (exato) return exato;
+      let melhor = null, maxLen = 0;
+      lista.forEach(p => {
+        const k = String(p.partNumber).toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (k && limpo.includes(k) && k.length > maxLen) { maxLen = k.length; melhor = p; }
+      });
+      if (melhor) return melhor;
       const allCatalogs = { ...CATALOGO_INTERNO, ...appCatalog };
+      let melhor2 = null, maxLen2 = 0;
       for (const [k, val] of Object.entries(allCatalogs)) {
-        let cleanK = k.replace(/[^A-Z0-9]/g, '');
-        if (cleanK && cleanInput.includes(cleanK)) {
-          if (cleanK.length > maxLen) {
-            maxLen = cleanK.length;
-            bestMatch = {
-              pn: k,
-              desc: val.desc || val.descricao || "",
-              peso: val.peso || val.custoUnitario || null,
-              fornecedor: val.fornecedor || val.forn || ""
-            };
-          }
+        const cleanK = k.replace(/[^A-Z0-9]/g, '');
+        if (cleanK && limpo.includes(cleanK) && cleanK.length > maxLen2) {
+          maxLen2 = cleanK.length;
+          melhor2 = { partNumber: k, descricao: val.desc || val.descricao || '', peso: val.peso || val.custoUnitario || null, fornecedor: val.fornecedor || val.forn || '' };
         }
       }
-      return bestMatch;
+      return melhor2;
+    }
+
+    function buscarInfoPeca(rawInput) {
+      const info = buscarPNCompletoSB1(rawInput);
+      if (info) {
+        return {
+          pn: info.partNumber,
+          desc: info.descricao || '',
+          peso: info.peso,
+          fornecedor: info.fornecedor || ''
+        };
+      }
+      return { pn: rawInput, desc: "", peso: null, fornecedor: "" };
     }
 
     // ==========================================
@@ -1356,8 +1402,12 @@
       autosincronizar(false);
       if (p.fonte === 'col') {
         if (p.addAnother) {
-          ['pn', 'forn', 'lote', 'qtd', 'tara', 'pnf', 'pmando'].forEach(id => { const i = document.getElementById('col-main-' + id); if (i) i.value = ''; });
+          ['tara', 'pnf', 'pmando'].forEach(id => { const i = document.getElementById('col-main-' + id); if (i) i.value = ''; });
           document.getElementById('col-main-multiplier').value = '1';
+          if (!fixarItem) {
+            ['pn', 'lote', 'qtd', 'forn'].forEach(id => { const i = document.getElementById('col-main-' + id); if (i) i.value = ''; });
+            scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
+          }
           navTo('coletor-main');
         } else {
           document.getElementById('col-main-multiplier').value = '1';
@@ -1377,7 +1427,7 @@
     }
 
     // ==========================================
-    // FLUXO: INICIAR (agora 3 modos)
+    // FLUXO: INICIAR (3 modos)
     // ==========================================
     function iniciarFluxo(modo) {
       appState.modo = modo;
@@ -1421,9 +1471,10 @@
     });
 
     function processarColetorMain(codigoBruto) {
-      const upper = String(codigoBruto).toUpperCase().trim().replace(/[\x00-\x1F\x7F-\x9F]/g, "");
-      if (!upper) return;
+      const upper = String(codigoBruto).toUpperCase().trim().replace(/[\x00-\x1F\x7F-\x9F]/g, " ");
+      if (!upper.trim()) return;
       scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
+      // FORMATO VDA (PN + QTD + LOTE + CÓD FORNECEDOR em sequência)
       let novoFormatoMatch = upper.match(/^([A-Z0-9.-]+)\s+(\d+)([A-Z0-9]{4})(\d{4})/);
       if (novoFormatoMatch) {
         let extraidoPN = novoFormatoMatch[1];
@@ -1433,37 +1484,61 @@
         scanAtualTemp.forn = mapaFornecedores[codF] || codF;
         if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
         if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
-        let infoPeca = buscarInfoPeca(extraidoPN);
-        if (infoPeca.desc) { scanAtualTemp.pn = infoPeca.pn; scanAtualTemp.desc = infoPeca.desc; scanAtualTemp.peso = infoPeca.peso; }
+        let infoPeca = buscarPNCompletoSB1(extraidoPN);
+        if (infoPeca && (infoPeca.descricao || infoPeca.desc)) { scanAtualTemp.pn = infoPeca.partNumber; scanAtualTemp.desc = infoPeca.descricao || infoPeca.desc || ''; scanAtualTemp.peso = infoPeca.peso; }
         else { scanAtualTemp.pn = extraidoPN; }
       }
       else if (upper.startsWith('P') && upper.length >= 35) {
         const codF = upper.substring(3, 7);
         scanAtualTemp.forn = mapaFornecedores[codF] || codF;
         if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
-        const tail = upper.substring(upper.length - 10);
+        const tail = upper.replace(/\s/g,'').substring(upper.replace(/\s/g,'').length - 10);
         scanAtualTemp.lote = tail.substring(0, 4);
         const possivelQtd = parseInt(tail.substring(4), 10);
         if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
-        let infoPeca = buscarInfoPeca(upper);
-        if (infoPeca.desc) {
-          scanAtualTemp.pn = infoPeca.pn; scanAtualTemp.desc = infoPeca.desc; scanAtualTemp.peso = infoPeca.peso;
+        let infoPeca = buscarPNCompletoSB1(upper);
+        if (infoPeca && (infoPeca.descricao || infoPeca.desc)) {
+          scanAtualTemp.pn = infoPeca.partNumber; scanAtualTemp.desc = infoPeca.descricao || infoPeca.desc || ''; scanAtualTemp.peso = infoPeca.peso;
           if (infoPeca.fornecedor && (!scanAtualTemp.forn || scanAtualTemp.forn === codF || scanAtualTemp.forn === "0000" || scanAtualTemp.forn.length < 3)) {
             scanAtualTemp.forn = infoPeca.fornecedor;
           }
         } else {
-          let miolo = upper.substring(15, upper.length - 10); let quebra = miolo.match(/^(.+?)(0{4,})$/);
+          let miolo = upper.replace(/\s/g,'').substring(15, upper.replace(/\s/g,'').length - 10); let quebra = miolo.match(/^(.+?)(0{4,})$/);
           scanAtualTemp.pn = quebra ? quebra[1] : miolo.replace(/0+$/, '');
         }
       }
       else {
-        let infoPeca = buscarInfoPeca(upper);
-        if (infoPeca.desc) {
-          scanAtualTemp.pn = infoPeca.pn; scanAtualTemp.desc = infoPeca.desc; scanAtualTemp.peso = infoPeca.peso;
+        // PARSING POR TOKENS (Data Matrix / código de barras da WHB e afins)
+        // Ex.: "BC14030500.E 200 VHOB 1189" em qualquer ordem dos tokens
+        const tokens = upper.split(/[\s|;]+/).filter(Boolean);
+        let pnToken = null, bestLen = 0;
+        tokens.forEach(tk => {
+          const info = buscarPNCompletoSB1(tk);
+          if (info && (info.descricao || info.desc) && tk.replace(/[^A-Z0-9]/g,'').length > bestLen) {
+            bestLen = tk.replace(/[^A-Z0-9]/g,'').length; pnToken = tk;
+          }
+        });
+        if (pnToken) {
+          const infoPeca = buscarPNCompletoSB1(pnToken);
+          scanAtualTemp.pn = infoPeca.partNumber;
+          scanAtualTemp.desc = infoPeca.descricao || infoPeca.desc || '';
+          scanAtualTemp.peso = infoPeca.peso;
           if (infoPeca.fornecedor) scanAtualTemp.forn = infoPeca.fornecedor;
+          // QTD: maior token puramente numérico (até 5 dígitos)
+          let maxQ = 0;
+          tokens.forEach(tk => {
+            if (/^\d{1,5}$/.test(tk)) { const n = parseInt(tk, 10); if (n > maxQ) { maxQ = n; scanAtualTemp.qtd = n; } }
+          });
+          // LOTE: token alfanumérico de 4 (não numérico puro, não é o PN)
+          const loteTok = tokens.find(tk => /^[A-Z0-9]{4}$/.test(tk) && !/^\d+$/.test(tk) && tk !== pnToken.replace(/[^A-Z0-9]/g,''));
+          if (loteTok) scanAtualTemp.lote = loteTok;
+          // FORNECEDOR: token de 4 dígitos no mapa (ex.: 1189 = WHB)
+          const codTok = tokens.find(tk => /^\d{4}$/.test(tk));
+          if (codTok && mapaFornecedores[codTok]) scanAtualTemp.forn = mapaFornecedores[codTok];
+          if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
         } else {
-          const pnMatch = upper.match(/(3BC[A-Z0-9]+|B[CEGHM][A-Z0-9]+|K[0-9]+)/);
-          scanAtualTemp.pn = pnMatch ? pnMatch[1].replace(/0+$/, '') : upper;
+          const pnMatch = upper.match(/(3BC[A-Z0-9.]+|B[CEGHM][A-Z0-9.]+|K[0-9]+|MAN[0-9.]+)/);
+          scanAtualTemp.pn = pnMatch ? pnMatch[1].replace(/\.+$/, '') : upper.trim();
         }
       }
       document.getElementById('col-main-pn').value = scanAtualTemp.pn || '-';
@@ -1486,11 +1561,11 @@
       for (let i = 0; i < multiplier; i++) {
         itens.push({
           caixa_no: appState.caixas.length + 1,
-          observacao: scanAtualTemp.pn,
+          observacao: pn,
           descricao: scanAtualTemp.desc,
-          lote: scanAtualTemp.lote,
+          lote: document.getElementById('col-main-lote').value,
           peso_unitario: scanAtualTemp.peso,
-          quantidade_mencionada: scanAtualTemp.qtd,
+          quantidade_mencionada: document.getElementById('col-main-qtd').value,
           peso_embalagem: tara,
           peso_bruto_nf: pnf,
           peso_bruto_mando: pmando,
@@ -1508,8 +1583,12 @@
       showToast(multiplier > 1 ? multiplier + " Caixas salvas!" : "Caixa salva!");
       autosincronizar(false);
       if (addAnother) {
-        ['pn', 'forn', 'lote', 'qtd', 'tara', 'pnf', 'pmando'].forEach(id => { const i = document.getElementById('col-main-' + id); if (i) i.value = ''; });
+        ['tara', 'pnf', 'pmando'].forEach(id => { const i = document.getElementById('col-main-' + id); if (i) i.value = ''; });
         document.getElementById('col-main-multiplier').value = '1';
+        if (!fixarItem) {
+          ['pn', 'lote', 'qtd', 'forn'].forEach(id => { const i = document.getElementById('col-main-' + id); if (i) i.value = ''; });
+          scanAtualTemp = { pn: "", forn: "", lote: "", qtd: "", desc: "", peso: null };
+        }
         navTo('coletor-main');
       } else {
         document.getElementById('col-main-multiplier').value = '1';
@@ -1526,8 +1605,8 @@
       const pnInput = document.getElementById('man-box-pn');
       const fornHeader = document.getElementById('man-forn');
       let info = buscarInfoPeca(raw);
-      if (info && info.desc) {
-        feedback.innerHTML = '<b>' + info.desc + '</b>';
+      if (info && (info.desc || info.pn)) {
+        feedback.innerHTML = '<b>' + (info.desc || info.pn) + '</b>';
         feedback.className = 'text-[10px] font-extrabold uppercase mt-1 p-1.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-center';
         if (raw.length > 5 && info.pn !== raw && info.pn.replace(/[^A-Z0-9]/g, '') === raw) { pnInput.value = info.pn; }
         if (info.fornecedor && (!fornHeader.value || fornHeader.value.trim() === '')) {
@@ -1907,6 +1986,8 @@
       appState.cabecalho.nota_fiscal_principal = "";
       pendingGap = null;
       gapAlertCount = 0;
+      fixarItem = false;
+      const chk = document.getElementById('chk-fixar-item'); if (chk) chk.checked = false;
       if (cameraRodando || html5Qr) pararCamera();
       navTo('mode-select');
       showToast("Dados zerados.");
@@ -1975,10 +2056,12 @@
           const arr = Array.isArray(snap.val()) ? snap.val().filter(x => x) : Object.values(snap.val() || {});
           arr.forEach(f => dl.innerHTML += '<option value="' + (f || '').toUpperCase() + '">');
         });
+        // TABELA SB1 (produtos mestre do desktop) — alimenta a busca do PN completo
         db.ref('cadastros/produtos_mestre').on('value', snap => {
           const val = snap.val();
           if (val) {
             const arr = Array.isArray(val) ? val.filter(x => x) : Object.values(val || {});
+            sb1Produtos = arr;
             arr.forEach(p => {
               if (p && p.partNumber) {
                 appCatalog[p.partNumber.toUpperCase()] = {
@@ -2030,5 +2113,4 @@
   </script>
 </body>
 </html>
-
 
