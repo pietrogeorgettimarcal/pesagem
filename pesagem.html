@@ -836,11 +836,7 @@
     function atualizarBadgeModoScanner() {
       const b = document.getElementById('badge-modo-scanner');
       if (!b) return;
-      if (ehPaisagem()) {
-        b.innerHTML = '<i class="fa-solid fa-arrows-left-right text-amber-400"></i> DEITADO: CÓDIGO DE BARRAS';
-      } else {
-        b.innerHTML = '<i class="fa-solid fa-arrows-up-down text-emerald-400"></i> DE PÉ: QR CODE';
-      }
+      b.innerHTML = '<i class="fa-solid fa-barcode text-emerald-400"></i> CÓDIGO DE BARRAS + QR — aproxime a etiqueta';
     }
 
     function mostrarErroCamera(titulo, msg) {
@@ -890,13 +886,26 @@
       return ['CÂMERA NÃO ABRIU', 'Erro: ' + (texto || nome || 'desconhecido') + '. Toque em "Tentar novamente".'];
     }
 
-    // ===== MODO 1D NATIVO (BarcodeDetector — muito melhor para Code 128) =====
+    // ===== SCANNER NATIVO (BarcodeDetector) — lê CÓDIGO DE BARRAS + QR em qualquer posição =====
     function atualizarSliderZoom1D() {
       const l = document.getElementById('zoom-label');
       if (l) l.innerText = zoom1D + 'x';
     }
 
-    async function abrirScanner1DNativo() {
+    // Descobre quais formatos o navegador realmente suporta (evita erro ao criar o detector)
+    async function obterFormatosNativos() {
+      const desejados = ['code_128','code_39','ean_13','ean_8','upc_a','upc_e','itf','codabar','qr_code','data_matrix','aztec','pdf417'];
+      try {
+        if (window.BarcodeDetector && window.BarcodeDetector.getSupportedFormats) {
+          const suportados = await window.BarcodeDetector.getSupportedFormats();
+          const inter = desejados.filter(f => suportados.includes(f));
+          return inter.length ? inter : suportados;
+        }
+      } catch (e) {}
+      return desejados;
+    }
+
+    async function abrirScannerNativo() {
       const video = document.getElementById('video-1d');
       const container = document.getElementById('qr-reader');
       if (container) container.classList.add('hidden');
@@ -904,10 +913,12 @@
 
       // resolução máxima: barras 1D precisam de pixels
       stream1D = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } }
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
       });
       track1D = stream1D.getVideoTracks()[0];
       video.srcObject = stream1D;
+      video.setAttribute('playsinline', '');
+      video.muted = true;
       await video.play();
 
       // aplica zoom inicial se a câmera suportar
@@ -920,9 +931,8 @@
         }
       } catch (e) {}
 
-      const detector = new window.BarcodeDetector({
-        formats: ['code_128','code_39','ean_13','ean_8','upc_a','upc_e','itf','codabar']
-      });
+      const formatos = await obterFormatosNativos();
+      const detector = new window.BarcodeDetector({ formats: formatos });
 
       // auto-zoom progressivo: sobe um degrau a cada 5s até ler
       const caps2 = track1D.getCapabilities ? track1D.getCapabilities() : {};
@@ -940,7 +950,7 @@
       let pausado = false;
       const escanear = async () => {
         if (!cameraRodando || pausado) return;
-        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        if (video.readyState >= 2) {
           try {
             const codigos = await detector.detect(video);
             if (codigos && codigos.length) {
@@ -955,13 +965,14 @@
         }
         if (cameraRodando && !pausado) loop1D = requestAnimationFrame(escanear);
       };
-      escanear();
+      // IMPORTANTE: marca como rodando ANTES de iniciar o laço, senão ele para na 1ª chamada
       cameraRodando = true;
-      showToast("Modo barras ativo. Mantenha firme.");
+      escanear();
+      showToast("Scanner ativo. Aproxime a etiqueta.");
     }
 
-    // ===== MODO 1D FALLBACK (sem BarcodeDetector nativo: iPhone) =====
-    async function abrirScanner1DFallback() {
+    // ===== SCANNER FALLBACK (html5-qrcode) — lê CÓDIGO DE BARRAS + QR juntos =====
+    async function abrirScannerFallback() {
       const container = document.getElementById('qr-reader');
       const video = document.getElementById('video-1d');
       if (video) video.classList.add('hidden');
@@ -975,45 +986,20 @@
           Html5QrcodeSupportedFormats.UPC_A,
           Html5QrcodeSupportedFormats.UPC_E,
           Html5QrcodeSupportedFormats.ITF,
-          Html5QrcodeSupportedFormats.CODABAR
+          Html5QrcodeSupportedFormats.CODABAR,
+          Html5QrcodeSupportedFormats.QR_CODE,
+          Html5QrcodeSupportedFormats.DATA_MATRIX,
+          Html5QrcodeSupportedFormats.AZTEC,
+          Html5QrcodeSupportedFormats.PDF_417
         ],
         useBarCodeDetectorIfSupported: true
       });
       await html5Qr.start(
-        { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
+        { facingMode: "environment" },
         {
           fps: 15,
           qrbox: function (vw, vh) {
-            return { width: Math.max(Math.floor(vw*0.95), 200), height: Math.max(Math.floor(vh*0.30), 80) };
-          }
-        },
-        function (texto) {
-          pararCamera();
-          showToast("Código lido!");
-          processarColetorMain(texto);
-        },
-        function () {}
-      );
-      cameraRodando = true;
-    }
-
-    // ===== MODO 2D (em pé): html5-qrcode =====
-    async function abrirScanner2D() {
-      const video = document.getElementById('video-1d');
-      const container = document.getElementById('qr-reader');
-      if (video) video.classList.add('hidden');
-      if (container) container.classList.remove('hidden');
-      html5Qr = new Html5Qrcode("qr-reader", {
-        formatsToSupport: formatos2D(),
-        useBarCodeDetectorIfSupported: true
-      });
-      await html5Qr.start(
-        { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
-        {
-          fps: 12,
-          qrbox: function (vw, vh) {
-            const s = Math.min(Math.floor(Math.min(vw, vh) * 0.7), Math.min(vw, vh) - 10);
-            return { width: Math.max(s, 150), height: Math.max(s, 150) };
+            return { width: Math.max(Math.floor(vw*0.9), 180), height: Math.max(Math.floor(vh*0.5), 150) };
           },
           showTorchButtonIfSupported: true
         },
@@ -1037,25 +1023,24 @@
       atualizarBadgeModoScanner();
       if (cameraRodando || html5Qr || stream1D) return;
       if (!verificarContextoSeguro()) return;
-      // Deitado no Android: usa o decoder NATIVO — não depende de biblioteca/CDN
-      if (ehPaisagem() && temBarcodeDetector()) {
-        abrirScanner1DNativo().catch(e => {
-          const [t, m] = traduzirErroCamera(e);
-          mostrarErroCamera(t, m);
+      // Prefere o decoder NATIVO (lê QR + código de barras em qualquer orientação, sem CDN)
+      if (temBarcodeDetector()) {
+        abrirScannerNativo().catch(e => {
+          // Se o nativo falhar (câmera/zoom), tenta a biblioteca como plano B
+          garantirBiblioteca().then(function (ok) {
+            if (!ok) { const [t, m] = traduzirErroCamera(e); mostrarErroCamera(t, m); return; }
+            abrirScannerFallback().catch(e2 => { const [t, m] = traduzirErroCamera(e2); mostrarErroCamera(t, m); });
+          });
         });
         return;
       }
-      // Demais casos: garante a biblioteca com fallback entre CDNs
+      // Sem BarcodeDetector nativo (ex.: iPhone/Safari): usa html5-qrcode com todos os formatos
       garantirBiblioteca().then(function (ok) {
         if (!ok) {
           mostrarErroCamera('BIBLIOTECA INDISPONÍVEL', 'O leitor não carregou: o navegador está bloqueando os CDNs (ex.: Prevenção de Rastreamento do Edge). Desative-a para este site ou use o Chrome.');
           return;
         }
-        if (ehPaisagem()) {
-          abrirScanner1DFallback().catch(e => { const [t, m] = traduzirErroCamera(e); mostrarErroCamera(t, m); });
-        } else {
-          abrirScanner2D().catch(e => { const [t, m] = traduzirErroCamera(e); mostrarErroCamera(t, m); });
-        }
+        abrirScannerFallback().catch(e => { const [t, m] = traduzirErroCamera(e); mostrarErroCamera(t, m); });
       });
     }
 
@@ -1099,16 +1084,14 @@
       abrirCamera();
     }
 
-    // Girou o celular: reinicia o scanner no modo correto (com debounce)
+    // Girou o celular: só atualiza o aviso. O scanner agora lê QR + código de barras
+    // em qualquer orientação, então NÃO reiniciamos a câmera (evita travar a leitura).
     window.addEventListener('resize', function () {
       if (!cameraRodando || !desejoCameraAberto) return;
       clearTimeout(timerReinicioOrientacao);
       timerReinicioOrientacao = setTimeout(function () {
         if (!cameraRodando || !desejoCameraAberto) return;
-        const agora = ehPaisagem() ? 'landscape' : 'portrait';
         atualizarBadgeModoScanner();
-        if (agora === orientacaoScanner) return;
-        reiniciarScanner();
       }, 350);
     });
 
