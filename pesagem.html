@@ -167,6 +167,8 @@
     #qr-reader__dashboard_section_csr { border:0 !important; padding:0 !important; }
     #qr-reader__camera_permission_button,
     #qr-reader__file_scan_button { display:none !important; }
+    #video-1d { width:100%; border-radius:16px; background:#000; min-height:240px; object-fit:cover; }
+    #video-1d.hidden { display:none; }
   </style>
 </head>
 <body>
@@ -616,7 +618,7 @@
     </div>
   </div>
 
-  <!-- MODAL CÂMERA: pé = QR Code / deitado = código de barras, com zoom -->
+  <!-- MODAL CÂMERA: pé = QR (html5-qrcode) / deitado = barras (BarcodeDetector nativo) -->
   <div id="modal-camera" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[600] flex-col p-3">
     <div class="w-full max-w-md">
       <div class="flex justify-between items-center mb-2">
@@ -629,13 +631,7 @@
         <span id="badge-modo-scanner" class="text-emerald-300 font-black text-[10px] uppercase tracking-wider"></span>
       </div>
       <div id="qr-reader"></div>
-      <div class="bg-white/10 rounded-xl p-2 mt-2 flex items-center gap-2">
-        <span class="text-white font-black text-[9px] uppercase shrink-0"><i class="fa-solid fa-magnifying-glass-plus"></i> ZOOM</span>
-        <button type="button" onclick="ajustarZoom(-0.5)" class="bg-white/20 text-white w-8 h-8 rounded-lg font-black text-lg active:scale-95 transition-transform shrink-0">-</button>
-        <input type="range" id="zoom-slider" min="1" max="8" step="0.5" value="1" oninput="zoomManual(this.value)" class="flex-1 accent-emerald-400" />
-        <button type="button" onclick="ajustarZoom(0.5)" class="bg-white/20 text-white w-8 h-8 rounded-lg font-black text-lg active:scale-95 transition-transform shrink-0">+</button>
-        <span id="zoom-label" class="text-emerald-300 font-black text-[10px] w-8 text-right shrink-0">1x</span>
-      </div>
+      <video id="video-1d" class="hidden w-full rounded-2xl" playsinline muted></video>
       <div id="camera-erro" class="hidden bg-red-950 border border-red-700 rounded-xl p-3 mt-2 text-center">
         <p class="text-red-300 font-black text-[11px] uppercase leading-tight" id="camera-erro-titulo">
           <i class="fa-solid fa-triangle-exclamation"></i> Câmera não abriu
@@ -651,7 +647,7 @@
           <i class="fa-solid fa-arrows-left-right text-amber-400"></i> Deitado: CÓDIGO DE BARRAS
         </p>
         <p class="text-center text-slate-400 text-[9px] font-bold mt-1 leading-tight">
-          No modo barras: aumente o zoom até o código preencher a faixa verde. Etiqueta precisa estar plana, sem dobra sobre o código.
+          No modo barras: aproxime 8-15 cm, etiqueta plana e firme. O zoom sobe sozinho até ler.
         </p>
       </div>
     </div>
@@ -774,21 +770,23 @@
     let scanTimeout;
 
     // ==========================================
-    // CÂMERA (MODO CELULAR) — robusta com zoom
-    // De PÉ (portrait): QR Code / Data Matrix / Aztec
-    // DEITADO (landscape): Código de Barras 1D + auto-zoom progressivo
-    // Correções: contexto seguro, cascata de constraints, erros traduzidos
+    // CÂMERA (MODO CELULAR)
+    // EM PÉ: QR/Data Matrix via html5-qrcode
+    // DEITADO: Código de barras via BarcodeDetector NATIVO (Chrome/Android)
+    //          + fallback html5-qrcode onde não houver nativo (iPhone)
     // ==========================================
     let html5Qr = null;
     let cameraRodando = false;
     let desejoCameraAberto = false;
     let orientacaoScanner = null;
     let timerReinicioOrientacao = null;
-    let zoomAtual = 1;
-    let timerAutoZoom = null;
+    let stream1D = null;
+    let loop1D = null;
+    let timerAutoZoom1D = null;
+    let track1D = null;
+    let zoom1D = 1;
 
     function ehPaisagem() { return window.innerWidth > window.innerHeight; }
-
     function formatos2D() {
       return [
         Html5QrcodeSupportedFormats.QR_CODE,
@@ -797,17 +795,8 @@
         Html5QrcodeSupportedFormats.PDF_417
       ];
     }
-    function formatos1D() {
-      return [
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8,
-        Html5QrcodeSupportedFormats.UPC_A,
-        Html5QrcodeSupportedFormats.UPC_E,
-        Html5QrcodeSupportedFormats.ITF,
-        Html5QrcodeSupportedFormats.CODABAR
-      ];
+    function temBarcodeDetector() {
+      return typeof window.BarcodeDetector !== 'undefined';
     }
 
     function atualizarBadgeModoScanner() {
@@ -818,66 +807,6 @@
       } else {
         b.innerHTML = '<i class="fa-solid fa-arrows-up-down text-emerald-400"></i> DE PÉ: QR CODE';
       }
-    }
-
-    // ===== ZOOM =====
-    function atualizarSliderZoom() {
-      const s = document.getElementById('zoom-slider');
-      const l = document.getElementById('zoom-label');
-      if (s) s.value = String(zoomAtual);
-      if (l) l.innerText = zoomAtual + 'x';
-    }
-
-    function aplicarZoomValor(v) {
-      if (!html5Qr || !cameraRodando) return false;
-      try {
-        const caps = html5Qr.getRunningTrackCapabilities();
-        if (!caps || caps.zoom === undefined) return false;
-        const val = Math.min(Math.max(v, caps.zoom.min || 1), caps.zoom.max || 8);
-        zoomAtual = val;
-        html5Qr.applyVideoConstraints({ advanced: [{ zoom: val }] }).catch(() => {});
-        atualizarSliderZoom();
-        return true;
-      } catch (e) { return false; }
-    }
-
-    function zoomManual(v) {
-      zoomAtual = parseFloat(v) || 1;
-      pararAutoZoom();
-      if (!aplicarZoomValor(zoomAtual)) {
-        showToast("Este aparelho não aceita zoom digital — aproxime a câmera fisicamente.");
-        atualizarSliderZoom();
-      }
-    }
-
-    function ajustarZoom(delta) {
-      const s = document.getElementById('zoom-slider');
-      let v = parseFloat(s && s.value ? s.value : zoomAtual) + delta;
-      if (v < 1) v = 1;
-      if (v > 8) v = 8;
-      zoomManual(v);
-    }
-
-    // Auto-zoom progressivo: no modo 1D, se não ler em 6s, sobe um degrau
-    function iniciarAutoZoom() {
-      pararAutoZoom();
-      if (!ehPaisagem()) return; // só no modo barras
-      const degraus = [2, 3, 4, 5, 6, 7];
-      let i = 0;
-      setTimeout(() => { if (cameraRodando) { zoomAtual = 2; aplicarZoomValor(2); } }, 400);
-      timerAutoZoom = setInterval(() => {
-        if (!cameraRodando) { pararAutoZoom(); return; }
-        if (i < degraus.length) {
-          zoomAtual = degraus[i++];
-          if (!aplicarZoomValor(zoomAtual)) { pararAutoZoom(); }
-        } else {
-          pararAutoZoom();
-        }
-      }, 6000);
-    }
-
-    function pararAutoZoom() {
-      if (timerAutoZoom) { clearInterval(timerAutoZoom); timerAutoZoom = null; }
     }
 
     function mostrarErroCamera(titulo, msg) {
@@ -893,59 +822,171 @@
       if (box) box.classList.add('hidden');
     }
 
-    // Verifica se o navegador permite câmera (HTTPS obrigatório)
     function verificarContextoSeguro() {
       const ehLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
       if (location.protocol !== 'https:' && !ehLocalhost) {
         mostrarErroCamera('CÂMERA BLOQUEADA PELA PÁGINA',
-          'A câmera só funciona em páginas HTTPS. Abra o app pelo link do GitHub Pages (https://...) e não pelo arquivo do celular.');
+          'A câmera só funciona em páginas HTTPS. Abra o app pelo link do GitHub Pages (https://...).');
         return false;
       }
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         mostrarErroCamera('NAVEGADOR SEM CÂMERA',
-          'Este navegador não expõe a câmera. Use Chrome ou Safari atualizado, ou abra o link fora de apps como WhatsApp/Instagram.');
+          'Este navegador não expõe a câmera. Use Chrome ou Safari atualizado, fora de apps como WhatsApp/Instagram.');
         return false;
       }
       return true;
     }
 
-    // Traduz o erro nativo do getUserMedia para uma mensagem clara
     function traduzirErroCamera(e) {
-      const nome = e && e.name ? e.name : (e && e.type ? String(e.type) : '');
+      const nome = e && e.name ? e.name : '';
       const texto = e && e.message ? String(e.message) : '';
-      if (nome === 'NotAllowedError' || /permission|denied|PERMISSION/i.test(texto)) {
-        return ['PERMISSÃO NEGADA', 'Toque em "Tentar novamente" e autorize a câmera quando o navegador pedir. Se já negou antes, libere no ícone de cadeado da barra de endereço.'];
+      if (nome === 'NotAllowedError' || /permission|denied/i.test(texto)) {
+        return ['PERMISSÃO NEGADA', 'Autorize a câmera quando o navegador pedir. Se já negou, libere no cadeado da barra de endereço.'];
       }
-      if (nome === 'NotReadableError' || /could not start video|in use|StartVideo|device error/i.test(texto)) {
-        return ['CÂMERA EM USO', 'Outro app está usando a câmera. Feche o app da câmera em segundo plano e tente de novo.'];
+      if (nome === 'NotReadableError' || /in use|device error/i.test(texto)) {
+        return ['CÂMERA EM USO', 'Feche o app da câmera em segundo plano e tente de novo.'];
       }
-      if (nome === 'NotFoundError' || /requested device|no camera|DevicesNotFound/i.test(texto)) {
-        return ['CÂMERA NÃO ENCONTRADA', 'Nenhuma câmera foi detectada no dispositivo.'];
-      }
-      if (nome === 'OverconstrainedError' || /overconstrained|constraint/i.test(texto)) {
-        return ['RESOLUÇÃO NÃO SUPORTADA', 'A qualidade pedida não é aceita por este aparelho. Toque em "Tentar novamente" — o app ajusta automaticamente.'];
-      }
-      if (/ssl|secure|https/i.test(texto)) {
-        return ['PÁGINA NÃO SEGURA', 'A câmera exige HTTPS. Abra o app pelo link https:// do GitHub Pages.'];
+      if (nome === 'NotFoundError') {
+        return ['CÂMERA NÃO ENCONTRADA', 'Nenhuma câmera detectada no dispositivo.'];
       }
       return ['CÂMERA NÃO ABRIU', 'Erro: ' + (texto || nome || 'desconhecido') + '. Toque em "Tentar novamente".'];
     }
 
-    // Cascata de constraints: tenta a ideal; se falhar, vai reduzindo até abrir
-    function listaDeConstraints(paisagem) {
-      if (paisagem) {
-        return [
-          { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
-          { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
-          { facingMode: "environment" },
-          true
-        ];
+    // ===== MODO 1D NATIVO (BarcodeDetector — muito melhor para Code 128) =====
+    function atualizarSliderZoom1D() {
+      const l = document.getElementById('zoom-label');
+      if (l) l.innerText = zoom1D + 'x';
+    }
+
+    async function abrirScanner1DNativo() {
+      const video = document.getElementById('video-1d');
+      const container = document.getElementById('qr-reader');
+      if (container) container.classList.add('hidden');
+      if (video) video.classList.remove('hidden');
+
+      // resolução máxima: barras 1D precisam de pixels
+      stream1D = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } }
+      });
+      track1D = stream1D.getVideoTracks()[0];
+      video.srcObject = stream1D;
+      await video.play();
+
+      // aplica zoom inicial se a câmera suportar
+      try {
+        const caps = track1D.getCapabilities ? track1D.getCapabilities() : {};
+        if (caps.zoom) {
+          zoom1D = 2;
+          await track1D.applyConstraints({ advanced: [{ zoom: Math.min(2, caps.zoom.max) }] });
+          atualizarSliderZoom1D();
+        }
+      } catch (e) {}
+
+      const detector = new window.BarcodeDetector({
+        formats: ['code_128','code_39','ean_13','ean_8','upc_a','upc_e','itf','codabar']
+      });
+
+      // auto-zoom progressivo: sobe um degrau a cada 5s até ler
+      const caps2 = track1D.getCapabilities ? track1D.getCapabilities() : {};
+      if (caps2.zoom) {
+        timerAutoZoom1D = setInterval(() => {
+          if (!cameraRodando) return;
+          if (zoom1D < Math.min(8, caps2.zoom.max)) {
+            zoom1D += 1;
+            track1D.applyConstraints({ advanced: [{ zoom: zoom1D }] }).catch(()=>{});
+            atualizarSliderZoom1D();
+          }
+        }, 5000);
       }
-      return [
+
+      let pausado = false;
+      const escanear = async () => {
+        if (!cameraRodando || pausado) return;
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          try {
+            const codigos = await detector.detect(video);
+            if (codigos && codigos.length) {
+              pausado = true;
+              const valor = codigos[0].rawValue;
+              await pararCamera();
+              showToast("Código lido!");
+              processarColetorMain(valor);
+              return;
+            }
+          } catch (e) {}
+        }
+        if (cameraRodando && !pausado) loop1D = requestAnimationFrame(escanear);
+      };
+      escanear();
+      cameraRodando = true;
+      showToast("Modo barras ativo. Mantenha firme.");
+    }
+
+    // ===== MODO 1D FALLBACK (sem BarcodeDetector nativo: iPhone) =====
+    async function abrirScanner1DFallback() {
+      const container = document.getElementById('qr-reader');
+      const video = document.getElementById('video-1d');
+      if (video) video.classList.add('hidden');
+      if (container) container.classList.remove('hidden');
+      html5Qr = new Html5Qrcode("qr-reader", {
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.ITF,
+          Html5QrcodeSupportedFormats.CODABAR
+        ],
+        useBarCodeDetectorIfSupported: true
+      });
+      await html5Qr.start(
+        { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
+        {
+          fps: 15,
+          qrbox: function (vw, vh) {
+            return { width: Math.max(Math.floor(vw*0.95), 200), height: Math.max(Math.floor(vh*0.30), 80) };
+          }
+        },
+        function (texto) {
+          pararCamera();
+          showToast("Código lido!");
+          processarColetorMain(texto);
+        },
+        function () {}
+      );
+      cameraRodando = true;
+    }
+
+    // ===== MODO 2D (em pé): html5-qrcode =====
+    async function abrirScanner2D() {
+      const video = document.getElementById('video-1d');
+      const container = document.getElementById('qr-reader');
+      if (video) video.classList.add('hidden');
+      if (container) container.classList.remove('hidden');
+      html5Qr = new Html5Qrcode("qr-reader", {
+        formatsToSupport: formatos2D(),
+        useBarCodeDetectorIfSupported: true
+      });
+      await html5Qr.start(
         { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
-        { facingMode: "environment" },
-        true
-      ];
+        {
+          fps: 12,
+          qrbox: function (vw, vh) {
+            const s = Math.min(Math.floor(Math.min(vw, vh) * 0.7), Math.min(vw, vh) - 10);
+            return { width: Math.max(s, 150), height: Math.max(s, 150) };
+          },
+          showTorchButtonIfSupported: true
+        },
+        function (texto) {
+          pararCamera();
+          showToast("Código lido!");
+          processarColetorMain(texto);
+        },
+        function () {}
+      );
+      cameraRodando = true;
     }
 
     function abrirCamera() {
@@ -956,83 +997,52 @@
       modal.classList.add('flex');
       ocultarErroCamera();
       atualizarBadgeModoScanner();
-      if (cameraRodando || html5Qr) return;
-      if (typeof Html5Qrcode === 'undefined') {
-        mostrarErroCamera('BIBLIOTECA INDISPONÍVEL', 'Falha ao carregar o leitor de código. Verifique a conexão e recarregue a página.');
-        return;
-      }
+      if (cameraRodando || html5Qr || stream1D) return;
       if (!verificarContextoSeguro()) return;
-      iniciarScanner();
-    }
-
-    async function iniciarScanner() {
-      const paisagem = ehPaisagem();
-      orientacaoScanner = paisagem ? 'landscape' : 'portrait';
-      const constraints = listaDeConstraints(paisagem);
-      for (let i = 0; i < constraints.length; i++) {
-        try {
-          ocultarErroCamera();
-          // formatsToSupport vai NO CONSTRUTOR (não no start)
-          html5Qr = new Html5Qrcode("qr-reader", {
-            formatsToSupport: paisagem ? formatos1D() : formatos2D(),
-            useBarCodeDetectorIfSupported: true
+      if (ehPaisagem()) {
+        // DEITADO: prioriza o decoder NATIVO (muito melhor para 1D)
+        if (temBarcodeDetector()) {
+          abrirScanner1DNativo().catch(e => {
+            const [t, m] = traduzirErroCamera(e);
+            mostrarErroCamera(t, m);
           });
-          const config = {
-            fps: 12,
-            qrbox: function (vw, vh) {
-              if (paisagem) {
-                // faixa larga e baixa: foca o 1D e decodifica mais rápido
-                const w = Math.min(Math.floor(vw * 0.95), vw - 10);
-                const h = Math.min(Math.floor(vh * 0.30), vh - 10);
-                return { width: Math.max(w, 200), height: Math.max(h, 80) };
-              }
-              const s = Math.min(Math.floor(Math.min(vw, vh) * 0.7), Math.min(vw, vh) - 10);
-              return { width: Math.max(s, 150), height: Math.max(s, 150) };
-            },
-            showTorchButtonIfSupported: true
-          };
-          await html5Qr.start(constraints[i], config, function (texto) {
-            pararAutoZoom();
-            pararCamera();
-            showToast("Código lido!");
-            processarColetorMain(texto);
-          }, function () {});
-          cameraRodando = true;
-          zoomAtual = 1;
-          atualizarSliderZoom();
-          iniciarAutoZoom(); // modo barras: sobe o zoom até ler
-          return;
-        } catch (e) {
-          const nome = e && e.name ? e.name : '';
-          if (nome === 'NotAllowedError' || nome === 'NotFoundError') {
-            await fecharScannerInstancia();
+        } else {
+          abrirScanner1DFallback().catch(e => {
             const [t, m] = traduzirErroCamera(e);
             mostrarErroCamera(t, m);
-            return;
-          }
-          // OverconstrainedError e afins: limpa e tenta a próxima constraint
-          await fecharScannerInstancia();
-          if (i === constraints.length - 1) {
-            const [t, m] = traduzirErroCamera(e);
-            mostrarErroCamera(t, m);
-          }
+          });
         }
+      } else {
+        // EM PÉ: QR/Data Matrix
+        abrirScanner2D().catch(e => {
+          const [t, m] = traduzirErroCamera(e);
+          mostrarErroCamera(t, m);
+        });
       }
     }
 
     async function fecharScannerInstancia() {
+      // 1D nativo
+      if (loop1D) { cancelAnimationFrame(loop1D); loop1D = null; }
+      if (timerAutoZoom1D) { clearInterval(timerAutoZoom1D); timerAutoZoom1D = null; }
+      if (stream1D) {
+        stream1D.getTracks().forEach(tr => tr.stop());
+        stream1D = null;
+        track1D = null;
+        const video = document.getElementById('video-1d');
+        if (video) video.srcObject = null;
+      }
+      // html5-qrcode (2D e fallback)
       if (html5Qr) {
         try { await html5Qr.stop(); } catch (e) {}
         try { html5Qr.clear(); } catch (e) {}
         html5Qr = null;
       }
       cameraRodando = false;
-      pararAutoZoom();
     }
 
     async function pararCamera() {
       desejoCameraAberto = false;
-      pararAutoZoom();
       await fecharScannerInstancia();
       const modal = document.getElementById('modal-camera');
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
@@ -1043,16 +1053,15 @@
       ocultarErroCamera();
       desejoCameraAberto = true;
       if (!verificarContextoSeguro()) return;
-      iniciarScanner();
+      abrirCamera();
     }
 
     async function reiniciarScanner() {
-      pararAutoZoom();
       await fecharScannerInstancia();
-      await iniciarScanner();
+      abrirCamera();
     }
 
-    // Girou o celular: reinicia o scanner com o modo correto (com debounce)
+    // Girou o celular: reinicia o scanner no modo correto (com debounce)
     window.addEventListener('resize', function () {
       if (!cameraRodando || !desejoCameraAberto) return;
       clearTimeout(timerReinicioOrientacao);
@@ -1220,7 +1229,7 @@
         var btn = document.getElementById('nav-btn-' + (viewId === 'manual-items' ? 'items' : viewId));
         if (btn) btn.classList.add('active');
       }
-      if (viewId !== 'coletor-main' && (cameraRodando || html5Qr)) pararCamera();
+      if (viewId !== 'coletor-main' && (cameraRodando || html5Qr || stream1D)) pararCamera();
       if (viewId === 'manual-items') renderManualItemsList();
       if (viewId === 'export') document.getElementById('resumo-qtd-caixas').innerText = appState.caixas.length;
       if (viewId === 'notificacoes') renderNotificacoes();
@@ -1458,7 +1467,7 @@
           gapAlertCount = 0;
           fixarItem = false;
           const chk = document.getElementById('chk-fixar-item'); if (chk) chk.checked = false;
-          if (cameraRodando || html5Qr) pararCamera();
+          if (cameraRodando || html5Qr || stream1D) pararCamera();
           document.getElementById('btn-logout').classList.add('hidden');
           document.getElementById('login-ident').value = ''; document.getElementById('login-senha').value = '';
           clearTimeout(inactivityTimer);
@@ -2241,7 +2250,7 @@
       gapAlertCount = 0;
       fixarItem = false;
       const chk = document.getElementById('chk-fixar-item'); if (chk) chk.checked = false;
-      if (cameraRodando || html5Qr) pararCamera();
+      if (cameraRodando || html5Qr || stream1D) pararCamera();
       navTo('mode-select');
       showToast("Dados zerados.");
       closeLimparModal();
