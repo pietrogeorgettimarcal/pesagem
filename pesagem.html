@@ -639,7 +639,7 @@
         <p class="text-red-300 font-black text-[11px] uppercase leading-tight" id="camera-erro-titulo">
           <i class="fa-solid fa-triangle-exclamation"></i> Câmera não abriu
         </p>
-        <p class="text-slate-300 text-[10px] font-bold mt-1 leading-snug" id="camera-erro-msg"></p>
+        <p class="text-slate-300 text-[10px] font-bold mt-1 leading-snug break-all" id="camera-erro-msg"></p>
         <button onclick="tentarCameraNovamente()" class="mt-3 bg-red-600 text-white text-[11px] font-black uppercase px-4 py-2 rounded-lg active:scale-95 transition-transform">
           <i class="fa-solid fa-arrows-rotate"></i> Tentar novamente
         </button>
@@ -856,16 +856,20 @@
       if (box) box.classList.add('hidden');
     }
 
+    // DIAGNÓSTICO: mostra o endereço real detectado quando bloqueia
     function verificarContextoSeguro() {
       const ehLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
       if (location.protocol !== 'https:' && !ehLocalhost) {
         mostrarErroCamera('CÂMERA BLOQUEADA PELA PÁGINA',
-          'A câmera só funciona em páginas HTTPS. Abra o app pelo link do GitHub Pages (https://...).');
+          'Endereço detectado: ' + location.protocol + '//' + location.hostname +
+          ' — a câmera só funciona em https:// (ou localhost no PC).' +
+          ' Corrija o link na barra de endereço para https:// e abra direto no Chrome/Safari (não por dentro do WhatsApp).');
         return false;
       }
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         mostrarErroCamera('NAVEGADOR SEM CÂMERA',
-          'Este navegador não expõe a câmera. Use Chrome ou Safari atualizado, fora de apps como WhatsApp/Instagram.');
+          'Endereço OK (' + location.protocol + '//' + location.hostname + '), mas este navegador não expõe a câmera.' +
+          ' Use Chrome ou Safari atualizado, fora de webviews como WhatsApp/Instagram.');
         return false;
       }
       return true;
