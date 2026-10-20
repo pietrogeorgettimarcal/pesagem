@@ -616,7 +616,7 @@
     </div>
   </div>
 
-  <!-- MODAL CÂMERA: pé = QR Code / deitado = código de barras, com painel de erro -->
+  <!-- MODAL CÂMERA: pé = QR Code / deitado = código de barras, com zoom -->
   <div id="modal-camera" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[600] flex-col p-3">
     <div class="w-full max-w-md">
       <div class="flex justify-between items-center mb-2">
@@ -629,6 +629,13 @@
         <span id="badge-modo-scanner" class="text-emerald-300 font-black text-[10px] uppercase tracking-wider"></span>
       </div>
       <div id="qr-reader"></div>
+      <div class="bg-white/10 rounded-xl p-2 mt-2 flex items-center gap-2">
+        <span class="text-white font-black text-[9px] uppercase shrink-0"><i class="fa-solid fa-magnifying-glass-plus"></i> ZOOM</span>
+        <button type="button" onclick="ajustarZoom(-0.5)" class="bg-white/20 text-white w-8 h-8 rounded-lg font-black text-lg active:scale-95 transition-transform shrink-0">-</button>
+        <input type="range" id="zoom-slider" min="1" max="8" step="0.5" value="1" oninput="zoomManual(this.value)" class="flex-1 accent-emerald-400" />
+        <button type="button" onclick="ajustarZoom(0.5)" class="bg-white/20 text-white w-8 h-8 rounded-lg font-black text-lg active:scale-95 transition-transform shrink-0">+</button>
+        <span id="zoom-label" class="text-emerald-300 font-black text-[10px] w-8 text-right shrink-0">1x</span>
+      </div>
       <div id="camera-erro" class="hidden bg-red-950 border border-red-700 rounded-xl p-3 mt-2 text-center">
         <p class="text-red-300 font-black text-[11px] uppercase leading-tight" id="camera-erro-titulo">
           <i class="fa-solid fa-triangle-exclamation"></i> Câmera não abriu
@@ -643,7 +650,9 @@
           <i class="fa-solid fa-arrows-up-down text-emerald-400"></i> De pé: QR CODE / DATA MATRIX<br>
           <i class="fa-solid fa-arrows-left-right text-amber-400"></i> Deitado: CÓDIGO DE BARRAS
         </p>
-        <p class="text-center text-slate-400 text-[9px] font-bold mt-1">Gire o celular e a câmera se ajusta sozinha. Aproxime bem do código.</p>
+        <p class="text-center text-slate-400 text-[9px] font-bold mt-1 leading-tight">
+          No modo barras: aumente o zoom até o código preencher a faixa verde. Etiqueta precisa estar plana, sem dobra sobre o código.
+        </p>
       </div>
     </div>
   </div>
@@ -719,7 +728,7 @@
 
   <div id="toast" class="toast">Mensagem...</div>
 
-    <script>
+  <script>
     let appState = {
       modo: null,
       cabecalho: { fornecedor: "", nota_fiscal_principal: "", data_conferencia: "", operador: "", turno: "A" },
@@ -765,9 +774,9 @@
     let scanTimeout;
 
     // ==========================================
-    // CÂMERA (MODO CELULAR) — robusta
+    // CÂMERA (MODO CELULAR) — robusta com zoom
     // De PÉ (portrait): QR Code / Data Matrix / Aztec
-    // DEITADO (landscape): Código de Barras 1D
+    // DEITADO (landscape): Código de Barras 1D + auto-zoom progressivo
     // Correções: contexto seguro, cascata de constraints, erros traduzidos
     // ==========================================
     let html5Qr = null;
@@ -775,6 +784,8 @@
     let desejoCameraAberto = false;
     let orientacaoScanner = null;
     let timerReinicioOrientacao = null;
+    let zoomAtual = 1;
+    let timerAutoZoom = null;
 
     function ehPaisagem() { return window.innerWidth > window.innerHeight; }
 
@@ -807,6 +818,66 @@
       } else {
         b.innerHTML = '<i class="fa-solid fa-arrows-up-down text-emerald-400"></i> DE PÉ: QR CODE';
       }
+    }
+
+    // ===== ZOOM =====
+    function atualizarSliderZoom() {
+      const s = document.getElementById('zoom-slider');
+      const l = document.getElementById('zoom-label');
+      if (s) s.value = String(zoomAtual);
+      if (l) l.innerText = zoomAtual + 'x';
+    }
+
+    function aplicarZoomValor(v) {
+      if (!html5Qr || !cameraRodando) return false;
+      try {
+        const caps = html5Qr.getRunningTrackCapabilities();
+        if (!caps || caps.zoom === undefined) return false;
+        const val = Math.min(Math.max(v, caps.zoom.min || 1), caps.zoom.max || 8);
+        zoomAtual = val;
+        html5Qr.applyVideoConstraints({ advanced: [{ zoom: val }] }).catch(() => {});
+        atualizarSliderZoom();
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function zoomManual(v) {
+      zoomAtual = parseFloat(v) || 1;
+      pararAutoZoom();
+      if (!aplicarZoomValor(zoomAtual)) {
+        showToast("Este aparelho não aceita zoom digital — aproxime a câmera fisicamente.");
+        atualizarSliderZoom();
+      }
+    }
+
+    function ajustarZoom(delta) {
+      const s = document.getElementById('zoom-slider');
+      let v = parseFloat(s && s.value ? s.value : zoomAtual) + delta;
+      if (v < 1) v = 1;
+      if (v > 8) v = 8;
+      zoomManual(v);
+    }
+
+    // Auto-zoom progressivo: no modo 1D, se não ler em 6s, sobe um degrau
+    function iniciarAutoZoom() {
+      pararAutoZoom();
+      if (!ehPaisagem()) return; // só no modo barras
+      const degraus = [2, 3, 4, 5, 6, 7];
+      let i = 0;
+      setTimeout(() => { if (cameraRodando) { zoomAtual = 2; aplicarZoomValor(2); } }, 400);
+      timerAutoZoom = setInterval(() => {
+        if (!cameraRodando) { pararAutoZoom(); return; }
+        if (i < degraus.length) {
+          zoomAtual = degraus[i++];
+          if (!aplicarZoomValor(zoomAtual)) { pararAutoZoom(); }
+        } else {
+          pararAutoZoom();
+        }
+      }, 6000);
+    }
+
+    function pararAutoZoom() {
+      if (timerAutoZoom) { clearInterval(timerAutoZoom); timerAutoZoom = null; }
     }
 
     function mostrarErroCamera(titulo, msg) {
@@ -843,13 +914,13 @@
       const nome = e && e.name ? e.name : (e && e.type ? String(e.type) : '');
       const texto = e && e.message ? String(e.message) : '';
       if (nome === 'NotAllowedError' || /permission|denied|PERMISSION/i.test(texto)) {
-        return ['PERMISSÃO NEGADA', 'Toque em "Tentar novamente" e em seguida autorize a câmera quando o navegador pedir. Se já negou antes, libere a câmera nas configurações do site (ícone de cadeado na barra de endereço).'];
+        return ['PERMISSÃO NEGADA', 'Toque em "Tentar novamente" e autorize a câmera quando o navegador pedir. Se já negou antes, libere no ícone de cadeado da barra de endereço.'];
       }
       if (nome === 'NotReadableError' || /could not start video|in use|StartVideo|device error/i.test(texto)) {
-        return ['CÂMERA EM USO', 'Outro app está usando a câmera. Feche o aplicativo da câmera ou o app em segundo plano e tente de novo.'];
+        return ['CÂMERA EM USO', 'Outro app está usando a câmera. Feche o app da câmera em segundo plano e tente de novo.'];
       }
       if (nome === 'NotFoundError' || /requested device|no camera|DevicesNotFound/i.test(texto)) {
-        return ['CÂMERA NÃO ENCONTRADA', 'Nenhuma câmera foi detectada no dispositivo. Verifique se outro app não bloqueou o acesso.'];
+        return ['CÂMERA NÃO ENCONTRADA', 'Nenhuma câmera foi detectada no dispositivo.'];
       }
       if (nome === 'OverconstrainedError' || /overconstrained|constraint/i.test(texto)) {
         return ['RESOLUÇÃO NÃO SUPORTADA', 'A qualidade pedida não é aceita por este aparelho. Toque em "Tentar novamente" — o app ajusta automaticamente.'];
@@ -910,9 +981,10 @@
             fps: 12,
             qrbox: function (vw, vh) {
               if (paisagem) {
-                const w = Math.min(Math.floor(vw * 0.92), vw - 10);
-                const h = Math.min(Math.floor(vh * 0.55), vh - 10);
-                return { width: Math.max(w, 200), height: Math.max(h, 100) };
+                // faixa larga e baixa: foca o 1D e decodifica mais rápido
+                const w = Math.min(Math.floor(vw * 0.95), vw - 10);
+                const h = Math.min(Math.floor(vh * 0.30), vh - 10);
+                return { width: Math.max(w, 200), height: Math.max(h, 80) };
               }
               const s = Math.min(Math.floor(Math.min(vw, vh) * 0.7), Math.min(vw, vh) - 10);
               return { width: Math.max(s, 150), height: Math.max(s, 150) };
@@ -920,14 +992,17 @@
             showTorchButtonIfSupported: true
           };
           await html5Qr.start(constraints[i], config, function (texto) {
+            pararAutoZoom();
             pararCamera();
             showToast("Código lido!");
             processarColetorMain(texto);
           }, function () {});
           cameraRodando = true;
-          return; // abriu com sucesso
+          zoomAtual = 1;
+          atualizarSliderZoom();
+          iniciarAutoZoom(); // modo barras: sobe o zoom até ler
+          return;
         } catch (e) {
-          // se foi erro de contexto/permissão, não adianta tentar a próxima constraint
           const nome = e && e.name ? e.name : '';
           if (nome === 'NotAllowedError' || nome === 'NotFoundError') {
             await fecharScannerInstancia();
@@ -952,10 +1027,12 @@
         html5Qr = null;
       }
       cameraRodando = false;
+      pararAutoZoom();
     }
 
     async function pararCamera() {
       desejoCameraAberto = false;
+      pararAutoZoom();
       await fecharScannerInstancia();
       const modal = document.getElementById('modal-camera');
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
@@ -970,6 +1047,7 @@
     }
 
     async function reiniciarScanner() {
+      pararAutoZoom();
       await fecharScannerInstancia();
       await iniciarScanner();
     }
@@ -1683,7 +1761,7 @@
         }
       }
       else {
-        // PARSING POR TOKENS (Data Matrix / código de barras da WHB e afins)
+        // PARSING POR TOKENS (Data Matrix / Code 128 da WHB e afins)
         // Ex.: "BC14030500.E 200 VHOB 1189" em qualquer ordem dos tokens
         const tokens = upper.split(/[\s|;]+/).filter(Boolean);
         let pnToken = null, bestLen = 0;
