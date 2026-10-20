@@ -281,7 +281,7 @@
             <div class="bc-ico" style="background:rgba(255,255,255,.18)"><i class="fa-solid fa-camera"></i></div>
             <div>
               <div class="bc-titulo">Modo Celular</div>
-              <div class="bc-desc">QR Code, Data Matrix e código de barras</div>
+              <div class="bc-desc">De pé: QR Code / Deitado: código de barras</div>
             </div>
           </div>
           <i class="fa-solid fa-chevron-right bc-setinha"></i>
@@ -616,19 +616,26 @@
     </div>
   </div>
 
-  <!-- MODAL CÂMERA (MODO CELULAR) -->
-  <div id="modal-camera" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[600] flex-col p-3">
+  <!-- MODAL CÂMERA: pé = QR Code / deitado = código de barras -->
+  <div id="modal-camera" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[600] flex-col p-3">
     <div class="w-full max-w-md">
-      <div class="flex justify-between items-center mb-3">
+      <div class="flex justify-between items-center mb-2">
         <h3 class="text-white font-black uppercase text-sm flex items-center gap-2">
           <i class="fa-solid fa-camera text-emerald-400"></i> Ler Etiqueta
         </h3>
         <button onclick="pararCamera()" class="text-white text-xl p-1"><i class="fa-solid fa-xmark"></i></button>
       </div>
+      <div class="bg-white/10 rounded-xl p-2 mb-2 text-center">
+        <span id="badge-modo-scanner" class="text-emerald-300 font-black text-[10px] uppercase tracking-wider"></span>
+      </div>
       <div id="qr-reader"></div>
-      <p class="text-center text-slate-300 text-[10px] font-bold uppercase mt-3">
-        Aponte para o QR Code, Data Matrix ou código de barras da etiqueta
-      </p>
+      <div class="bg-white/10 rounded-xl p-2 mt-2">
+        <p class="text-center text-slate-200 text-[10px] font-black uppercase leading-tight">
+          <i class="fa-solid fa-arrows-up-down text-emerald-400"></i> De pé: QR CODE / DATA MATRIX<br>
+          <i class="fa-solid fa-arrows-left-right text-amber-400"></i> Deitado: CÓDIGO DE BARRAS
+        </p>
+        <p class="text-center text-slate-400 text-[9px] font-bold mt-1">Gire o celular e a câmera se ajusta sozinha. Aproxime bem do código.</p>
+      </div>
     </div>
   </div>
 
@@ -749,44 +756,91 @@
     let scanTimeout;
 
     // ==========================================
-    // CÂMERA (MODO CELULAR): QR + 1D + DATA MATRIX
+    // CÂMERA (MODO CELULAR)
+    // De PÉ (portrait): QR Code / Data Matrix / Aztec
+    // DEITADO (landscape): Código de Barras 1D (CODE_128, EAN, ITF...)
+    // Girar o celular reinicia o scanner com o modo correto.
     // ==========================================
     let html5Qr = null;
     let cameraRodando = false;
+    let desejoCameraAberto = false;
+    let orientacaoScanner = null;
+    let timerReinicioOrientacao = null;
+
+    function ehPaisagem() { return window.innerWidth > window.innerHeight; }
+
+    function formatos2D() {
+      return [
+        Html5QrcodeSupportedFormats.QR_CODE,
+        Html5QrcodeSupportedFormats.DATA_MATRIX,
+        Html5QrcodeSupportedFormats.AZTEC,
+        Html5QrcodeSupportedFormats.PDF_417
+      ];
+    }
+    function formatos1D() {
+      return [
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.ITF,
+        Html5QrcodeSupportedFormats.CODABAR
+      ];
+    }
+
+    function atualizarBadgeModoScanner() {
+      const b = document.getElementById('badge-modo-scanner');
+      if (!b) return;
+      if (ehPaisagem()) {
+        b.innerHTML = '<i class="fa-solid fa-arrows-left-right text-amber-400"></i> DEITADO: CÓDIGO DE BARRAS';
+      } else {
+        b.innerHTML = '<i class="fa-solid fa-arrows-up-down text-emerald-400"></i> DE PÉ: QR CODE';
+      }
+    }
 
     function abrirCamera() {
+      desejoCameraAberto = true;
       const modal = document.getElementById('modal-camera');
       if (!modal) return;
       modal.classList.remove('hidden');
       modal.classList.add('flex');
-      if (cameraRodando) return;
+      atualizarBadgeModoScanner();
+      if (cameraRodando || html5Qr) return;
       if (typeof Html5Qrcode === 'undefined') { showToast("Biblioteca de câmera indisponível."); return; }
+      iniciarScanner();
+    }
+
+    async function iniciarScanner() {
+      const paisagem = ehPaisagem();
+      orientacaoScanner = paisagem ? 'landscape' : 'portrait';
       try {
-        html5Qr = new Html5Qrcode("qr-reader");
+        // CORREÇÃO: formatsToSupport vai NO CONSTRUTOR, não no start()
+        html5Qr = new Html5Qrcode("qr-reader", {
+          formatsToSupport: paisagem ? formatos1D() : formatos2D(),
+          useBarCodeDetectorIfSupported: true
+        });
         const config = {
-          fps: 10,
-          // área retangular: melhora leitura de códigos 1D lineares (CODE_128/EAN/ITF)
+          fps: 12,
+          // Área de leitura: quadrada em pé (2D), retangular larga deitado (1D)
           qrbox: function (vw, vh) {
-            return { width: Math.floor(vw * 0.85), height: Math.floor(vh * 0.5) };
+            if (paisagem) {
+              const w = Math.min(Math.floor(vw * 0.92), vw - 10);
+              const h = Math.min(Math.floor(vh * 0.55), vh - 10);
+              return { width: w, height: h };
+            }
+            const s = Math.min(Math.floor(Math.min(vw, vh) * 0.7), Math.min(vw, vh) - 10);
+            return { width: s, height: s };
           },
-          showTorchButtonIfSupported: true,
-          formatsToSupport: [
-            Html5QrcodeSupportedFormats.QR_CODE,
-            Html5QrcodeSupportedFormats.DATA_MATRIX,   // etiqueta WHB (2D)
-            Html5QrcodeSupportedFormats.CODE_128,      // 1D linear
-            Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.EAN_8,
-            Html5QrcodeSupportedFormats.UPC_A,
-            Html5QrcodeSupportedFormats.UPC_E,
-            Html5QrcodeSupportedFormats.ITF,
-            Html5QrcodeSupportedFormats.CODABAR,
-            Html5QrcodeSupportedFormats.AZTEC,
-            Html5QrcodeSupportedFormats.PDF_417
-          ]
+          showTorchButtonIfSupported: true
         };
-        html5Qr.start(
-          { facingMode: "environment" },
+        // Deitado: máxima resolução (1D precisa de muitos pixels horizontais)
+        const videoConstraints = paisagem
+          ? { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } }
+          : { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } };
+        await html5Qr.start(
+          videoConstraints,
           config,
           function (texto) {
             pararCamera();
@@ -798,20 +852,47 @@
         cameraRodando = true;
       } catch (e) {
         showToast("Erro ao abrir a câmera: " + (e.message || e));
+        try { if (html5Qr) { html5Qr.clear(); } } catch (e2) {}
+        html5Qr = null;
+        cameraRodando = false;
       }
     }
 
     async function pararCamera() {
+      desejoCameraAberto = false;
       const modal = document.getElementById('modal-camera');
       if (html5Qr) {
-        try {
-          if (html5Qr.isScanning) { await html5Qr.stop(); html5Qr.clear(); }
-        } catch (e) {}
+        try { await html5Qr.stop(); } catch (e) {}
+        try { html5Qr.clear(); } catch (e) {}
         html5Qr = null;
       }
       cameraRodando = false;
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
     }
+
+    // Reinício interno (girou o celular): troca o vídeo sem fechar o modal
+    async function reiniciarScanner() {
+      if (html5Qr) {
+        try { await html5Qr.stop(); } catch (e) {}
+        try { html5Qr.clear(); } catch (e) {}
+        html5Qr = null;
+      }
+      cameraRodando = false;
+      await iniciarScanner();
+    }
+
+    // Girou o celular: reinicia o scanner com o modo correto (com debounce)
+    window.addEventListener('resize', function () {
+      if (!cameraRodando || !desejoCameraAberto) return;
+      clearTimeout(timerReinicioOrientacao);
+      timerReinicioOrientacao = setTimeout(function () {
+        if (!cameraRodando || !desejoCameraAberto) return;
+        const agora = ehPaisagem() ? 'landscape' : 'portrait';
+        atualizarBadgeModoScanner();
+        if (agora === orientacaoScanner) return;
+        reiniciarScanner();
+      }, 350);
+    });
 
     // ==========================================
     // ITEM ÚNICO (fixar peça)
@@ -1492,7 +1573,8 @@
         const codF = upper.substring(3, 7);
         scanAtualTemp.forn = mapaFornecedores[codF] || codF;
         if (scanAtualTemp.forn && !appState.cabecalho.fornecedor) appState.cabecalho.fornecedor = scanAtualTemp.forn;
-        const tail = upper.replace(/\s/g,'').substring(upper.replace(/\s/g,'').length - 10);
+        const semEspaco = upper.replace(/\s/g,'');
+        const tail = semEspaco.substring(semEspaco.length - 10);
         scanAtualTemp.lote = tail.substring(0, 4);
         const possivelQtd = parseInt(tail.substring(4), 10);
         if (!isNaN(possivelQtd)) scanAtualTemp.qtd = possivelQtd;
@@ -1503,7 +1585,7 @@
             scanAtualTemp.forn = infoPeca.fornecedor;
           }
         } else {
-          let miolo = upper.replace(/\s/g,'').substring(15, upper.replace(/\s/g,'').length - 10); let quebra = miolo.match(/^(.+?)(0{4,})$/);
+          let miolo = semEspaco.substring(15, semEspaco.length - 10); let quebra = miolo.match(/^(.+?)(0{4,})$/);
           scanAtualTemp.pn = quebra ? quebra[1] : miolo.replace(/0+$/, '');
         }
       }
