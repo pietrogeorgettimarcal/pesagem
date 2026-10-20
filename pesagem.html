@@ -616,7 +616,7 @@
     </div>
   </div>
 
-  <!-- MODAL CÂMERA: pé = QR Code / deitado = código de barras -->
+  <!-- MODAL CÂMERA: pé = QR Code / deitado = código de barras, com painel de erro -->
   <div id="modal-camera" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[600] flex-col p-3">
     <div class="w-full max-w-md">
       <div class="flex justify-between items-center mb-2">
@@ -629,6 +629,15 @@
         <span id="badge-modo-scanner" class="text-emerald-300 font-black text-[10px] uppercase tracking-wider"></span>
       </div>
       <div id="qr-reader"></div>
+      <div id="camera-erro" class="hidden bg-red-950 border border-red-700 rounded-xl p-3 mt-2 text-center">
+        <p class="text-red-300 font-black text-[11px] uppercase leading-tight" id="camera-erro-titulo">
+          <i class="fa-solid fa-triangle-exclamation"></i> Câmera não abriu
+        </p>
+        <p class="text-slate-300 text-[10px] font-bold mt-1 leading-snug" id="camera-erro-msg"></p>
+        <button onclick="tentarCameraNovamente()" class="mt-3 bg-red-600 text-white text-[11px] font-black uppercase px-4 py-2 rounded-lg active:scale-95 transition-transform">
+          <i class="fa-solid fa-arrows-rotate"></i> Tentar novamente
+        </button>
+      </div>
       <div class="bg-white/10 rounded-xl p-2 mt-2">
         <p class="text-center text-slate-200 text-[10px] font-black uppercase leading-tight">
           <i class="fa-solid fa-arrows-up-down text-emerald-400"></i> De pé: QR CODE / DATA MATRIX<br>
@@ -710,7 +719,7 @@
 
   <div id="toast" class="toast">Mensagem...</div>
 
-  <script>
+    <script>
     let appState = {
       modo: null,
       cabecalho: { fornecedor: "", nota_fiscal_principal: "", data_conferencia: "", operador: "", turno: "A" },
@@ -756,10 +765,10 @@
     let scanTimeout;
 
     // ==========================================
-    // CÂMERA (MODO CELULAR)
+    // CÂMERA (MODO CELULAR) — robusta
     // De PÉ (portrait): QR Code / Data Matrix / Aztec
-    // DEITADO (landscape): Código de Barras 1D (CODE_128, EAN, ITF...)
-    // Girar o celular reinicia o scanner com o modo correto.
+    // DEITADO (landscape): Código de Barras 1D
+    // Correções: contexto seguro, cascata de constraints, erros traduzidos
     // ==========================================
     let html5Qr = null;
     let cameraRodando = false;
@@ -800,84 +809,168 @@
       }
     }
 
+    function mostrarErroCamera(titulo, msg) {
+      const box = document.getElementById('camera-erro');
+      const t = document.getElementById('camera-erro-titulo');
+      const m = document.getElementById('camera-erro-msg');
+      if (box) box.classList.remove('hidden');
+      if (t) t.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + titulo;
+      if (m) m.innerText = msg;
+    }
+    function ocultarErroCamera() {
+      const box = document.getElementById('camera-erro');
+      if (box) box.classList.add('hidden');
+    }
+
+    // Verifica se o navegador permite câmera (HTTPS obrigatório)
+    function verificarContextoSeguro() {
+      const ehLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+      if (location.protocol !== 'https:' && !ehLocalhost) {
+        mostrarErroCamera('CÂMERA BLOQUEADA PELA PÁGINA',
+          'A câmera só funciona em páginas HTTPS. Abra o app pelo link do GitHub Pages (https://...) e não pelo arquivo do celular.');
+        return false;
+      }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        mostrarErroCamera('NAVEGADOR SEM CÂMERA',
+          'Este navegador não expõe a câmera. Use Chrome ou Safari atualizado, ou abra o link fora de apps como WhatsApp/Instagram.');
+        return false;
+      }
+      return true;
+    }
+
+    // Traduz o erro nativo do getUserMedia para uma mensagem clara
+    function traduzirErroCamera(e) {
+      const nome = e && e.name ? e.name : (e && e.type ? String(e.type) : '');
+      const texto = e && e.message ? String(e.message) : '';
+      if (nome === 'NotAllowedError' || /permission|denied|PERMISSION/i.test(texto)) {
+        return ['PERMISSÃO NEGADA', 'Toque em "Tentar novamente" e em seguida autorize a câmera quando o navegador pedir. Se já negou antes, libere a câmera nas configurações do site (ícone de cadeado na barra de endereço).'];
+      }
+      if (nome === 'NotReadableError' || /could not start video|in use|StartVideo|device error/i.test(texto)) {
+        return ['CÂMERA EM USO', 'Outro app está usando a câmera. Feche o aplicativo da câmera ou o app em segundo plano e tente de novo.'];
+      }
+      if (nome === 'NotFoundError' || /requested device|no camera|DevicesNotFound/i.test(texto)) {
+        return ['CÂMERA NÃO ENCONTRADA', 'Nenhuma câmera foi detectada no dispositivo. Verifique se outro app não bloqueou o acesso.'];
+      }
+      if (nome === 'OverconstrainedError' || /overconstrained|constraint/i.test(texto)) {
+        return ['RESOLUÇÃO NÃO SUPORTADA', 'A qualidade pedida não é aceita por este aparelho. Toque em "Tentar novamente" — o app ajusta automaticamente.'];
+      }
+      if (/ssl|secure|https/i.test(texto)) {
+        return ['PÁGINA NÃO SEGURA', 'A câmera exige HTTPS. Abra o app pelo link https:// do GitHub Pages.'];
+      }
+      return ['CÂMERA NÃO ABRIU', 'Erro: ' + (texto || nome || 'desconhecido') + '. Toque em "Tentar novamente".'];
+    }
+
+    // Cascata de constraints: tenta a ideal; se falhar, vai reduzindo até abrir
+    function listaDeConstraints(paisagem) {
+      if (paisagem) {
+        return [
+          { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
+          { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
+          { facingMode: "environment" },
+          true
+        ];
+      }
+      return [
+        { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
+        { facingMode: "environment" },
+        true
+      ];
+    }
+
     function abrirCamera() {
       desejoCameraAberto = true;
       const modal = document.getElementById('modal-camera');
       if (!modal) return;
       modal.classList.remove('hidden');
       modal.classList.add('flex');
+      ocultarErroCamera();
       atualizarBadgeModoScanner();
       if (cameraRodando || html5Qr) return;
-      if (typeof Html5Qrcode === 'undefined') { showToast("Biblioteca de câmera indisponível."); return; }
+      if (typeof Html5Qrcode === 'undefined') {
+        mostrarErroCamera('BIBLIOTECA INDISPONÍVEL', 'Falha ao carregar o leitor de código. Verifique a conexão e recarregue a página.');
+        return;
+      }
+      if (!verificarContextoSeguro()) return;
       iniciarScanner();
     }
 
     async function iniciarScanner() {
       const paisagem = ehPaisagem();
       orientacaoScanner = paisagem ? 'landscape' : 'portrait';
-      try {
-        // CORREÇÃO: formatsToSupport vai NO CONSTRUTOR, não no start()
-        html5Qr = new Html5Qrcode("qr-reader", {
-          formatsToSupport: paisagem ? formatos1D() : formatos2D(),
-          useBarCodeDetectorIfSupported: true
-        });
-        const config = {
-          fps: 12,
-          // Área de leitura: quadrada em pé (2D), retangular larga deitado (1D)
-          qrbox: function (vw, vh) {
-            if (paisagem) {
-              const w = Math.min(Math.floor(vw * 0.92), vw - 10);
-              const h = Math.min(Math.floor(vh * 0.55), vh - 10);
-              return { width: w, height: h };
-            }
-            const s = Math.min(Math.floor(Math.min(vw, vh) * 0.7), Math.min(vw, vh) - 10);
-            return { width: s, height: s };
-          },
-          showTorchButtonIfSupported: true
-        };
-        // Deitado: máxima resolução (1D precisa de muitos pixels horizontais)
-        const videoConstraints = paisagem
-          ? { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } }
-          : { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } };
-        await html5Qr.start(
-          videoConstraints,
-          config,
-          function (texto) {
+      const constraints = listaDeConstraints(paisagem);
+      for (let i = 0; i < constraints.length; i++) {
+        try {
+          ocultarErroCamera();
+          // formatsToSupport vai NO CONSTRUTOR (não no start)
+          html5Qr = new Html5Qrcode("qr-reader", {
+            formatsToSupport: paisagem ? formatos1D() : formatos2D(),
+            useBarCodeDetectorIfSupported: true
+          });
+          const config = {
+            fps: 12,
+            qrbox: function (vw, vh) {
+              if (paisagem) {
+                const w = Math.min(Math.floor(vw * 0.92), vw - 10);
+                const h = Math.min(Math.floor(vh * 0.55), vh - 10);
+                return { width: Math.max(w, 200), height: Math.max(h, 100) };
+              }
+              const s = Math.min(Math.floor(Math.min(vw, vh) * 0.7), Math.min(vw, vh) - 10);
+              return { width: Math.max(s, 150), height: Math.max(s, 150) };
+            },
+            showTorchButtonIfSupported: true
+          };
+          await html5Qr.start(constraints[i], config, function (texto) {
             pararCamera();
             showToast("Código lido!");
             processarColetorMain(texto);
-          },
-          function () {}
-        );
-        cameraRodando = true;
-      } catch (e) {
-        showToast("Erro ao abrir a câmera: " + (e.message || e));
-        try { if (html5Qr) { html5Qr.clear(); } } catch (e2) {}
-        html5Qr = null;
-        cameraRodando = false;
+          }, function () {});
+          cameraRodando = true;
+          return; // abriu com sucesso
+        } catch (e) {
+          // se foi erro de contexto/permissão, não adianta tentar a próxima constraint
+          const nome = e && e.name ? e.name : '';
+          if (nome === 'NotAllowedError' || nome === 'NotFoundError') {
+            await fecharScannerInstancia();
+            const [t, m] = traduzirErroCamera(e);
+            mostrarErroCamera(t, m);
+            return;
+          }
+          // OverconstrainedError e afins: limpa e tenta a próxima constraint
+          await fecharScannerInstancia();
+          if (i === constraints.length - 1) {
+            const [t, m] = traduzirErroCamera(e);
+            mostrarErroCamera(t, m);
+          }
+        }
       }
+    }
+
+    async function fecharScannerInstancia() {
+      if (html5Qr) {
+        try { await html5Qr.stop(); } catch (e) {}
+        try { html5Qr.clear(); } catch (e) {}
+        html5Qr = null;
+      }
+      cameraRodando = false;
     }
 
     async function pararCamera() {
       desejoCameraAberto = false;
+      await fecharScannerInstancia();
       const modal = document.getElementById('modal-camera');
-      if (html5Qr) {
-        try { await html5Qr.stop(); } catch (e) {}
-        try { html5Qr.clear(); } catch (e) {}
-        html5Qr = null;
-      }
-      cameraRodando = false;
       if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
     }
 
-    // Reinício interno (girou o celular): troca o vídeo sem fechar o modal
+    async function tentarCameraNovamente() {
+      await fecharScannerInstancia();
+      ocultarErroCamera();
+      desejoCameraAberto = true;
+      if (!verificarContextoSeguro()) return;
+      iniciarScanner();
+    }
+
     async function reiniciarScanner() {
-      if (html5Qr) {
-        try { await html5Qr.stop(); } catch (e) {}
-        try { html5Qr.clear(); } catch (e) {}
-        html5Qr = null;
-      }
-      cameraRodando = false;
+      await fecharScannerInstancia();
       await iniciarScanner();
     }
 
@@ -2195,4 +2288,5 @@
   </script>
 </body>
 </html>
+
 
