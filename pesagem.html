@@ -16,6 +16,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <!-- Fallbacks: se um CDN for bloqueado (Tracking Prevention do Edge), tenta o próximo -->
+  <script>if(typeof Html5Qrcode==='undefined'){document.write('<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"><\/script>');}</script>
+  <script>if(typeof Html5Qrcode==='undefined'){document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"><\/script>');}</script>
   <style>
     :root { --primary:#005c9e; --primary-dark:#004b80; --bg:#f1f5f9; --text:#1e293b; }
     body {
@@ -770,6 +773,37 @@
     let scanTimeout;
 
     // ==========================================
+    // CARREGADOR ROBUSTO DA BIBLIOTECA (anti-CDN bloqueado)
+    // Tenta unpkg → jsdelivr → cdnjs, resolve ao vivo
+    // ==========================================
+    function carregarScript(url) {
+      return new Promise(function (resolve) {
+        const s = document.createElement('script');
+        s.src = url; s.async = false;
+        s.onload = function () { resolve(true); };
+        s.onerror = function () { resolve(false); };
+        document.head.appendChild(s);
+      });
+    }
+    let promiseBiblioteca = null;
+    function garantirBiblioteca() {
+      if (typeof Html5Qrcode !== 'undefined' && typeof Html5QrcodeSupportedFormats !== 'undefined') return Promise.resolve(true);
+      if (!promiseBiblioteca) {
+        const urls = [
+          'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js',
+          'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js',
+          'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js'
+        ];
+        promiseBiblioteca = urls.reduce(function (p, url) {
+          return p.then(function (ok) {
+            return ok ? ok : carregarScript(url).then(function () { return typeof Html5Qrcode !== 'undefined'; });
+          });
+        }, Promise.resolve(false));
+      }
+      return promiseBiblioteca;
+    }
+
+    // ==========================================
     // CÂMERA (MODO CELULAR)
     // EM PÉ: QR/Data Matrix via html5-qrcode
     // DEITADO: Código de barras via BarcodeDetector NATIVO (Chrome/Android)
@@ -787,6 +821,9 @@
     let zoom1D = 1;
 
     function ehPaisagem() { return window.innerWidth > window.innerHeight; }
+    function temBarcodeDetector() {
+      return typeof window.BarcodeDetector !== 'undefined';
+    }
     function formatos2D() {
       return [
         Html5QrcodeSupportedFormats.QR_CODE,
@@ -794,9 +831,6 @@
         Html5QrcodeSupportedFormats.AZTEC,
         Html5QrcodeSupportedFormats.PDF_417
       ];
-    }
-    function temBarcodeDetector() {
-      return typeof window.BarcodeDetector !== 'undefined';
     }
 
     function atualizarBadgeModoScanner() {
@@ -999,26 +1033,26 @@
       atualizarBadgeModoScanner();
       if (cameraRodando || html5Qr || stream1D) return;
       if (!verificarContextoSeguro()) return;
-      if (ehPaisagem()) {
-        // DEITADO: prioriza o decoder NATIVO (muito melhor para 1D)
-        if (temBarcodeDetector()) {
-          abrirScanner1DNativo().catch(e => {
-            const [t, m] = traduzirErroCamera(e);
-            mostrarErroCamera(t, m);
-          });
-        } else {
-          abrirScanner1DFallback().catch(e => {
-            const [t, m] = traduzirErroCamera(e);
-            mostrarErroCamera(t, m);
-          });
-        }
-      } else {
-        // EM PÉ: QR/Data Matrix
-        abrirScanner2D().catch(e => {
+      // Deitado no Android: usa o decoder NATIVO — não depende de biblioteca/CDN
+      if (ehPaisagem() && temBarcodeDetector()) {
+        abrirScanner1DNativo().catch(e => {
           const [t, m] = traduzirErroCamera(e);
           mostrarErroCamera(t, m);
         });
+        return;
       }
+      // Demais casos: garante a biblioteca com fallback entre CDNs
+      garantirBiblioteca().then(function (ok) {
+        if (!ok) {
+          mostrarErroCamera('BIBLIOTECA INDISPONÍVEL', 'O leitor não carregou: o navegador está bloqueando os CDNs (ex.: Prevenção de Rastreamento do Edge). Desative-a para este site ou use o Chrome.');
+          return;
+        }
+        if (ehPaisagem()) {
+          abrirScanner1DFallback().catch(e => { const [t, m] = traduzirErroCamera(e); mostrarErroCamera(t, m); });
+        } else {
+          abrirScanner2D().catch(e => { const [t, m] = traduzirErroCamera(e); mostrarErroCamera(t, m); });
+        }
+      });
     }
 
     async function fecharScannerInstancia() {
@@ -2371,6 +2405,8 @@
       ['click', 'keydown', 'touchstart'].forEach(evt => {
         document.addEventListener(evt, resetTimer, true);
       });
+      // Pré-carrega a biblioteca de leitura com fallback entre CDNs
+      garantirBiblioteca();
     };
   </script>
 </body>
